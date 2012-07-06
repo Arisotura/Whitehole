@@ -39,8 +39,6 @@
             this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
             this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
             this.columnHeader3 = new System.Windows.Forms.ColumnHeader();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.btnOneTimeUse = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -51,9 +49,7 @@
             this.pbTranslateProgress,
             this.btnCancel,
             this.toolStripSeparator1,
-            this.btnTranslateOne,
-            this.toolStripSeparator2,
-            this.btnOneTimeUse});
+            this.btnTranslateOne});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(784, 25);
@@ -132,21 +128,6 @@
             this.columnHeader3.Text = "Translated description";
             this.columnHeader3.Width = 300;
             // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
-            // 
-            // btnOneTimeUse
-            // 
-            this.btnOneTimeUse.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.btnOneTimeUse.Image = ((System.Drawing.Image)(resources.GetObject("btnOneTimeUse.Image")));
-            this.btnOneTimeUse.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnOneTimeUse.Name = "btnOneTimeUse";
-            this.btnOneTimeUse.Size = new System.Drawing.Size(81, 22);
-            this.btnOneTimeUse.Text = "one-time use";
-            this.btnOneTimeUse.Click += new System.EventHandler(this.btnOneTimeUse_Click);
-            // 
             // ObjNameTableViewerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -177,7 +158,5 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripButton btnTranslateOne;
         private System.Windows.Forms.ToolStripButton btnCancel;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-        private System.Windows.Forms.ToolStripButton btnOneTimeUse;
     }
 }

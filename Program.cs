@@ -7,9 +7,12 @@ namespace Whitehole
 {
     static class Program
     {
-        public static string Name = "Whitehole";
-        public static string Version = "v1.0 beta";
+        public const string Name = "Whitehole";
+        public const string Version = "v1.0 beta";
         public static bool IsBeta = Version.ToLower().Contains("beta");
+
+        // Website URL -- this is shown in the About box, and to be used as a base URL for ObjectDB downloads
+        public const string WebsiteURL = "http://kuribo64.cjb.net/";
 
         public static FilesystemBase GameArchive = null;
 

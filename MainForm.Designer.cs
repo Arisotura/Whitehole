@@ -31,12 +31,10 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.tsTheToolbar = new System.Windows.Forms.ToolStrip();
             this.btnSelectFolder = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.tsbDebugCrap = new System.Windows.Forms.ToolStripDropDownButton();
             this.btnHashCalc = new System.Windows.Forms.ToolStripMenuItem();
             this.btnBcsvEditor = new System.Windows.Forms.ToolStripMenuItem();
             this.btnObjNameTable = new System.Windows.Forms.ToolStripMenuItem();
-            this.btnHax = new System.Windows.Forms.ToolStripButton();
             this.btnHelp = new System.Windows.Forms.ToolStripButton();
             this.btnSettings = new System.Windows.Forms.ToolStripButton();
             this.fbdGameFolder = new System.Windows.Forms.FolderBrowserDialog();
@@ -48,9 +46,7 @@
             // 
             this.tsTheToolbar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.btnSelectFolder,
-            this.toolStripSeparator1,
             this.tsbDebugCrap,
-            this.btnHax,
             this.btnHelp,
             this.btnSettings});
             this.tsTheToolbar.Location = new System.Drawing.Point(0, 0);
@@ -69,11 +65,6 @@
             this.btnSelectFolder.Text = "Select game folder";
             this.btnSelectFolder.ToolTipText = "Select the folder you extracted the game\'s files to.";
             this.btnSelectFolder.Click += new System.EventHandler(this.btnSelectFolder_Click);
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
             // 
             // tsbDebugCrap
             // 
@@ -110,16 +101,6 @@
             this.btnObjNameTable.Size = new System.Drawing.Size(215, 22);
             this.btnObjNameTable.Text = "ObjNameTable";
             this.btnObjNameTable.Click += new System.EventHandler(this.btnObjNameTable_Click);
-            // 
-            // btnHax
-            // 
-            this.btnHax.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.btnHax.Image = ((System.Drawing.Image)(resources.GetObject("btnHax.Image")));
-            this.btnHax.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnHax.Name = "btnHax";
-            this.btnHax.Size = new System.Drawing.Size(29, 22);
-            this.btnHax.Text = "hax";
-            this.btnHax.Click += new System.EventHandler(this.btnHax_Click);
             // 
             // btnHelp
             // 
@@ -178,11 +159,9 @@
         private System.Windows.Forms.ToolStrip tsTheToolbar;
         private System.Windows.Forms.FolderBrowserDialog fbdGameFolder;
         private System.Windows.Forms.ToolStripButton btnSelectFolder;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripDropDownButton tsbDebugCrap;
         private System.Windows.Forms.ToolStripMenuItem btnHashCalc;
         private System.Windows.Forms.ToolStripMenuItem btnBcsvEditor;
-        private System.Windows.Forms.ToolStripButton btnHax;
         private System.Windows.Forms.ToolStripMenuItem btnObjNameTable;
         private System.Windows.Forms.ToolStripButton btnHelp;
         private System.Windows.Forms.ToolStripButton btnSettings;

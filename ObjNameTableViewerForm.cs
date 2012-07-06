@@ -31,6 +31,7 @@ namespace Whitehole
             for (int i = 0; i < m_List.Entries.Count; i++)
                 m_Translations[i] = "";
 
+            // TODO: find out why that silly BackgroundWorker won't work twice
             m_Lazyman = new BackgroundWorker();
             m_Lazyman.WorkerReportsProgress = true;
             m_Lazyman.WorkerSupportsCancellation = true;
@@ -126,31 +127,6 @@ namespace Whitehole
         {
             //m_Cancel = true;
             //while (m_Running) { }
-        }
-
-        private void btnOneTimeUse_Click(object sender, EventArgs e)
-        {
-            Stream file = File.OpenWrite("objdump2.sql");
-            StreamWriter wr = new StreamWriter(file);
-
-            Bcsv thelist = new Bcsv(new ExternalFile("G:\\Wii_ISOs\\smg2\\ObjNameTable.arc 0.rarc_dir\\ObjNameTable\\ObjNameTable.tbl", false));
-
-
-            int i = 0;
-            foreach (Bcsv.Entry entry in thelist.Entries)
-            {
-                string id = (string)entry[0x9FF8A861];
-
-                wr.WriteLine("INSERT IGNORE INTO spriterevisions (id,revision) VALUES ('{0}', 0);", id);
-                wr.WriteLine("INSERT INTO sprites (id,revision,name,lasteditor,games) VALUES ('{0}', 0, '{0}', 0, 2) ON DUPLICATE KEY UPDATE games=games|2;", id);
-
-                i++;
-            }
-
-            thelist.Close();
-
-            wr.Flush();
-            wr.Close();
         }
     }
 }

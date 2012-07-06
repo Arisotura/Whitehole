@@ -6,6 +6,13 @@ using System.Globalization;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
+// BMD renderer TODO list
+// * finish TEV/material emulation
+// * texgens
+// * certain texture formats (texture decoder is in Bmd.cs)
+// * perhaps not keep the whole model stored in RAM all the time?
+// * check transform support (especially weighted matrices)
+
 namespace Whitehole
 {
     public class BmdRenderer : RendererBase

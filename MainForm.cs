@@ -106,12 +106,6 @@ namespace Whitehole
             new BcsvEditorForm().Show(this);
         }
 
-        private void btnHax_Click(object sender, EventArgs e)
-        {
-            string arg = "HeavenlyBeachZone";// ((string)lbLevelList.SelectedNode.Tag).Substring(2);
-            new LevelEditorForm(arg).Show(this);
-        }
-
         private void btnObjNameTable_Click(object sender, EventArgs e)
         {
             if (Program.GameArchive == null) return;
@@ -131,9 +125,11 @@ namespace Whitehole
                 "Main coding: Mega-Mario\n" +
                 "Credits: Phantom Wings, Treeki, yaz0r, thakis, groepaz/hitmen\n" + 
                 "\n" + 
-                "See [website URL here] for more details.\n";
+                "See " + Program.WebsiteURL + " for more details.\n";
 
-            if (Program.Version.ToLower().Contains("beta"))
+            if (Program.Version.ToLower().Contains("private"))
+                msg += "\nThis is a private beta version. Leak it out and this'll be the last one you get.\n";
+            else if (Program.Version.ToLower().Contains("beta"))
                 msg += "\nThis is a beta version so don't expect full stability.\n";
 
             MessageBox.Show(msg, "About " + Program.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);

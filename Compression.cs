@@ -7,6 +7,10 @@ namespace Whitehole
 {
     public static class Yaz0
     {
+        // TODO: put compression in use?
+        // note: compression is slow when dealing with large files (eg. 3D models)
+        // it should be made optional, and show a progress dialog and all
+
         private static void FindOccurence(byte[] data, int pos, ref int offset, ref int length)
         {
             offset = -1;
