@@ -1,0 +1,13 @@
+# AstroGalaxy
+$DomeTable = { 1:Observatory; 2:Well; 3:Kitchen; 4:BedRoom; 5:Machine; 6:Tower }
+AstroDomeEntrance: FileName=String(AstroDomeEntrance{$DomeTable[Obj_arg0]})
+AstroStarPlate: FileName=String(AstroStarPlate{$DomeTable[Obj_arg0]})
+
+SuperSpinDriverGreen: FileName=String(SuperSpinDriverEmpty)
+
+# FactoryGalaxy
+OnimasuPivot: FileName=String(Onimasu)
+
+# HeavenlyBeachGalaxy
+#OceanBowl: FileName=String(HeavenlyBeachPlanetWater); Scale=Vector3(0.0138888889,0.0138888889,0.0138888889)
+#OceanBowl: FileName=String(WaterSphereObj)
