@@ -5,6 +5,12 @@ using System.Windows.Forms;
 
 namespace Whitehole
 {
+    public enum SMGVersion
+    {
+        SMG1 = 1,
+        SMG2
+    }
+
     static class Program
     {
         public const string Name = "Whitehole";
@@ -15,6 +21,7 @@ namespace Whitehole
         public const string WebsiteURL = "http://kuribo64.cjb.net/";
 
         public static FilesystemBase GameArchive = null;
+        public static SMGVersion GameVersion;
 
         /// <summary>
         /// Point d'entrée principal de l'application.

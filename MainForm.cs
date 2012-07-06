@@ -39,34 +39,79 @@ namespace Whitehole
                 if (!Program.GameArchive.DirectoryExists("/StageData"))
                     throw new Exception("Not a proper SMG1/2 archive: cannot find StageData directory");
 
+                // TODO find a more reliable way to detect SMG1 or SMG2?
+                if (Program.GameArchive.GetFiles("/StageData").Length == 0)
+                    Program.GameVersion = SMGVersion.SMG2;
+                else
+                    Program.GameVersion = SMGVersion.SMG1;
+
                 // list the levels available
                 // nothing fancy, we just take the directories we got
                 // for each directory name we have:
                 // * /StageData/<name>/<name>Scenario.arc -> scenariodata and zonelist (tells which archives from StageData will be used)
                 // * /stageData/<name>.arc -> defines the placement of the planets for each zone (in Placement/StageObjInfo)
+                // TODO perhaps all this kind of code could be moved to classes
+                // rather than if/else statements
                 string[] leveldirs = Program.GameArchive.GetDirectories("/StageData");
-                foreach (string level in leveldirs)
+                if (Program.GameVersion == SMGVersion.SMG1)
                 {
-                    string scenario_filename = string.Format("/StageData/{0}/{0}Scenario.arc", level);
-                    RarcFilesystem scenario_arc = new RarcFilesystem(Program.GameArchive.OpenFile(scenario_filename));
-                    Bcsv zonelist = new Bcsv(scenario_arc.OpenFile("/" + level + "Scenario/ZoneList.bcsv"));
-
-                    // TODO: remove that
-                    foreach (Bcsv.Entry entry in zonelist.Entries)
+                    foreach (string level in leveldirs)
                     {
-                        string zonename = (string)entry["ZoneName"];
-                        //lvlnode.Nodes.Add(zonename).Tag = "Z|" + zonename;
+                        string scenario_filename = string.Format("/StageData/{0}/{0}Scenario.arc", level);
+                        RarcFilesystem scenario_arc = new RarcFilesystem(Program.GameArchive.OpenFile(scenario_filename));
+                        Bcsv zonelist = new Bcsv(scenario_arc.OpenFile("/" + level + "Scenario/ZoneList.bcsv"));
 
-                        // add the zonename to the Bcsv field name hashes list
-                        // ScenarioData.bcsv uses zone names as field names
-                        Bcsv.AddHash(zonename);
+                        // TODO: remove that
+                        foreach (Bcsv.Entry entry in zonelist.Entries)
+                        {
+                            string zonename = (string)entry["ZoneName"];
+                            //lvlnode.Nodes.Add(zonename).Tag = "Z|" + zonename;
+
+                            // add the zonename to the Bcsv field name hashes list
+                            // ScenarioData.bcsv uses zone names as field names
+                            Bcsv.AddHash(zonename);
+                        }
+
+                        // lvlnode.Expand();
+                        lbLevelList.Items.Add(level);
+
+                        zonelist.Close();
+                        scenario_arc.Close();
                     }
+                }
+                else
+                {
+                    foreach (string level in leveldirs)
+                    {
+                        if (level.EndsWith("Zone")) continue;
 
-                   // lvlnode.Expand();
-                    lbLevelList.Items.Add(level);
+                        try
+                        {
+                            string scenario_filename = string.Format("/StageData/{0}/{0}Scenario.arc", level);
+                            RarcFilesystem scenario_arc = new RarcFilesystem(Program.GameArchive.OpenFile(scenario_filename));
+                            Bcsv zonelist = new Bcsv(scenario_arc.OpenFile("/" + level + "Scenario/ZoneList.bcsv"));
 
-                    zonelist.Close();
-                    scenario_arc.Close();
+                            // TODO: remove that
+                            foreach (Bcsv.Entry entry in zonelist.Entries)
+                            {
+                                string zonename = (string)entry["ZoneName"];
+                                //lvlnode.Nodes.Add(zonename).Tag = "Z|" + zonename;
+
+                                // add the zonename to the Bcsv field name hashes list
+                                // ScenarioData.bcsv uses zone names as field names
+                                Bcsv.AddHash(zonename);
+                            }
+
+                            // lvlnode.Expand();
+                            lbLevelList.Items.Add(level);
+
+                            zonelist.Close();
+                            scenario_arc.Close();
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
                 
                 // remember the latest directory used

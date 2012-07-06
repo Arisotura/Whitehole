@@ -138,7 +138,12 @@ namespace Whitehole
 
             string stagename = ZoneName;
            // string stagename = "SandTowerZone";// "IceMountainZone";// "OceanRingZone";// "SurfingLV1Zone";// "TwinFallLakeZone";
-            RarcFilesystem stagearc = new RarcFilesystem(Program.GameArchive.OpenFile("/StageData/" + stagename + ".arc"));
+            string filename;
+            if (Program.GameVersion == SMGVersion.SMG1)
+                filename = "/StageData/" + stagename + ".arc";
+            else
+                filename = "/StageData/" + stagename + "/" + stagename + "Map.arc";
+            RarcFilesystem stagearc = new RarcFilesystem(Program.GameArchive.OpenFile(filename));
             Bcsv bcsv = new Bcsv(stagearc.OpenFile("/Stage/Jmp/Placement/Common/ObjInfo"));
 
             foreach (Bcsv.Entry entry in bcsv.Entries)
