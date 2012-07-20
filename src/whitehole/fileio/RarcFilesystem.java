@@ -13,7 +13,7 @@ public class RarcFilesystem implements FilesystemBase
         m_File.Position(0);
         int tag = m_File.ReadInt();
         if (tag != 0x52415243) 
-            throw new IOException(String.format("File isn't a RARC (tag 0x%1$X8, expected 0x52415243)", tag));
+            throw new IOException(String.format("File isn't a RARC (tag 0x%1$08X, expected 0x52415243)", tag));
 
         m_File.Position(0xC);
         m_FileDataOffset = m_File.ReadInt() + 0x20;

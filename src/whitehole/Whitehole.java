@@ -24,6 +24,8 @@ public class Whitehole
             return;
         }
         
+        Bcsv.PopulateHashtable();
+        
         
         try
         {

@@ -205,12 +205,13 @@ public class MemoryFile implements FileBase
     }
 
     @Override
-    public void WriteString(String encoding, String val, int length) throws IOException
+    public int WriteString(String encoding, String val, int length) throws IOException
     {
         Charset charset = Charset.forName(encoding);
         CharsetEncoder enc = charset.newEncoder();
         CharBuffer bin = CharBuffer.allocate(1);
         ByteBuffer bout = ByteBuffer.allocate(8);
+        int len = 0;
         
         for (int i = 0; i < ((length > 0) ? length : val.length()); i++)
         {
@@ -221,6 +222,7 @@ public class MemoryFile implements FileBase
                 throw new IOException("Error while writing string");
             
             int bytesize = bout.position();
+            len += bytesize;
             AutoExpand(m_Position + bytesize);
             for (int j = 0; j < bytesize; j++)
                 m_Buffer[m_Position++] = bout.get(j);
@@ -238,10 +240,13 @@ public class MemoryFile implements FileBase
                 throw new IOException("Error while writing string");
             
             int bytesize = bout.position();
+            len += bytesize;
             AutoExpand(m_Position + bytesize);
             for (int j = 0; j < bytesize; j++)
                 m_Buffer[m_Position++] = bout.get(j);
         }
+        
+        return len;
     }
     
     @Override

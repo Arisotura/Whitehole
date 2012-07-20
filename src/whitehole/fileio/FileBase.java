@@ -31,7 +31,7 @@ public interface FileBase
     public void WriteShort(short val) throws IOException;
     public void WriteInt(int val) throws IOException;
     public void WriteFloat(float val) throws IOException;
-    public void WriteString(String encoding, String val, int length) throws IOException;
+    public int WriteString(String encoding, String val, int length) throws IOException;
     public void WriteBytes(byte[] stuff) throws IOException;
     
     public byte[] GetContents() throws IOException;
