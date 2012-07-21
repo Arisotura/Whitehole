@@ -25,6 +25,7 @@ public class Whitehole
         }
         
         Bcsv.PopulateHashtable();
+        ObjectDB.Initialize();
         
         
         try
