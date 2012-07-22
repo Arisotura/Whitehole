@@ -16,19 +16,28 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole.fileio;
+package whitehole;
 
-import java.io.*;
-import java.util.List;
+import java.util.*;
+import whitehole.fileio.*;
 
-public interface FilesystemBase
+public class GameArchive 
 {
-    public void Close() throws IOException;
+    public GameArchive(FilesystemBase fs)
+    {
+        m_Filesystem = fs;
+    }
     
-    public List<String> GetDirectories(String directory);
-    public Boolean DirectoryExists(String directory);
     
-    public List<String> GetFiles(String directory);
-    public Boolean FileExists(String directory);
-    public FileBase OpenFile(String filename) throws FileNotFoundException;
+    public List<String> GetGalaxies()
+    {
+        List<String> ret = new ArrayList<>();
+        
+        //
+        
+        return ret;
+    }
+    
+    
+    private FilesystemBase m_Filesystem;
 }
