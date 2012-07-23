@@ -28,23 +28,23 @@ public class ExternalFilesystem implements FilesystemBase
         if (basedir.endsWith("/") || basedir.endsWith("\\"))
             basedir = basedir.substring(0, basedir.length() - 1);
 
-        m_BaseDirectory = new File(basedir);
-        if (!m_BaseDirectory.exists()) throw new IOException("Directory '" + basedir + "' doesn't exist");
-        if (!m_BaseDirectory.isDirectory()) throw new IOException(basedir + " isn't a directory");
+        baseDirectory = new File(basedir);
+        if (!baseDirectory.exists()) throw new IOException("Directory '" + basedir + "' doesn't exist");
+        if (!baseDirectory.isDirectory()) throw new IOException(basedir + " isn't a directory");
     }
     
     @Override
-    public void Close()
+    public void close()
     {
     }
 
 
     @Override
-    public List<String> GetDirectories(String directory)
+    public List<String> getDirectories(String directory)
     {
         directory = directory.substring(1);
         
-        File[] files = new File(m_BaseDirectory, directory).listFiles();
+        File[] files = new File(baseDirectory, directory).listFiles();
         List<String> ret = new ArrayList<>();
 
         for (File file: files)
@@ -57,21 +57,21 @@ public class ExternalFilesystem implements FilesystemBase
     }
 
     @Override
-    public Boolean DirectoryExists(String directory)
+    public Boolean directoryExists(String directory)
     {
         directory = directory.substring(1);
         
-        File dir = new File(m_BaseDirectory, directory);
+        File dir = new File(baseDirectory, directory);
         return dir.exists() && dir.isDirectory();
     }
 
 
     @Override
-    public List<String> GetFiles(String directory)
+    public List<String> getFiles(String directory)
     {
         directory = directory.substring(1);
         
-        File[] files = new File(m_BaseDirectory, directory).listFiles();
+        File[] files = new File(baseDirectory, directory).listFiles();
         List<String> ret = new ArrayList<>();
 
         for (File file: files)
@@ -84,20 +84,20 @@ public class ExternalFilesystem implements FilesystemBase
     }
 
     @Override
-    public Boolean FileExists(String filename)
+    public Boolean fileExists(String filename)
     { 
         filename = filename.substring(1);
         
-        File file = new File(m_BaseDirectory, filename);
+        File file = new File(baseDirectory, filename);
         return file.exists() && file.isFile();
     }
 
     @Override
-    public FileBase OpenFile(String filename) throws FileNotFoundException
+    public FileBase openFile(String filename) throws FileNotFoundException
     {
-        return new ExternalFile(m_BaseDirectory.getPath() + filename);
+        return new ExternalFile(baseDirectory.getPath() + filename);
     }
 
 
-    private File m_BaseDirectory;
+    private File baseDirectory;
 }

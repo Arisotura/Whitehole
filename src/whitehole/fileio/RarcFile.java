@@ -24,21 +24,21 @@ public class RarcFile extends MemoryFile
 {
     public RarcFile(RarcFilesystem fs, int id) throws IOException
     {
-        super(fs.GetFileContents(id));
+        super(fs.getFileContents(id));
         
-        m_FS = fs;
-        m_ID = id;
+        filesystem = fs;
+        fileID = id;
     }
 
     @Override
-    public void Save() throws IOException
+    public void save() throws IOException
     {
-        m_FS.ReinsertFile(this);
+        filesystem.reinsertFile(this);
     }
 
 
-    private RarcFilesystem m_FS;
-    private int m_ID;
+    private RarcFilesystem filesystem;
+    private int fileID;
 
-    public int ID() { return m_ID; }
+    public int ID() { return fileID; }
 }

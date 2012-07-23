@@ -165,7 +165,7 @@ public class MainFrame extends javax.swing.JFrame {
         
         try
         {
-            Whitehole.Game = new GameArchive(new ExternalFilesystem(seldir));
+            Whitehole.game = new GameArchive(new ExternalFilesystem(seldir));
             lbStatusBar.setText("Game directory successfully opened");
         }
         catch (IOException ex)
@@ -176,7 +176,7 @@ public class MainFrame extends javax.swing.JFrame {
         
         DefaultListModel galaxylist = new DefaultListModel();
         GalaxyList.setModel(galaxylist);
-        java.util.List<String> galaxies = Whitehole.Game.GetGalaxies();
+        java.util.List<String> galaxies = Whitehole.game.getGalaxies();
         for (String galaxy : galaxies)
         {
             galaxylist.addElement(galaxy);
@@ -187,9 +187,9 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
     {//GEN-HEADEREND:event_formWindowOpened
-        btnBcsvEditor.setVisible(Whitehole.IsBeta);
+        btnBcsvEditor.setVisible(Whitehole.isBeta);
         
-        this.setTitle(Whitehole.FullName);
+        this.setTitle(Whitehole.fullName);
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
         lbStatusBar.setText("Ready");
         
@@ -202,24 +202,24 @@ public class MainFrame extends javax.swing.JFrame {
     private void btnAboutActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnAboutActionPerformed
     {//GEN-HEADEREND:event_btnAboutActionPerformed
         String msg =
-            Whitehole.Name + " " + Whitehole.Version + "\n" +
+            Whitehole.name + " " + Whitehole.version + "\n" +
             "\n" +
             "A level editor for Super Mario Galaxy 1 and 2\n" +
             "\n" +
-            Whitehole.Name + " is free software, and shouldn't be provided as\n" +
+            Whitehole.name + " is free software, and shouldn't be provided as\n" +
             "a part of a paid software package\n" + 
             "\n" +
             "Main coding: Mega-Mario\n" +
             "Credits: Phantom Wings, Treeki, yaz0r, thakis, groepaz/hitmen\n" + 
             "\n" + 
-            "See " + Whitehole.WebsiteURL + " for more details.\n";
+            "See " + Whitehole.websiteURL + " for more details.\n";
 
-        if (Whitehole.Version.toLowerCase().contains("private"))
+        if (Whitehole.version.toLowerCase().contains("private"))
             msg += "\nThis is a private beta version. Leak it out and this'll be the last one you get.\n";
-        else if (Whitehole.Version.toLowerCase().contains("beta"))
+        else if (Whitehole.version.toLowerCase().contains("beta"))
             msg += "\nThis is a beta version so don't expect full stability.\n";
         
-        JOptionPane.showMessageDialog(this, msg, "About " + Whitehole.Name + "...", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, msg, "About " + Whitehole.name + "...", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_btnAboutActionPerformed
 
     private void btnBcsvEditorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnBcsvEditorActionPerformed

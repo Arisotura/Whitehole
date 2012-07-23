@@ -22,36 +22,36 @@ import java.io.IOException;
 
 public interface FileBase 
 {
-    public void Save() throws IOException;      // Forces changes to the file's contents to be saved
-    public void Close() throws IOException;     // Closes the file
+    public void save() throws IOException;      // Forces changes to the file's contents to be saved
+    public void close() throws IOException;     // Closes the file
     
     // Typically used by classes extending MemoryFile, to save RAM. Has no effect on ExternalFiles.
-    public void ReleaseStorage();
+    public void releaseStorage();
     
     // Affects the byte ordering of the Read/Write methods
-    public void SetBigEndian(Boolean bigendian);
+    public void setBigEndian(Boolean bigendian);
     
-    public long GetLength() throws IOException;
-    public void SetLength(long length) throws IOException;
+    public long getLength() throws IOException;
+    public void setLength(long length) throws IOException;
     
-    public long Position() throws IOException;
-    public void Position(long newpos) throws IOException;
-    public void Skip(long nbytes) throws IOException;
+    public long position() throws IOException;
+    public void position(long newpos) throws IOException;
+    public void skip(long nbytes) throws IOException;
     
-    public byte ReadByte() throws IOException;
-    public short ReadShort() throws IOException;
-    public int ReadInt() throws IOException;
-    public float ReadFloat() throws IOException;
-    public String ReadString(String encoding, int length) throws IOException;
-    public byte[] ReadBytes(int length) throws IOException;
+    public byte readByte() throws IOException;
+    public short readShort() throws IOException;
+    public int readInt() throws IOException;
+    public float readFloat() throws IOException;
+    public String readString(String encoding, int length) throws IOException;
+    public byte[] readBytes(int length) throws IOException;
     
-    public void WriteByte(byte val) throws IOException;
-    public void WriteShort(short val) throws IOException;
-    public void WriteInt(int val) throws IOException;
-    public void WriteFloat(float val) throws IOException;
-    public int WriteString(String encoding, String val, int length) throws IOException;
-    public void WriteBytes(byte[] stuff) throws IOException;
+    public void writeByte(byte val) throws IOException;
+    public void writeShort(short val) throws IOException;
+    public void writeInt(int val) throws IOException;
+    public void writeFloat(float val) throws IOException;
+    public int writeString(String encoding, String val, int length) throws IOException;
+    public void writeBytes(byte[] stuff) throws IOException;
     
-    public byte[] GetContents() throws IOException;
-    public void SetContents(byte[] buf) throws IOException;
+    public byte[] getContents() throws IOException;
+    public void setContents(byte[] buf) throws IOException;
 }

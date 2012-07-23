@@ -23,110 +23,110 @@ import java.util.*;
 
 public class RarcFilesystem implements FilesystemBase
 {
-    public RarcFilesystem(FileBase file) throws IOException
+    public RarcFilesystem(FileBase _file) throws IOException
     {
-        m_File = new Yaz0File(file);
-        m_File.SetBigEndian(true);
+        file = new Yaz0File(_file);
+        file.setBigEndian(true);
 
-        m_File.Position(0);
-        int tag = m_File.ReadInt();
+        file.position(0);
+        int tag = file.readInt();
         if (tag != 0x52415243) 
             throw new IOException(String.format("File isn't a RARC (tag 0x%1$08X, expected 0x52415243)", tag));
 
-        m_File.Position(0xC);
-        m_FileDataOffset = m_File.ReadInt() + 0x20;
-        m_File.Position(0x20);
-        m_NumDirNodes = m_File.ReadInt();
-        m_DirNodesOffset = m_File.ReadInt() + 0x20;
-        m_File.Skip(0x4);
-        m_FileEntriesOffset = m_File.ReadInt() + 0x20;
-        m_File.Skip(0x4);
-        m_StringTableOffset = m_File.ReadInt() + 0x20;
+        file.position(0xC);
+        fileDataOffset = file.readInt() + 0x20;
+        file.position(0x20);
+        numDirNodes = file.readInt();
+        dirNodesOffset = file.readInt() + 0x20;
+        file.skip(0x4);
+        fileEntriesOffset = file.readInt() + 0x20;
+        file.skip(0x4);
+        stringTableOffset = file.readInt() + 0x20;
 
-        m_DirEntries = new HashMap<>();
-        m_FileEntries = new HashMap<>();
+        dirEntries = new HashMap<>();
+        fileEntries = new HashMap<>();
 
         DirEntry root = new DirEntry();
         root.ID = 0;
-        root.ParentDir = 0xFFFFFFFF;
+        root.parentDir = 0xFFFFFFFF;
 
-        m_File.Position(m_DirNodesOffset + 0x6);
-        int rnoffset = m_File.ReadShort();
-        m_File.Position(m_StringTableOffset + rnoffset);
-        root.Name = m_File.ReadString("ASCII", 0);
-        root.FullName = "/" + root.Name;
+        file.position(dirNodesOffset + 0x6);
+        int rnoffset = file.readShort();
+        file.position(stringTableOffset + rnoffset);
+        root.name = file.readString("ASCII", 0);
+        root.fullName = "/" + root.name;
 
-        m_DirEntries.put(0, root);
+        dirEntries.put(0, root);
 
-        for (int i = 0; i < m_NumDirNodes; i++)
+        for (int i = 0; i < numDirNodes; i++)
         {
-            DirEntry parentdir = m_DirEntries.get(i);
+            DirEntry parentdir = dirEntries.get(i);
 
-            m_File.Position(m_DirNodesOffset + (i * 0x10) + 10);
+            file.position(dirNodesOffset + (i * 0x10) + 10);
 
-            short numentries = m_File.ReadShort();
-            int firstentry = m_File.ReadInt();
+            short numentries = file.readShort();
+            int firstentry = file.readInt();
 
             for (int j = 0; j < numentries; j++)
             {
-                int entryoffset = m_FileEntriesOffset + ((j + firstentry) * 0x14);
-                m_File.Position(entryoffset);
+                int entryoffset = fileEntriesOffset + ((j + firstentry) * 0x14);
+                file.position(entryoffset);
 
-                int fileid = m_File.ReadShort();
-                m_File.Skip(4);
-                int nameoffset = m_File.ReadShort();
-                int dataoffset = m_File.ReadInt();
-                int datasize = m_File.ReadInt();
+                int fileid = file.readShort();
+                file.skip(4);
+                int nameoffset = file.readShort();
+                int dataoffset = file.readInt();
+                int datasize = file.readInt();
 
-                m_File.Position(m_StringTableOffset + nameoffset);
-                String name = m_File.ReadString("ASCII", 0);
+                file.position(stringTableOffset + nameoffset);
+                String name = file.readString("ASCII", 0);
                 if (name.equals(".") || name.equals("..")) continue;
 
-                String fullname = parentdir.FullName + "/" + name;
+                String fullname = parentdir.fullName + "/" + name;
 
                 if (fileid == 0xFFFF)
                 {
                     DirEntry d = new DirEntry();
-                    d.EntryOffset = entryoffset;
+                    d.entryOffset = entryoffset;
                     d.ID = dataoffset;
-                    d.ParentDir = i;
-                    d.NameOffset = nameoffset;
-                    d.Name = name;
-                    d.FullName = fullname;
+                    d.parentDir = i;
+                    d.nameOffset = nameoffset;
+                    d.name = name;
+                    d.fullName = fullname;
 
-                    m_DirEntries.put(dataoffset, d);
+                    dirEntries.put(dataoffset, d);
                 }
                 else
                 {
                     FileEntry f = new FileEntry();
-                    f.EntryOffset = entryoffset;
+                    f.entryOffset = entryoffset;
                     f.ID = fileid;
-                    f.ParentDir = i;
-                    f.NameOffset = nameoffset;
-                    f.DataOffset = dataoffset;
-                    f.DataSize = datasize;
-                    f.Name = name;
-                    f.FullName = fullname;
+                    f.parentDir = i;
+                    f.nameOffset = nameoffset;
+                    f.dataOffset = dataoffset;
+                    f.dataSize = datasize;
+                    f.name = name;
+                    f.fullName = fullname;
 
-                    m_FileEntries.put(fileid, f);
+                    fileEntries.put(fileid, f);
                 }
             }
         }
     }
 
     @Override
-    public void Close() throws IOException
+    public void close() throws IOException
     {
-        m_File.Close();
+        file.close();
     }
 
 
     @Override
-    public Boolean DirectoryExists(String directory)
+    public Boolean directoryExists(String directory)
     {
-        for (DirEntry de : m_DirEntries.values())
+        for (DirEntry de : dirEntries.values())
         {
-            if (de.FullName.equalsIgnoreCase(directory))
+            if (de.fullName.equalsIgnoreCase(directory))
                 return true;
         }
         
@@ -134,12 +134,12 @@ public class RarcFilesystem implements FilesystemBase
     }
 
     @Override
-    public List<String> GetDirectories(String directory)
+    public List<String> getDirectories(String directory)
     {
         DirEntry dir = null;
-        for (DirEntry de : m_DirEntries.values())
+        for (DirEntry de : dirEntries.values())
         {
-            if (de.FullName.equalsIgnoreCase(directory))
+            if (de.fullName.equalsIgnoreCase(directory))
             {
                 dir = de;
                 break;
@@ -149,10 +149,10 @@ public class RarcFilesystem implements FilesystemBase
         if (dir == null) return null;
         
         List<String> ret = new ArrayList<>();
-        for (DirEntry de : m_DirEntries.values())
+        for (DirEntry de : dirEntries.values())
         {
-            if (de.ParentDir == dir.ID)
-                ret.add(de.Name);
+            if (de.parentDir == dir.ID)
+                ret.add(de.name);
         }
         
         return ret;
@@ -160,11 +160,11 @@ public class RarcFilesystem implements FilesystemBase
 
 
     @Override
-    public Boolean FileExists(String filename)
+    public Boolean fileExists(String filename)
     {
-        for (FileEntry fe : m_FileEntries.values())
+        for (FileEntry fe : fileEntries.values())
         {
-            if (fe.FullName.equalsIgnoreCase(filename))
+            if (fe.fullName.equalsIgnoreCase(filename))
                 return true;
         }
         
@@ -172,12 +172,12 @@ public class RarcFilesystem implements FilesystemBase
     }
 
     @Override
-    public List<String> GetFiles(String directory)
+    public List<String> getFiles(String directory)
     {
         DirEntry dir = null;
-        for (DirEntry de : m_DirEntries.values())
+        for (DirEntry de : dirEntries.values())
         {
-            if (de.FullName.equalsIgnoreCase(directory))
+            if (de.fullName.equalsIgnoreCase(directory))
             {
                 dir = de;
                 break;
@@ -187,21 +187,21 @@ public class RarcFilesystem implements FilesystemBase
         if (dir == null) return null;
         
         List<String> ret = new ArrayList<>();
-        for (FileEntry fe : m_FileEntries.values())
+        for (FileEntry fe : fileEntries.values())
         {
-            if (fe.ParentDir == dir.ID)
-                ret.add(fe.Name);
+            if (fe.parentDir == dir.ID)
+                ret.add(fe.name);
         }
         
         return ret;
     }
 
     @Override
-    public FileBase OpenFile(String filename) throws FileNotFoundException
+    public FileBase openFile(String filename) throws FileNotFoundException
     {
-        for (FileEntry fe : m_FileEntries.values())
+        for (FileEntry fe : fileEntries.values())
         {
-            if (fe.FullName.equalsIgnoreCase(filename))
+            if (fe.fullName.equalsIgnoreCase(filename))
             {
                 try
                 {
@@ -219,93 +219,93 @@ public class RarcFilesystem implements FilesystemBase
 
 
     // support functions for RarcFile
-    public byte[] GetFileContents(int id) throws IOException
+    public byte[] getFileContents(int id) throws IOException
     {
-        FileEntry fe = m_FileEntries.get(id);
+        FileEntry fe = fileEntries.get(id);
 
-        m_File.Position(m_FileDataOffset + fe.DataOffset);
-        return m_File.ReadBytes((int)fe.DataSize);
+        file.position(fileDataOffset + fe.dataOffset);
+        return file.readBytes((int)fe.dataSize);
     }
 
-    public void ReinsertFile(RarcFile file) throws IOException
+    public void reinsertFile(RarcFile _file) throws IOException
     {
-        FileEntry fe = m_FileEntries.get(file.ID());
+        FileEntry fe = fileEntries.get(_file.ID());
 
-        int fileoffset = m_FileDataOffset + fe.DataOffset;
-        int oldlength = (int)fe.DataSize;
-        int newlength = (int)file.GetLength();
+        int fileoffset = fileDataOffset + fe.dataOffset;
+        int oldlength = (int)fe.dataSize;
+        int newlength = (int)_file.getLength();
         int delta = newlength - oldlength;
 
         if (newlength != oldlength)
         {
-            m_File.Position(fileoffset + oldlength);
-            byte[] tomove = m_File.ReadBytes((int)(m_File.GetLength() - m_File.Position()));
+            file.position(fileoffset + oldlength);
+            byte[] tomove = file.readBytes((int)(file.getLength() - file.position()));
 
-            m_File.Position(fileoffset + newlength);
-            m_File.SetLength(m_File.GetLength() + delta);
-            m_File.WriteBytes(tomove);
+            file.position(fileoffset + newlength);
+            file.setLength(file.getLength() + delta);
+            file.writeBytes(tomove);
 
-            fe.DataSize = (int)newlength;
-            m_File.Position(fe.EntryOffset + 0xC);
-            m_File.WriteInt(fe.DataSize);
+            fe.dataSize = (int)newlength;
+            file.position(fe.entryOffset + 0xC);
+            file.writeInt(fe.dataSize);
 
-            for (FileEntry tofix : m_FileEntries.values())
+            for (FileEntry tofix : fileEntries.values())
             {
                 if (tofix.ID == fe.ID) continue;
-                if (tofix.DataOffset < (fe.DataOffset + oldlength)) continue;
+                if (tofix.dataOffset < (fe.dataOffset + oldlength)) continue;
 
-                tofix.DataOffset = (int)(tofix.DataOffset + delta);
-                m_File.Position(tofix.EntryOffset + 0x8);
-                m_File.WriteInt(tofix.DataOffset);
+                tofix.dataOffset = (int)(tofix.dataOffset + delta);
+                file.position(tofix.entryOffset + 0x8);
+                file.writeInt(tofix.dataOffset);
             }
         }
 
-        m_File.Position(fileoffset);
-        file.Position(0);
-        byte[] data = file.ReadBytes(newlength);
-        m_File.WriteBytes(data);
+        file.position(fileoffset);
+        _file.position(0);
+        byte[] data = _file.readBytes(newlength);
+        file.writeBytes(data);
 
-        m_File.Save();
+        file.save();
     }
 
 
     private class FileEntry
     {
-        public int EntryOffset;
+        public int entryOffset;
 
         public int ID;
-        public int NameOffset;
-        public int DataOffset;
-        public int DataSize;
+        public int nameOffset;
+        public int dataOffset;
+        public int dataSize;
 
-        public int ParentDir;
+        public int parentDir;
 
-        public String Name;
-        public String FullName;
+        public String name;
+        public String fullName;
     }
 
     private class DirEntry
     {
-        public int EntryOffset;
+        public int entryOffset;
 
         public int ID;
-        public int NameOffset;
+        public int nameOffset;
 
-        public int ParentDir;
+        public int parentDir;
 
-        public String Name;
-        public String FullName;
+        public String name;
+        public String fullName;
     }
 
 
-    private FileBase m_File;
+    private FileBase file;
 
-    private int m_FileDataOffset;
-    private int m_NumDirNodes;
-    private int m_DirNodesOffset;
-    private int m_FileEntriesOffset;
-    private int m_StringTableOffset;
+    private int fileDataOffset;
+    private int numDirNodes;
+    private int dirNodesOffset;
+    private int fileEntriesOffset;
+    private int stringTableOffset;
 
-    private HashMap<Integer, FileEntry> m_FileEntries;
-    private HashMap<Integer, DirEntry> m_DirEntries;
+    private HashMap<Integer, FileEntry> fileEntries;
+    private HashMap<Integer, DirEntry> dirEntries;
 }

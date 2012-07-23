@@ -26,174 +26,174 @@ public class Bcsv
 {
     public Bcsv(FileBase file) throws IOException
     {
-        m_File = file;
-        m_File.SetBigEndian(true);
+        file = file;
+        file.setBigEndian(true);
 
-        m_File.Position(0);
-        int entrycount = m_File.ReadInt();
-        int fieldcount = m_File.ReadInt();
-        int dataoffset = m_File.ReadInt();
-        int entrydatasize = m_File.ReadInt();
+        file.position(0);
+        int entrycount = file.readInt();
+        int fieldcount = file.readInt();
+        int dataoffset = file.readInt();
+        int entrydatasize = file.readInt();
         
-        Fields = new HashMap<>(fieldcount);
-        Entries = new ArrayList<>(entrycount);
+        fields = new HashMap<>(fieldcount);
+        entries = new ArrayList<>(entrycount);
 
         int stringtableoffset = (int)(dataoffset + (entrycount * entrydatasize));
 
         for (int i = 0; i < fieldcount; i++)
         {
             Field field = new Field();
-            m_File.Position(0x10 + (0xC * i));
+            file.position(0x10 + (0xC * i));
 
-            field.NameHash = m_File.ReadInt();
-            field.Mask = m_File.ReadInt();
-            field.EntryOffset = m_File.ReadShort();
-            field.ShiftAmount = m_File.ReadByte();
-            field.Type = m_File.ReadByte();
+            field.nameHash = file.readInt();
+            field.mask = file.readInt();
+            field.entryOffset = file.readShort();
+            field.shiftAmount = file.readByte();
+            field.type = file.readByte();
 
-            String fieldname = Bcsv.HashToFieldName(field.NameHash);
-            field.Name = fieldname;
-            Fields.put(field.NameHash, field);
+            String fieldname = Bcsv.hashToFieldName(field.nameHash);
+            field.name = fieldname;
+            fields.put(field.nameHash, field);
         }
 
         for (int i = 0; i < entrycount; i++)
         {
             Entry entry = new Entry();
 
-            for (Field field: Fields.values())
+            for (Field field: fields.values())
             {
-                m_File.Position(dataoffset + (i * entrydatasize) + field.EntryOffset);
+                file.position(dataoffset + (i * entrydatasize) + field.entryOffset);
 
                 Object val = null;
-                switch (field.Type)
+                switch (field.type)
                 {
                     case 0:
                     case 3:
-                        val = (int)((m_File.ReadInt() & field.Mask) >>> field.ShiftAmount);
+                        val = (int)((file.readInt() & field.mask) >>> field.shiftAmount);
                         break;
 
                     case 4:
-                        val = (short)((m_File.ReadShort() & field.Mask) >>> field.ShiftAmount);
+                        val = (short)((file.readShort() & field.mask) >>> field.shiftAmount);
                         break;
 
                     case 5:
-                        val = (byte)((m_File.ReadByte() & field.Mask) >>> field.ShiftAmount);
+                        val = (byte)((file.readByte() & field.mask) >>> field.shiftAmount);
                         break;
 
                     case 2:
-                        val = m_File.ReadFloat();
+                        val = file.readFloat();
                         break;
 
                     case 6:
-                        int str_offset = m_File.ReadInt();
-                        m_File.Position(stringtableoffset + str_offset);
-                        val = m_File.ReadString("SJIS", 0);
+                        int str_offset = file.readInt();
+                        file.position(stringtableoffset + str_offset);
+                        val = file.readString("SJIS", 0);
                         break;
 
                     default:
-                        throw new IOException(String.format("Bcsv: unsupported data type %1$02X", field.Type));
+                        throw new IOException(String.format("Bcsv: unsupported data type %1$02X", field.type));
                 }
 
-                entry.put(field.NameHash, val);
+                entry.put(field.nameHash, val);
             }
 
-            Entries.add(entry);
+            entries.add(entry);
         }
     }
 
-    public void Save() throws IOException
+    public void save() throws IOException
     {
         int[] datasizes = { 4, -1, 4, 4, 2, 1, 4 };
         int entrysize = 0;
 
-        for (Field field : Fields.values())
+        for (Field field : fields.values())
         {
-            short fieldend = (short)(field.EntryOffset + datasizes[field.Type]);
+            short fieldend = (short)(field.entryOffset + datasizes[field.type]);
             if (fieldend > entrysize) entrysize = fieldend;
         }
 
-        int dataoffset = (int)(0x10 + (0xC * Fields.size()));
-        int stringtableoffset = (int)(dataoffset + (Entries.size() * entrysize));
+        int dataoffset = (int)(0x10 + (0xC * fields.size()));
+        int stringtableoffset = (int)(dataoffset + (entries.size() * entrysize));
         int curstring = 0;
 
-        m_File.SetLength(stringtableoffset);
+        file.setLength(stringtableoffset);
 
-        m_File.Position(0);
-        m_File.WriteInt(Entries.size());
-        m_File.WriteInt(Fields.size());
-        m_File.WriteInt(dataoffset);
-        m_File.WriteInt(entrysize);
+        file.position(0);
+        file.writeInt(entries.size());
+        file.writeInt(fields.size());
+        file.writeInt(dataoffset);
+        file.writeInt(entrysize);
 
-        for (Field field : Fields.values())
+        for (Field field : fields.values())
         {
-            m_File.WriteInt(field.NameHash);
-            m_File.WriteInt(field.Mask);
-            m_File.WriteShort(field.EntryOffset);
-            m_File.WriteByte(field.ShiftAmount);
-            m_File.WriteByte(field.Type);
+            file.writeInt(field.nameHash);
+            file.writeInt(field.mask);
+            file.writeShort(field.entryOffset);
+            file.writeByte(field.shiftAmount);
+            file.writeByte(field.type);
         }
 
         int i = 0;
         HashMap<String, Integer> stringoffsets = new HashMap<>();
 
-        for (Entry entry : Entries)
+        for (Entry entry : entries)
         {
-            for (Field field : Fields.values())
+            for (Field field : fields.values())
             {
-                int valoffset = (int)(dataoffset + (i * entrysize) + field.EntryOffset);
-                m_File.Position(valoffset);
+                int valoffset = (int)(dataoffset + (i * entrysize) + field.entryOffset);
+                file.position(valoffset);
 
-                switch (field.Type)
+                switch (field.type)
                 {
                     case 0:
                     case 3:
                         {
-                            int val = m_File.ReadInt();
-                            val &= ~field.Mask;
-                            val |= (((int)entry.get(field.NameHash) << field.ShiftAmount) & field.Mask);
+                            int val = file.readInt();
+                            val &= ~field.mask;
+                            val |= (((int)entry.get(field.nameHash) << field.shiftAmount) & field.mask);
 
-                            m_File.Position(valoffset);
-                            m_File.WriteInt(val);
+                            file.position(valoffset);
+                            file.writeInt(val);
                         }
                         break;
 
                     case 4:
                         {
-                            short val = m_File.ReadShort();
-                            val &= (short)(~field.Mask);
-                            val |= (short)(((short)entry.get(field.NameHash) << field.ShiftAmount) & field.Mask);
+                            short val = file.readShort();
+                            val &= (short)(~field.mask);
+                            val |= (short)(((short)entry.get(field.nameHash) << field.shiftAmount) & field.mask);
 
-                            m_File.Position(valoffset);
-                            m_File.WriteShort(val);
+                            file.position(valoffset);
+                            file.writeShort(val);
                         }
                         break;
 
                     case 5:
                         {
-                            byte val = m_File.ReadByte();
-                            val &= (byte)(~field.Mask);
-                            val |= (byte)(((byte)entry.get(field.NameHash) << field.ShiftAmount) & field.Mask);
+                            byte val = file.readByte();
+                            val &= (byte)(~field.mask);
+                            val |= (byte)(((byte)entry.get(field.nameHash) << field.shiftAmount) & field.mask);
 
-                            m_File.Position(valoffset);
-                            m_File.WriteByte(val);
+                            file.position(valoffset);
+                            file.writeByte(val);
                         }
                         break;
 
                     case 2:
-                        m_File.WriteFloat((float)entry.get(field.NameHash));
+                        file.writeFloat((float)entry.get(field.nameHash));
                         break;
 
                     case 6:
                         {
-                            String val = (String)entry.get(field.NameHash);
+                            String val = (String)entry.get(field.nameHash);
                             if (stringoffsets.containsKey(val))
-                                m_File.WriteInt(stringoffsets.get(val));
+                                file.writeInt(stringoffsets.get(val));
                             else
                             {
                                 stringoffsets.put(val, curstring);
-                                m_File.WriteInt(curstring);
-                                m_File.Position(stringtableoffset + curstring);
-                                curstring += m_File.WriteString("SJIS", val, 0);
+                                file.writeInt(curstring);
+                                file.position(stringtableoffset + curstring);
+                                curstring += file.writeString("SJIS", val, 0);
                             }
                         }
                         break;
@@ -203,20 +203,20 @@ public class Bcsv
             i++;
         }
 
-        m_File.Save();
+        file.save();
     }
 
-    public void Close() throws IOException
+    public void close() throws IOException
     {
-        m_File.Close();
+        file.close();
     }
 
 
-    public Field AddField(String name, int offset, byte type, int mask, int shift, Object defaultval)
+    public Field addField(String name, int offset, byte type, int mask, int shift, Object defaultval)
     {
         int[] datasizes = { 4, -1, 4, 4, 2, 1, 4 };
 
-        AddHash(name); // hehe
+        addHash(name); // hehe
 
         int nbytes = datasizes[type];
 
@@ -228,23 +228,23 @@ public class Bcsv
 
         if (offset == -1)
         {
-            for (Field field : Fields.values())
+            for (Field field : fields.values())
             {
-                short fieldend = (short)(field.EntryOffset + datasizes[field.Type]);
+                short fieldend = (short)(field.entryOffset + datasizes[field.type]);
                 if (fieldend > offset) offset = fieldend;
             }
         }
 
         Field newfield = new Field();
-        newfield.Name = name;
-        newfield.NameHash = Bcsv.FieldNameToHash(name);
-        newfield.Mask = mask;
-        newfield.ShiftAmount = (byte)shift;
-        newfield.Type = type;
-        newfield.EntryOffset = (short)offset;
-        Fields.put(newfield.NameHash, newfield);
+        newfield.name = name;
+        newfield.nameHash = Bcsv.fieldNameToHash(name);
+        newfield.mask = mask;
+        newfield.shiftAmount = (byte)shift;
+        newfield.type = type;
+        newfield.entryOffset = (short)offset;
+        fields.put(newfield.nameHash, newfield);
 
-        for (Entry entry : Entries)
+        for (Entry entry : entries)
         {
             entry.put(name, defaultval);
         }
@@ -252,12 +252,12 @@ public class Bcsv
         return newfield;
     }
 
-    public void RemoveField(String name)
+    public void removeField(String name)
     {
-        int hash = Bcsv.FieldNameToHash(name);
-        Fields.remove(hash);
+        int hash = Bcsv.fieldNameToHash(name);
+        fields.remove(hash);
 
-        for (Entry entry : Entries)
+        for (Entry entry : entries)
         {
             entry.remove(hash);
         }
@@ -266,13 +266,13 @@ public class Bcsv
 
     public class Field
     {
-        public int NameHash;
-        public int Mask;
-        public short EntryOffset;
-        public byte ShiftAmount;
-        public byte Type;
+        public int nameHash;
+        public int mask;
+        public short entryOffset;
+        public byte shiftAmount;
+        public byte type;
 
-        public String Name;
+        public String name;
     }
 
     public class Entry extends HashMap<Integer, Object>
@@ -282,32 +282,32 @@ public class Bcsv
 
         public Object get(String key)
         {
-            return get(Bcsv.FieldNameToHash(key));
+            return get(Bcsv.fieldNameToHash(key));
         }
         
         public void put(String key, Object val)
         {
-            put(Bcsv.FieldNameToHash(key), val);
+            put(Bcsv.fieldNameToHash(key), val);
         }
 
         public Boolean containsKey(String key)
         {
-            return this.containsKey(Bcsv.FieldNameToHash(key));
+            return this.containsKey(Bcsv.fieldNameToHash(key));
         }
     }
 
 
-    private FileBase m_File;
+    private FileBase file;
 
-    public HashMap<Integer, Field> Fields;
-    public List<Entry> Entries;
+    public HashMap<Integer, Field> fields;
+    public List<Entry> entries;
 
 
     // Field name hash support functions
     // the hash->String table is meant for debugging purposes and
     // shouldn't be used by proper code
 
-    public static int FieldNameToHash(String field)
+    public static int fieldNameToHash(String field)
     {
         int ret = 0;
         for (char ch : field.toCharArray())
@@ -318,24 +318,24 @@ public class Bcsv
         return ret;
     }
 
-    public static String HashToFieldName(int hash)
+    public static String hashToFieldName(int hash)
     {
-        if (!m_HashTable.containsKey(hash))
+        if (!hashTable.containsKey(hash))
             return String.format("[%1$X8]", hash);
 
-        return m_HashTable.get(hash);
+        return hashTable.get(hash);
     }
 
-    public static void AddHash(String field)
+    public static void addHash(String field)
     {
-        int hash = FieldNameToHash(field);
-        if (!m_HashTable.containsKey(hash))
-            m_HashTable.put(hash, field);
+        int hash = fieldNameToHash(field);
+        if (!hashTable.containsKey(hash))
+            hashTable.put(hash, field);
     }
 
-    public static void PopulateHashtable()
+    public static void populateHashTable()
     {
-        m_HashTable = new HashMap<>();
+        hashTable = new HashMap<>();
 
         try
         {
@@ -350,11 +350,11 @@ public class Bcsv
                 if (line.length() == 0) continue;
                 if (line.charAt(0) == '#') continue;
 
-                AddHash(line);
+                addHash(line);
             }
         }
         catch (IOException ex) {}
     }
 
-    public static HashMap<Integer, String> m_HashTable; 
+    public static HashMap<Integer, String> hashTable; 
 }

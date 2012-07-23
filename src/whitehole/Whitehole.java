@@ -24,27 +24,28 @@ import java.nio.charset.Charset;
 public class Whitehole 
 {
     
-    public static final String Name = "Whitehole";
-    public static final String Version = "v1.0 beta";
-    public static String FullName = Name + " " + Version;
-    public static Boolean IsBeta = Version.contains("beta");
+    public static final String name = "Whitehole";
+    public static final String version = "v1.0 beta";
+    public static String fullName = name + " " + version;
+    public static Boolean isBeta = version.contains("beta");
     
-    public static final String WebsiteURL = "http://kuribo64.cjb.net/";
+    public static final String websiteURL = "http://kuribo64.cjb.net/";
     
-    public static GameArchive Game;
+    public static GameArchive game;
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) 
     {
+        // TODO consider a fallback? (use ASCII for BCSV contents, and Japanese text will appear garbled)
         if (!Charset.isSupported("SJIS"))
         {
-            JOptionPane.showMessageDialog(null, "Shift-JIS encoding isn't supported. Whitehole needs it.", Whitehole.Name, JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Shift-JIS encoding isn't supported. Whitehole needs it.", Whitehole.name, JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        Bcsv.PopulateHashtable();
+        Bcsv.populateHashTable();
         ObjectDB.Initialize();
         
         

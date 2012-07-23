@@ -28,11 +28,11 @@ public class ObjectDB
 {
     public static void Initialize()
     {
-        Fallback = true;
-        Timestamp = 0;
+        fallback = true;
+        timestamp = 0;
         
-        Categories = new HashMap<>();
-        Objects = new HashMap<>();
+        categories = new HashMap<>();
+        objects = new HashMap<>();
         
         File odbfile = new File("objectdb.xml");
         if (!odbfile.exists()) return;
@@ -42,43 +42,43 @@ public class ObjectDB
             SAXBuilder sxb = new SAXBuilder();
             Document doc = sxb.build(odbfile);
             Element root = doc.getRootElement();
-            Timestamp = root.getAttribute("timestamp").getLongValue();
+            timestamp = root.getAttribute("timestamp").getLongValue();
 
-            List<Element> categories = root.getChild("categories").getChildren("category");
-            for (Element category : categories)
-                Categories.put(category.getAttribute("id").getIntValue(), category.getText());
+            List<Element> catelems = root.getChild("categories").getChildren("category");
+            for (Element catelem : catelems)
+                categories.put(catelem.getAttribute("id").getIntValue(), catelem.getText());
             
-            List<Element> objects = root.getChildren("object");
-            for (Element object : objects)
+            List<Element> objelems = root.getChildren("object");
+            for (Element objelem : objelems)
             {
                 Object entry = new Object();
-                entry.ID = object.getAttributeValue("id");
+                entry.ID = objelem.getAttributeValue("id");
                 
-                entry.Name = object.getChildText("name");
+                entry.name = objelem.getChildText("name");
                 
-                Objects.put(entry.ID, entry);
+                objects.put(entry.ID, entry);
             }
         }
         catch (Exception ex)
         {
-            Timestamp = 0;
+            timestamp = 0;
             return;
         }
                 
-        Fallback = false;
+        fallback = false;
     }
     
     
     public static class Object
     {
         public String ID;
-        public String Name;
+        public String name;
         // and so on
     }
     
     
-    public static Boolean Fallback;
-    public static long Timestamp;
-    public static HashMap<Integer, String> Categories;
-    public static HashMap<String, Object> Objects;
+    public static Boolean fallback;
+    public static long timestamp;
+    public static HashMap<Integer, String> categories;
+    public static HashMap<String, Object> objects;
 }

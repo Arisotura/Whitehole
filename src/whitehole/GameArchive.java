@@ -19,24 +19,30 @@
 package whitehole;
 
 import java.util.*;
+import java.io.*;
 import whitehole.fileio.*;
 
 public class GameArchive 
 {
     public GameArchive(FilesystemBase fs)
     {
-        m_Filesystem = fs;
+        filesystem = fs;
     }
     
     
-    public List<String> GetGalaxies()
+    public Boolean galaxyExists(String name)
+    {
+        return filesystem.fileExists(String.format("/StageData/%1$s/%1$sScenario.arc", name));
+    }
+    
+    public List<String> getGalaxies()
     {
         List<String> ret = new ArrayList<>();
         
-        List<String> stages = m_Filesystem.GetDirectories("/StageData");
+        List<String> stages = filesystem.getDirectories("/StageData");
         for (String stage : stages)
         {
-            if (!m_Filesystem.FileExists(String.format("/StageData/%1$s/%1$sScenario.arc", stage)))
+            if (!galaxyExists(stage))
                 continue;
             
             ret.add(stage);
@@ -45,6 +51,24 @@ public class GameArchive
         return ret;
     }
     
+    public GalaxyArchive openGalaxy(String name)
+    {
+        if (!galaxyExists(name)) return null;
+        return new GalaxyArchive(this, name);
+    }
     
-    private FilesystemBase m_Filesystem;
+    public FileBase openGalaxyFile(String galaxy, String file)
+    {
+        try
+        {
+            return filesystem.openFile(String.format("/StageData/%1$s/%1$s%2$s.arc", galaxy, file));
+        }
+        catch (FileNotFoundException ex)
+        {
+            return null;
+        }
+    }
+    
+    
+    private FilesystemBase filesystem;
 }

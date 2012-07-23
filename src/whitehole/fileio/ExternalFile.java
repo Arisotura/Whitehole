@@ -28,83 +28,83 @@ public class ExternalFile implements FileBase
 {
     public ExternalFile(String path) throws FileNotFoundException
     {
-        m_File = new RandomAccessFile(path, "rw");
-        m_BigEndian = false;
+        file = new RandomAccessFile(path, "rw");
+        bigEndian = false;
     }
     
     
     @Override
-    public void Save() throws IOException
+    public void save() throws IOException
     {
-        m_File.getChannel().force(true);
+        file.getChannel().force(true);
     }
 
     @Override
-    public void Close() throws IOException
+    public void close() throws IOException
     {
-        m_File.close();
+        file.close();
     }
     
     
     @Override
-    public void ReleaseStorage()
+    public void releaseStorage()
     {
-    }
-    
-
-    @Override
-    public void SetBigEndian(Boolean bigendian)
-    {
-        m_BigEndian = bigendian;
     }
     
 
     @Override
-    public long GetLength() throws IOException
+    public void setBigEndian(Boolean bigendian)
     {
-        return m_File.length();
-    }
-
-    @Override
-    public void SetLength(long length) throws IOException
-    {
-        m_File.setLength(length);
+        bigEndian = bigendian;
     }
     
 
     @Override
-    public long Position() throws IOException
+    public long getLength() throws IOException
     {
-        return m_File.getFilePointer();
+        return file.length();
     }
 
     @Override
-    public void Position(long newpos) throws IOException
+    public void setLength(long length) throws IOException
     {
-        m_File.seek(newpos);
-    }
-    
-    @Override
-    public void Skip(long nbytes) throws IOException
-    {
-        m_File.seek(m_File.getFilePointer() + nbytes);
+        file.setLength(length);
     }
     
 
     @Override
-    public byte ReadByte() throws IOException
+    public long position() throws IOException
     {
-        try { return m_File.readByte(); }
+        return file.getFilePointer();
+    }
+
+    @Override
+    public void position(long newpos) throws IOException
+    {
+        file.seek(newpos);
+    }
+    
+    @Override
+    public void skip(long nbytes) throws IOException
+    {
+        file.seek(file.getFilePointer() + nbytes);
+    }
+    
+
+    @Override
+    public byte readByte() throws IOException
+    {
+        try { return file.readByte(); }
         catch (EOFException ex) { return 0; }
     }
 
     @Override
-    public short ReadShort() throws IOException
+    public short readShort() throws IOException
     {
         try
         {
-            short ret = m_File.readShort();
-            if (!m_BigEndian)
+            short ret = file.readShort();
+            if (!bigEndian)
             {
                 ret = (short)(((ret & 0xFF00) >>> 8) | 
                         ((ret & 0x00FF) << 8));
@@ -115,12 +115,12 @@ public class ExternalFile implements FileBase
     }
 
     @Override
-    public int ReadInt() throws IOException
+    public int readInt() throws IOException
     {
         try
         {
-            int ret = m_File.readInt();
-            if (!m_BigEndian)
+            int ret = file.readInt();
+            if (!bigEndian)
             {
                 ret = (int)(((ret & 0xFF000000) >>> 24) | 
                         ((ret & 0x00FF0000) >>> 8) | 
@@ -133,13 +133,13 @@ public class ExternalFile implements FileBase
     }
 
     @Override
-    public float ReadFloat() throws IOException
+    public float readFloat() throws IOException
     {
-        return Float.intBitsToFloat(ReadInt());
+        return Float.intBitsToFloat(readInt());
     }
 
     @Override
-    public String ReadString(String encoding, int length) throws IOException
+    public String readString(String encoding, int length) throws IOException
     {
         Charset charset = Charset.forName(encoding);
         CharsetDecoder dec = charset.newDecoder();
@@ -151,7 +151,7 @@ public class ExternalFile implements FileBase
         {
             for (int j = 0; j < 8; j++)
             {
-                try { bin.put(m_File.readByte()); }
+                try { bin.put(file.readByte()); }
                 catch (EOFException ex) { bin.put((byte)0); }
             }
             bin.rewind();
@@ -162,7 +162,7 @@ public class ExternalFile implements FileBase
             else if (res != CoderResult.OVERFLOW)
                 throw new IOException("Error while reading string: " + res);
             
-            Skip(-bin.remaining());
+            skip(-bin.remaining());
             
             char ch = bout.get(0);
             if (ch == '\0') break;
@@ -176,52 +176,52 @@ public class ExternalFile implements FileBase
     }
     
     @Override
-    public byte[] ReadBytes(int length) throws IOException
+    public byte[] readBytes(int length) throws IOException
     {
         byte[] ret = new byte[length];
-        m_File.read(ret);
+        file.read(ret);
         return ret;
     }
     
 
     @Override
-    public void WriteByte(byte val) throws IOException
+    public void writeByte(byte val) throws IOException
     {
-        m_File.writeByte(val);
+        file.writeByte(val);
     }
 
     @Override
-    public void WriteShort(short val) throws IOException
+    public void writeShort(short val) throws IOException
     {
-        if (!m_BigEndian)
+        if (!bigEndian)
         {
             val = (short)(((val & 0xFF00) >>> 8) | 
                     ((val & 0x00FF) << 8));
         }
-        m_File.writeShort(val);
+        file.writeShort(val);
     }
 
     @Override
-    public void WriteInt(int val) throws IOException
+    public void writeInt(int val) throws IOException
     {
-        if (!m_BigEndian)
+        if (!bigEndian)
         {
             val = (int)(((val & 0xFF000000) >>> 24) | 
                     ((val & 0x00FF0000) >>> 8) | 
                     ((val & 0x0000FF00) << 8) | 
                     ((val & 0x000000FF) << 24));
         }
-        m_File.writeInt(val);
+        file.writeInt(val);
     }
 
     @Override
-    public void WriteFloat(float val) throws IOException
+    public void writeFloat(float val) throws IOException
     {
-        WriteInt(Float.floatToIntBits(val));
+        writeInt(Float.floatToIntBits(val));
     }
 
     @Override
-    public int WriteString(String encoding, String val, int length) throws IOException
+    public int writeString(String encoding, String val, int length) throws IOException
     {
         Charset charset = Charset.forName(encoding);
         CharsetEncoder enc = charset.newEncoder();
@@ -240,7 +240,7 @@ public class ExternalFile implements FileBase
             int bytesize = bout.position();
             len += bytesize;
             for (int j = 0; j < bytesize; j++)
-                m_File.writeByte(bout.get(j));
+                file.writeByte(bout.get(j));
             
             bin.clear();
             bout.clear();
@@ -257,41 +257,41 @@ public class ExternalFile implements FileBase
             int bytesize = bout.position();
             len += bytesize;
             for (int j = 0; j < bytesize; j++)
-                m_File.writeByte(bout.get(j));
+                file.writeByte(bout.get(j));
         }
         
         return len;
     }
     
     @Override
-    public void WriteBytes(byte[] stuff) throws IOException
+    public void writeBytes(byte[] stuff) throws IOException
     {
-        m_File.write(stuff);
+        file.write(stuff);
     }
     
     
     @Override
-    public byte[] GetContents() throws IOException
+    public byte[] getContents() throws IOException
     {
-        byte[] ret = new byte[(int)m_File.length()];
-        long oldpos = m_File.getFilePointer();
-        m_File.seek(0);
-        m_File.read(ret);
-        m_File.seek(oldpos);
+        byte[] ret = new byte[(int)file.length()];
+        long oldpos = file.getFilePointer();
+        file.seek(0);
+        file.read(ret);
+        file.seek(oldpos);
         return ret;
     }
     
     @Override
-    public void SetContents(byte[] buf) throws IOException
+    public void setContents(byte[] buf) throws IOException
     {
-        long oldpos = m_File.getFilePointer();
-        m_File.setLength((long)buf.length);
-        m_File.seek(0);
-        m_File.write(buf);
-        m_File.seek(oldpos);
+        long oldpos = file.getFilePointer();
+        file.setLength((long)buf.length);
+        file.seek(0);
+        file.write(buf);
+        file.seek(oldpos);
     }
     
     
-    protected RandomAccessFile m_File;
-    private Boolean m_BigEndian;
+    protected RandomAccessFile file;
+    private Boolean bigEndian;
 }

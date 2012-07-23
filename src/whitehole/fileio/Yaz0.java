@@ -21,7 +21,7 @@ package whitehole.fileio;
 public class Yaz0 
 {
     // inspired from http://www.amnoid.de/gc/yaz0.txt
-    public static byte[] Decompress(byte[] data)
+    public static byte[] decompress(byte[] data)
     {
         if (data[0] != 'Y' || data[1] != 'a' || data[2] != 'z' || data[3] != '0')
             return data;

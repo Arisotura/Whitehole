@@ -23,12 +23,12 @@ import java.util.List;
 
 public interface FilesystemBase
 {
-    public void Close() throws IOException;
+    public void close() throws IOException;
     
-    public List<String> GetDirectories(String directory);
-    public Boolean DirectoryExists(String directory);
+    public List<String> getDirectories(String directory);
+    public Boolean directoryExists(String directory);
     
-    public List<String> GetFiles(String directory);
-    public Boolean FileExists(String directory);
-    public FileBase OpenFile(String filename) throws FileNotFoundException;
+    public List<String> getFiles(String directory);
+    public Boolean fileExists(String directory);
+    public FileBase openFile(String filename) throws FileNotFoundException;
 }

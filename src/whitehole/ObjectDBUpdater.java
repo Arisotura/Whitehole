@@ -27,9 +27,9 @@ import javax.swing.JLabel;
 
 public class ObjectDBUpdater extends Thread
 {
-    public ObjectDBUpdater(JLabel statuslabel)
+    public ObjectDBUpdater(JLabel status)
     {
-        m_StatusLabel = statuslabel;
+        statusLabel = status;
     }
     
     @Override
@@ -37,15 +37,15 @@ public class ObjectDBUpdater extends Thread
     {
         try
         {
-            String ts = String.format("&ts=%1$d", ObjectDB.Timestamp);
-            URL url = new URL(Whitehole.WebsiteURL + "whitehole/objectdb.php?whitehole" + ts);
+            String ts = String.format("&ts=%1$d", ObjectDB.timestamp);
+            URL url = new URL(Whitehole.websiteURL + "whitehole/objectdb.php?whitehole" + ts);
             URLConnection conn = url.openConnection();
             DataInputStream dis = new DataInputStream(conn.getInputStream());
             
             int length = conn.getContentLength();
             if (length < 8)
             {
-                m_StatusLabel.setText("Failed to update object database: received invalid data.");
+                statusLabel.setText("Failed to update object database: received invalid data.");
                 return;
             }
             
@@ -59,12 +59,12 @@ public class ObjectDBUpdater extends Thread
             
             if (strdata.equals("noupdate"))
             {
-                m_StatusLabel.setText("Object database already up-to-date.");
+                statusLabel.setText("Object database already up-to-date.");
                 return;
             }
             else if (data.length < 10)
             {
-                m_StatusLabel.setText("Failed to update object database: received invalid data.");
+                statusLabel.setText("Failed to update object database: received invalid data.");
                 return;
             }
             
@@ -75,7 +75,7 @@ public class ObjectDBUpdater extends Thread
             catch (NumberFormatException ex) { crcref = -1; }
             if (crc.getValue() != crcref)
             {
-                m_StatusLabel.setText("Failed to update object database: received invalid data.");
+                statusLabel.setText("Failed to update object database: received invalid data.");
                 return;
             }
             
@@ -95,25 +95,25 @@ public class ObjectDBUpdater extends Thread
                 }
                 catch (IOException ex)
                 {
-                    m_StatusLabel.setText("Failed to save new object database.");
+                    statusLabel.setText("Failed to save new object database.");
                     odbbkp.renameTo(odb);
                     return;
                 }
             }
             
-            m_StatusLabel.setText("Object database updated.");
+            statusLabel.setText("Object database updated.");
             ObjectDB.Initialize();
         }
         catch (MalformedURLException ex)
         {
-            m_StatusLabel.setText("Failed to connect to update server.");
+            statusLabel.setText("Failed to connect to update server.");
         }
         catch (IOException ex)
         {
-            m_StatusLabel.setText("Failed to save new object database.");
+            statusLabel.setText("Failed to save new object database.");
         }
     }
     
     
-    private JLabel m_StatusLabel;
+    private JLabel statusLabel;
 }

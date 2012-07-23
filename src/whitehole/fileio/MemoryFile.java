@@ -24,127 +24,128 @@ import java.nio.charset.*;
 
 public class MemoryFile implements FileBase
 {
-    public MemoryFile(byte[] buffer) throws IOException
+    public MemoryFile(byte[] buf) throws IOException
     {
-        m_Buffer = buffer;
-        m_Position = 0;
-        m_BigEndian = false;
+        buffer = buf;
+        curPosition = 0;
+        bigEndian = false;
+        logicalSize = buffer.length;
     }
     
     
     @Override
-    public void Save() throws IOException
+    public void save() throws IOException
     {
         // nothing to do, saving will be handled by derivates
     }
 
     @Override
-    public void Close() throws IOException
+    public void close() throws IOException
     {
         // nothing to do, lol
     }
     
     
     @Override
-    public void ReleaseStorage()
+    public void releaseStorage()
     {
-        m_Buffer = null;
+        buffer = null;
     }
     
     
     @Override
-    public void SetBigEndian(Boolean bigendian)
+    public void setBigEndian(Boolean bigendian)
     {
-        m_BigEndian = bigendian;
+        bigEndian = bigendian;
     }
     
     
     @Override
-    public long GetLength() throws IOException
+    public long getLength() throws IOException
     {
-        return (long)m_Buffer.length;
+        return (long)logicalSize;
     }
     
     @Override
-    public void SetLength(long length) throws IOException
+    public void setLength(long length) throws IOException
     {
         if (length >= 0x80000000L) throw new IOException("hey calm down, you're gonna eat all the RAM");
-        ResizeBuffer((int)length);
+        resizeBuffer((int)length);
     }
     
 
     @Override
-    public long Position() throws IOException
+    public long position() throws IOException
     {
-        return (long)m_Position;
+        return (long)curPosition;
     }
 
     @Override
-    public void Position(long newpos) throws IOException
+    public void position(long newpos) throws IOException
     {
         if (newpos >= 0x80000000L) throw new IOException("hey calm down, you're gonna eat all the RAM");
-        m_Position = (int)newpos;
+        curPosition = (int)newpos;
     }
     
     @Override
-    public void Skip(long nbytes) throws IOException
+    public void skip(long nbytes) throws IOException
     {
-        m_Position += nbytes;
-        if (m_Position >= 0x80000000L) throw new IOException("hey calm down, you're gonna eat all the RAM");
+        curPosition += nbytes;
+        if (curPosition >= 0x80000000L) throw new IOException("hey calm down, you're gonna eat all the RAM");
     }
     
 
     @Override
-    public byte ReadByte() throws IOException
+    public byte readByte() throws IOException
     {
-        if (m_Position + 1 > m_Buffer.length) return 0;
-        return m_Buffer[m_Position++];
+        if (curPosition + 1 > logicalSize) return 0;
+        return buffer[curPosition++];
     }
 
     @Override
-    public short ReadShort() throws IOException
+    public short readShort() throws IOException
     {
-        if (m_Position + 2 > m_Buffer.length) return 0;
-        if (m_BigEndian)
-            return (short)(((m_Buffer[m_Position++] & 0xFF) << 8) | 
-                    (m_Buffer[m_Position++] & 0xFF));
+        if (curPosition + 2 > logicalSize) return 0;
+        if (bigEndian)
+            return (short)(((buffer[curPosition++] & 0xFF) << 8) | 
+                    (buffer[curPosition++] & 0xFF));
         else
-            return (short)((m_Buffer[m_Position++] & 0xFF) | 
-                    ((m_Buffer[m_Position++] & 0xFF) << 8));
+            return (short)((buffer[curPosition++] & 0xFF) | 
+                    ((buffer[curPosition++] & 0xFF) << 8));
     }
 
     @Override
-    public int ReadInt() throws IOException
+    public int readInt() throws IOException
     {
-        if (m_Position + 4 > m_Buffer.length) return 0;
-        if (m_BigEndian)
-            return (int)(((m_Buffer[m_Position++] & 0xFF) << 24) | 
-                    ((m_Buffer[m_Position++] & 0xFF) << 16) | 
-                    ((m_Buffer[m_Position++] & 0xFF) << 8) | 
-                    (m_Buffer[m_Position++] & 0xFF));
+        if (curPosition + 4 > logicalSize) return 0;
+        if (bigEndian)
+            return (int)(((buffer[curPosition++] & 0xFF) << 24) | 
+                    ((buffer[curPosition++] & 0xFF) << 16) | 
+                    ((buffer[curPosition++] & 0xFF) << 8) | 
+                    (buffer[curPosition++] & 0xFF));
         else
-            return (int)((m_Buffer[m_Position++] & 0xFF) | 
-                    ((m_Buffer[m_Position++] & 0xFF) << 8) | 
-                    ((m_Buffer[m_Position++] & 0xFF) << 16) | 
-                    ((m_Buffer[m_Position++] & 0xFF) << 24));
+            return (int)((buffer[curPosition++] & 0xFF) | 
+                    ((buffer[curPosition++] & 0xFF) << 8) | 
+                    ((buffer[curPosition++] & 0xFF) << 16) | 
+                    ((buffer[curPosition++] & 0xFF) << 24));
     }
 
     @Override
-    public float ReadFloat() throws IOException
+    public float readFloat() throws IOException
     {
-        return Float.intBitsToFloat(ReadInt());
+        return Float.intBitsToFloat(readInt());
     }
 
     @Override
-    public String ReadString(String encoding, int length) throws IOException
+    public String readString(String encoding, int length) throws IOException
     {
         Charset charset = Charset.forName(encoding);
         CharsetDecoder dec = charset.newDecoder();
-        ByteBuffer bin = ByteBuffer.wrap(m_Buffer);
+        ByteBuffer bin = ByteBuffer.wrap(buffer);
         CharBuffer bout = CharBuffer.allocate(1);
         String ret = "";
         
-        bin.position(m_Position);
+        bin.position(curPosition);
         for (int i = 0; length == 0 || i < length; i++)
         {
             CoderResult res = dec.decode(bin, bout, false);
@@ -164,66 +165,66 @@ public class MemoryFile implements FileBase
     }
     
     @Override
-    public byte[] ReadBytes(int length) throws IOException
+    public byte[] readBytes(int length) throws IOException
     {
         byte[] ret = new byte[length];
         for (int i = 0; i < length; i++)
-            ret[i] = m_Buffer[m_Position++];
+            ret[i] = buffer[curPosition++];
         return ret;
     }
     
 
     @Override
-    public void WriteByte(byte val) throws IOException
+    public void writeByte(byte val) throws IOException
     {
-        AutoExpand(m_Position + 1);
-        m_Buffer[m_Position++] = val;
+        autoExpand(curPosition + 1);
+        buffer[curPosition++] = val;
     }
 
     @Override
-    public void WriteShort(short val) throws IOException
+    public void writeShort(short val) throws IOException
     {
-        AutoExpand(m_Position + 2);
-        if (m_BigEndian)
+        autoExpand(curPosition + 2);
+        if (bigEndian)
         {
-            m_Buffer[m_Position++] = (byte)((val >>> 8) & 0xFF);
-            m_Buffer[m_Position++] = (byte)(val & 0xFF);
+            buffer[curPosition++] = (byte)((val >>> 8) & 0xFF);
+            buffer[curPosition++] = (byte)(val & 0xFF);
         }
         else
         {
-            m_Buffer[m_Position++] = (byte)(val & 0xFF);
-            m_Buffer[m_Position++] = (byte)((val >>> 8) & 0xFF);
+            buffer[curPosition++] = (byte)(val & 0xFF);
+            buffer[curPosition++] = (byte)((val >>> 8) & 0xFF);
         }
     }
 
     @Override
-    public void WriteInt(int val) throws IOException
+    public void writeInt(int val) throws IOException
     {
-        AutoExpand(m_Position + 4);
-        if (m_BigEndian)
+        autoExpand(curPosition + 4);
+        if (bigEndian)
         {
-            m_Buffer[m_Position++] = (byte)((val >>> 24) & 0xFF);
-            m_Buffer[m_Position++] = (byte)((val >>> 16) & 0xFF);
-            m_Buffer[m_Position++] = (byte)((val >>> 8) & 0xFF);
-            m_Buffer[m_Position++] = (byte)(val & 0xFF);
+            buffer[curPosition++] = (byte)((val >>> 24) & 0xFF);
+            buffer[curPosition++] = (byte)((val >>> 16) & 0xFF);
+            buffer[curPosition++] = (byte)((val >>> 8) & 0xFF);
+            buffer[curPosition++] = (byte)(val & 0xFF);
         }
         else
         {
-            m_Buffer[m_Position++] = (byte)(val & 0xFF);
-            m_Buffer[m_Position++] = (byte)((val >>> 8) & 0xFF);
-            m_Buffer[m_Position++] = (byte)((val >>> 16) & 0xFF);
-            m_Buffer[m_Position++] = (byte)((val >>> 24) & 0xFF);
+            buffer[curPosition++] = (byte)(val & 0xFF);
+            buffer[curPosition++] = (byte)((val >>> 8) & 0xFF);
+            buffer[curPosition++] = (byte)((val >>> 16) & 0xFF);
+            buffer[curPosition++] = (byte)((val >>> 24) & 0xFF);
         }
     }
 
     @Override
-    public void WriteFloat(float val) throws IOException
+    public void writeFloat(float val) throws IOException
     {
-        WriteInt(Float.floatToIntBits(val));
+        writeInt(Float.floatToIntBits(val));
     }
 
     @Override
-    public int WriteString(String encoding, String val, int length) throws IOException
+    public int writeString(String encoding, String val, int length) throws IOException
     {
         Charset charset = Charset.forName(encoding);
         CharsetEncoder enc = charset.newEncoder();
@@ -241,9 +242,9 @@ public class MemoryFile implements FileBase
             
             int bytesize = bout.position();
             len += bytesize;
-            AutoExpand(m_Position + bytesize);
+            autoExpand(curPosition + bytesize);
             for (int j = 0; j < bytesize; j++)
-                m_Buffer[m_Position++] = bout.get(j);
+                buffer[curPosition++] = bout.get(j);
             
             bin.clear();
             bout.clear();
@@ -259,51 +260,53 @@ public class MemoryFile implements FileBase
             
             int bytesize = bout.position();
             len += bytesize;
-            AutoExpand(m_Position + bytesize);
+            autoExpand(curPosition + bytesize);
             for (int j = 0; j < bytesize; j++)
-                m_Buffer[m_Position++] = bout.get(j);
+                buffer[curPosition++] = bout.get(j);
         }
         
         return len;
     }
     
     @Override
-    public void WriteBytes(byte[] stuff) throws IOException
+    public void writeBytes(byte[] stuff) throws IOException
     {
-        AutoExpand(m_Position + stuff.length);
+        autoExpand(curPosition + stuff.length);
         for (byte b : stuff)
-            m_Buffer[m_Position++] = b;
+            buffer[curPosition++] = b;
     }
     
     
     @Override
-    public byte[] GetContents() throws IOException
+    public byte[] getContents() throws IOException
     {
-        return m_Buffer;
+        return buffer;
     }
     
     @Override
-    public void SetContents(byte[] buf) throws IOException
+    public void setContents(byte[] buf) throws IOException
     {
-        m_Buffer = buf;
+        buffer = buf;
     }
     
     
-    protected byte[] m_Buffer;
-    private int m_Position;
-    private Boolean m_BigEndian;
+    protected byte[] buffer;
+    private int curPosition;
+    private Boolean bigEndian;
+    private int logicalSize;
     
-    private void ResizeBuffer(int newsize)
+    
+    private void resizeBuffer(int newsize)
     {
         byte[] newbuf = new byte[newsize];
-        if (newsize > 0 && m_Buffer.length > 0)
-            System.arraycopy(m_Buffer, 0, newbuf, 0, Math.min(newsize, m_Buffer.length));
-        m_Buffer = newbuf;
+        if (newsize > 0 && buffer.length > 0)
+            System.arraycopy(buffer, 0, newbuf, 0, Math.min(newsize, buffer.length));
+        buffer = newbuf;
     }
     
-    private void AutoExpand(int newend)
+    private void autoExpand(int newend)
     {
-        if (newend <= m_Buffer.length) return;
-        ResizeBuffer(newend);
+        if (logicalSize < newend) logicalSize = newend;
+        if (buffer.length < newend) resizeBuffer(buffer.length * 2);
     }
 }

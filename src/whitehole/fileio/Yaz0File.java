@@ -22,35 +22,35 @@ import java.io.*;
 
 public class Yaz0File extends MemoryFile
 {
-    public Yaz0File(FileBase backend) throws IOException
+    public Yaz0File(FileBase backendfile) throws IOException
     {
-        super(backend.GetContents());
+        super(backendfile.getContents());
         
-        m_Buffer = Yaz0.Decompress(m_Buffer);
-        m_Backend = backend;
-        m_Backend.ReleaseStorage();
+        buffer = Yaz0.decompress(buffer);
+        backend = backendfile;
+        backend.releaseStorage();
     }
     
     @Override
-    public void Save() throws IOException
+    public void save() throws IOException
     {
         // TODO: recompress here?
         
-        if (m_Backend != null)
+        if (backend != null)
         {
-            m_Backend.SetContents(m_Buffer);
-            m_Backend.Save();
-            m_Backend.ReleaseStorage();
+            backend.setContents(buffer);
+            backend.save();
+            backend.releaseStorage();
         }
     }
     
     @Override
-    public void Close() throws IOException
+    public void close() throws IOException
     {
-        if (m_Backend != null)
-            m_Backend.Close();
+        if (backend != null)
+            backend.close();
     }
     
     
-    protected FileBase m_Backend;
+    protected FileBase backend;
 }
