@@ -33,7 +33,14 @@ public class GameArchive
     {
         List<String> ret = new ArrayList<>();
         
-        //
+        List<String> stages = m_Filesystem.GetDirectories("/StageData");
+        for (String stage : stages)
+        {
+            if (!m_Filesystem.FileExists(String.format("/StageData/%1$s/%1$sScenario.arc", stage)))
+                continue;
+            
+            ret.add(stage);
+        }
         
         return ret;
     }

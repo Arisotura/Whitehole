@@ -30,6 +30,8 @@ public class Whitehole
     public static Boolean IsBeta = Version.contains("beta");
     
     public static final String WebsiteURL = "http://kuribo64.cjb.net/";
+    
+    public static GameArchive Game;
 
     /**
      * @param args the command line arguments

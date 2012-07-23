@@ -102,6 +102,7 @@ public class ObjectDBUpdater extends Thread
             }
             
             m_StatusLabel.setText("Object database updated.");
+            ObjectDB.Initialize();
         }
         catch (MalformedURLException ex)
         {
@@ -114,10 +115,5 @@ public class ObjectDBUpdater extends Thread
     }
     
     
-    // 0 == success
-    // 1 == error while connecting to server
-    // 2 == integrity check failed
-    // 3 == error writing downloaded ObjectDB to HDD
-    // 4 == already up-to-date
     private JLabel m_StatusLabel;
 }

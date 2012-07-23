@@ -19,6 +19,7 @@
 package whitehole;
 
 import java.awt.*;
+import java.util.*;
 import java.util.prefs.Preferences;
 import javax.swing.*;
 import java.io.*;
@@ -42,14 +43,19 @@ public class MainFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jMenu1 = new javax.swing.JMenu();
         jToolBar1 = new javax.swing.JToolBar();
         btnOpenGame = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
+        btnOpenGalaxy = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
         btnAbout = new javax.swing.JButton();
         btnBcsvEditor = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         GalaxyList = new javax.swing.JList();
         lbStatusBar = new javax.swing.JLabel();
+
+        jMenu1.setText("jMenu1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -73,6 +79,19 @@ public class MainFrame extends javax.swing.JFrame {
         jToolBar1.add(btnOpenGame);
         jToolBar1.add(jSeparator1);
 
+        btnOpenGalaxy.setText("Open galaxy");
+        btnOpenGalaxy.setEnabled(false);
+        btnOpenGalaxy.setFocusable(false);
+        btnOpenGalaxy.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnOpenGalaxy.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnOpenGalaxy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnOpenGalaxyActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnOpenGalaxy);
+        jToolBar1.add(jSeparator2);
+
         btnAbout.setText("About...");
         btnAbout.setFocusable(false);
         btnAbout.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -85,6 +104,7 @@ public class MainFrame extends javax.swing.JFrame {
         jToolBar1.add(btnAbout);
 
         btnBcsvEditor.setText("BCSV editor");
+        btnBcsvEditor.setEnabled(false);
         btnBcsvEditor.setFocusable(false);
         btnBcsvEditor.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnBcsvEditor.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -95,26 +115,38 @@ public class MainFrame extends javax.swing.JFrame {
         });
         jToolBar1.add(btnBcsvEditor);
 
+        GalaxyList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                GalaxyListMouseClicked(evt);
+            }
+        });
+        GalaxyList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                GalaxyListValueChanged(evt);
+            }
+        });
         jScrollPane1.setViewportView(GalaxyList);
 
         lbStatusBar.setText("jLabel1");
+        lbStatusBar.setToolTipText("");
+        lbStatusBar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 414, Short.MAX_VALUE)
+            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 414, Short.MAX_VALUE)
             .addComponent(lbStatusBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jScrollPane1)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lbStatusBar, javax.swing.GroupLayout.DEFAULT_SIZE, 21, Short.MAX_VALUE))
+                .addComponent(lbStatusBar, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -133,29 +165,30 @@ public class MainFrame extends javax.swing.JFrame {
         
         try
         {
-            FilesystemBase testfs = new ExternalFilesystem(seldir);
-            /*FilesystemBase rarctest = new RarcFilesystem(testfs.OpenFile("/ObjectData/HeavenlyBeachPlanet.arc"));
-            
-            String[] files = rarctest.GetFiles("/HeavenlyBeachPlanet");
-            System.out.println(files.length);
-            for (String file : files)
-                JOptionPane.showMessageDialog(null, file);*/
-            //Bcsv loltest = new Bcsv(testfs.OpenFile("/test.bcsv"));
-            //loltest.Entries.get(0).put("ScenarioNo", 0x1337);
-            //loltest.Save();
+            Whitehole.Game = new GameArchive(new ExternalFilesystem(seldir));
+            lbStatusBar.setText("Game directory successfully opened");
         }
         catch (IOException ex)
         {
-            setTitle("test failed");
-            System.out.println(ex.getMessage());
-            ex.printStackTrace();
+            lbStatusBar.setText("Failed to open the directory");
+            return;
         }
         
-        lbStatusBar.setText("Game directory successfully opened");
+        DefaultListModel galaxylist = new DefaultListModel();
+        GalaxyList.setModel(galaxylist);
+        java.util.List<String> galaxies = Whitehole.Game.GetGalaxies();
+        for (String galaxy : galaxies)
+        {
+            galaxylist.addElement(galaxy);
+        }
+        
+        btnBcsvEditor.setEnabled(true);
     }//GEN-LAST:event_btnOpenGameActionPerformed
 
     private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
     {//GEN-HEADEREND:event_formWindowOpened
+        btnBcsvEditor.setVisible(Whitehole.IsBeta);
+        
         this.setTitle(Whitehole.FullName);
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
         lbStatusBar.setText("Ready");
@@ -194,13 +227,34 @@ public class MainFrame extends javax.swing.JFrame {
         new BcsvEditorForm().setVisible(true);
     }//GEN-LAST:event_btnBcsvEditorActionPerformed
 
+    private void GalaxyListMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_GalaxyListMouseClicked
+    {//GEN-HEADEREND:event_GalaxyListMouseClicked
+        if (evt.getClickCount() < 2) return;
+        
+        JOptionPane.showMessageDialog(this, "you opened galaxy " + GalaxyList.getSelectedValue());
+    }//GEN-LAST:event_GalaxyListMouseClicked
+
+    private void btnOpenGalaxyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnOpenGalaxyActionPerformed
+    {//GEN-HEADEREND:event_btnOpenGalaxyActionPerformed
+        JOptionPane.showMessageDialog(this, "you indirectly opened galaxy " + GalaxyList.getSelectedValue());
+    }//GEN-LAST:event_btnOpenGalaxyActionPerformed
+
+    private void GalaxyListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_GalaxyListValueChanged
+    {//GEN-HEADEREND:event_GalaxyListValueChanged
+        Boolean hasSelection = GalaxyList.getSelectedIndex() >= 0;
+        btnOpenGalaxy.setEnabled(hasSelection);
+    }//GEN-LAST:event_GalaxyListValueChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JList GalaxyList;
     private javax.swing.JButton btnAbout;
     private javax.swing.JButton btnBcsvEditor;
+    private javax.swing.JButton btnOpenGalaxy;
     private javax.swing.JButton btnOpenGame;
+    private javax.swing.JMenu jMenu1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JLabel lbStatusBar;
     // End of variables declaration//GEN-END:variables
