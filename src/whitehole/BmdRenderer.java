@@ -176,16 +176,16 @@ public class BmdRenderer implements Renderer
             int _i = (i == 0) ? 3 : i - 1; // ???
             frag.append(String.format("    vec4 %1$s = vec4(%2$f, %3$f, %4$f, %5$f);\n",
                 outputregs[i],
-                (float)mat.colorS10[_i].R / 255f, (float)mat.colorS10[_i].G / 255f,
-                (float)mat.colorS10[_i].B / 255f, (float)mat.colorS10[_i].A / 255f));
+                (float)mat.colorS10[_i].r / 255f, (float)mat.colorS10[_i].g / 255f,
+                (float)mat.colorS10[_i].b / 255f, (float)mat.colorS10[_i].a / 255f));
         }
 
         for (int i = 0; i < 4; i++)
         {
             frag.append(String.format("    vec4 k%1$d = vec4(%2$f, %3$f, %4$f, %5$f);\n",
                 i,
-                (float)mat.constColors[i].R / 255f, (float)mat.constColors[i].G / 255f,
-                (float)mat.constColors[i].B / 255f, (float)mat.constColors[i].A / 255f));
+                (float)mat.constColors[i].r / 255f, (float)mat.constColors[i].g / 255f,
+                (float)mat.constColors[i].b / 255f, (float)mat.constColors[i].a / 255f));
         }
 
         frag.append("    vec4 texcolor, rascolor, konst;\n");
@@ -663,33 +663,33 @@ public class BmdRenderer implements Renderer
                     for (int i = 0; i < prim.numIndices; i++)
                     {
 
-                        if ((prim.arrayMask & (1 << 11)) != 0) { Color4 c = model.colorArray[0][prim.colorIndices[0][i]]; gl.glColor4f(c.R, c.G, c.B, c.A); }
+                        if ((prim.arrayMask & (1 << 11)) != 0) { Color4 c = model.colorArray[0][prim.colorIndices[0][i]]; gl.glColor4f(c.r, c.g, c.b, c.a); }
 
                         if (hasShaders)
                         {
-                            if ((prim.arrayMask & (1 << 12)) != 0) { Color4 c = model.colorArray[1][prim.colorIndices[1][i]]; gl.glSecondaryColor3f(c.R, c.G, c.B); }
+                            if ((prim.arrayMask & (1 << 12)) != 0) { Color4 c = model.colorArray[1][prim.colorIndices[1][i]]; gl.glSecondaryColor3f(c.r, c.g, c.b); }
 
-                            if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE0, t.X, t.Y); }
-                            if ((prim.arrayMask & (1 << 14)) != 0) { Vector2 t = model.texcoordArray[1][prim.texcoordIndices[1][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE1, t.X, t.Y); }
-                            if ((prim.arrayMask & (1 << 15)) != 0) { Vector2 t = model.texcoordArray[2][prim.texcoordIndices[2][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE2, t.X, t.Y); }
-                            if ((prim.arrayMask & (1 << 16)) != 0) { Vector2 t = model.texcoordArray[3][prim.texcoordIndices[3][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE3, t.X, t.Y); }
-                            if ((prim.arrayMask & (1 << 17)) != 0) { Vector2 t = model.texcoordArray[4][prim.texcoordIndices[4][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE4, t.X, t.Y); }
-                            if ((prim.arrayMask & (1 << 18)) != 0) { Vector2 t = model.texcoordArray[5][prim.texcoordIndices[5][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE5, t.X, t.Y); }
-                            if ((prim.arrayMask & (1 << 19)) != 0) { Vector2 t = model.texcoordArray[6][prim.texcoordIndices[6][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE6, t.X, t.Y); }
-                            if ((prim.arrayMask & (1 << 20)) != 0) { Vector2 t = model.texcoordArray[7][prim.texcoordIndices[7][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE7, t.X, t.Y); }
+                            if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE0, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 14)) != 0) { Vector2 t = model.texcoordArray[1][prim.texcoordIndices[1][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE1, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 15)) != 0) { Vector2 t = model.texcoordArray[2][prim.texcoordIndices[2][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE2, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 16)) != 0) { Vector2 t = model.texcoordArray[3][prim.texcoordIndices[3][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE3, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 17)) != 0) { Vector2 t = model.texcoordArray[4][prim.texcoordIndices[4][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE4, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 18)) != 0) { Vector2 t = model.texcoordArray[5][prim.texcoordIndices[5][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE5, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 19)) != 0) { Vector2 t = model.texcoordArray[6][prim.texcoordIndices[6][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE6, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 20)) != 0) { Vector2 t = model.texcoordArray[7][prim.texcoordIndices[7][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE7, t.x, t.y); }
                         }
                         else
                         {
-                            if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glTexCoord2f(t.X, t.Y); }
+                            if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glTexCoord2f(t.x, t.y); }
                         }
                         //if ((prim.ArrayMask & (1 << 0)) != 0) gl.glColor4(debug[prim.PosMatrixIndices[i]]);
 
-                        if ((prim.arrayMask & (1 << 10)) != 0) { Vector3 n = model.normalArray[prim.normalIndices[i]]; gl.glNormal3f(n.X, n.Y, n.Z); }
+                        if ((prim.arrayMask & (1 << 10)) != 0) { Vector3 n = model.normalArray[prim.normalIndices[i]]; gl.glNormal3f(n.x, n.y, n.z); }
 
                         Vector3 pos = model.positionArray[prim.positionIndices[i]];
                         if ((prim.arrayMask & (1 << 0)) != 0) pos = Vector3.transform(pos, mtxtable[prim.posMatrixIndices[i]]);
                         else pos = Vector3.transform(pos, mtxtable[0]);
-                        gl.glVertex3f(pos.X, pos.Y, pos.Z);
+                        gl.glVertex3f(pos.x, pos.y, pos.z);
                     }
 
                     gl.glEnd();

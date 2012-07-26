@@ -60,7 +60,7 @@ public class ColorCubeRenderer implements Renderer
 
             gl.glDepthFunc(gl.GL_LEQUAL);
             gl.glDepthMask(true);
-            gl.glColor4f(fillColor.R, fillColor.G, fillColor.B, fillColor.A);
+            gl.glColor4f(fillColor.r, fillColor.g, fillColor.b, fillColor.a);
             gl.glDisable(gl.GL_LIGHTING);
             gl.glDisable(gl.GL_BLEND);
             gl.glDisable(gl.GL_COLOR_LOGIC_OP);
@@ -99,7 +99,7 @@ public class ColorCubeRenderer implements Renderer
         if (info.renderMode != RenderMode.PICKING)
         {
             gl.glLineWidth(1.5f);
-            gl.glColor4f(borderColor.R, borderColor.G, borderColor.B, borderColor.A);
+            gl.glColor4f(borderColor.r, borderColor.g, borderColor.b, borderColor.a);
 
             gl.glBegin(gl.GL_LINE_STRIP);
             gl.glVertex3f(s, s, s);

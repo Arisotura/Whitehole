@@ -22,25 +22,25 @@ public class Vector3
 {
     public Vector3()
     {
-        X = Y = Z = 0f;
+        x = y = z = 0f;
     }
     
     public Vector3(float x, float y, float z)
     {
-        X = x;
-        Y = y;
-        Z = z;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
     
     
     public static Vector3 transform(Vector3 v, Matrix4 m)
     {
         return new Vector3(
-                v.X * m.M[0] + v.Y * m.M[4] + v.Z * m.M[8] + m.M[12],
-                v.X * m.M[1] + v.Y * m.M[5] + v.Z * m.M[9] + m.M[13],
-                v.X * m.M[2] + v.Y * m.M[6] + v.Z * m.M[10] + m.M[14]);
+                v.x * m.m[0] + v.y * m.m[4] + v.z * m.m[8] + m.m[12],
+                v.x * m.m[1] + v.y * m.m[5] + v.z * m.m[9] + m.m[13],
+                v.x * m.m[2] + v.y * m.m[6] + v.z * m.m[10] + m.m[14]);
     }
     
     
-    public float X, Y, Z;
+    public float x, y, z;
 }

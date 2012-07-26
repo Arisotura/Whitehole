@@ -22,25 +22,25 @@ public class Color4
 {
     public Color4()
     {
-        R = G = B = A = 0f;
+        r = g = b = a = 0f;
     }
     
     public Color4(float r, float g, float b)
     {
-        R = r;
-        G = g;
-        B = b;
-        A = 1f;
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        a = 1f;
     }
     
     public Color4(float r, float g, float b, float a)
     {
-        R = r;
-        G = g;
-        B = b;
-        A = a;
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
     }
     
     
-    public float R, G, B, A;
+    public float r, g, b, a;
 }

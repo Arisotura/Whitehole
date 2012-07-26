@@ -22,15 +22,15 @@ public class Vector2
 {
     public Vector2()
     {
-        X = Y = 0f;
+        x = y = 0f;
     }
     
     public Vector2(float x, float y)
     {
-        X = x;
-        Y = y;
+        this.x = x;
+        this.y = y;
     }
     
     
-    public float X, Y;
+    public float x, y;
 }

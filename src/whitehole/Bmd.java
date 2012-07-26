@@ -56,12 +56,12 @@ public class Bmd
         bboxMax = new Vector3(0, 0, 0);
         for (Vector3 vec : positionArray)
         {
-            if (vec.X < bboxMin.X) bboxMin.X = vec.X;
-            if (vec.Y < bboxMin.Y) bboxMin.Y = vec.Y;
-            if (vec.Z < bboxMin.Z) bboxMin.Z = vec.Z;
-            if (vec.X > bboxMax.X) bboxMax.X = vec.X;
-            if (vec.Y > bboxMax.Y) bboxMax.Y = vec.Y;
-            if (vec.Z > bboxMax.Z) bboxMax.Z = vec.Z;
+            if (vec.x < bboxMin.x) bboxMin.x = vec.x;
+            if (vec.y < bboxMin.y) bboxMin.y = vec.y;
+            if (vec.z < bboxMin.z) bboxMin.z = vec.z;
+            if (vec.x > bboxMax.x) bboxMax.x = vec.x;
+            if (vec.y > bboxMax.y) bboxMax.y = vec.y;
+            if (vec.z > bboxMax.z) bboxMax.z = vec.z;
         }
     }
 
@@ -357,12 +357,12 @@ public class Bmd
 
                 file.position(sectionstart + offset3 + (mm.matrixIndices[j] * 48));
                 mm.matrices[j] = new Matrix4();
-                mm.matrices[j].M[0] = file.readFloat(); mm.matrices[j].M[1] = file.readFloat();
-                mm.matrices[j].M[2] = file.readFloat(); mm.matrices[j].M[3] = file.readFloat();
-                mm.matrices[j].M[4] = file.readFloat(); mm.matrices[j].M[5] = file.readFloat();
-                mm.matrices[j].M[6] = file.readFloat(); mm.matrices[j].M[7] = file.readFloat();
-                mm.matrices[j].M[8] = file.readFloat(); mm.matrices[j].M[9] = file.readFloat();
-                mm.matrices[j].M[10] = file.readFloat(); mm.matrices[j].M[11] = file.readFloat();
+                mm.matrices[j].m[0] = file.readFloat(); mm.matrices[j].m[1] = file.readFloat();
+                mm.matrices[j].m[2] = file.readFloat(); mm.matrices[j].m[3] = file.readFloat();
+                mm.matrices[j].m[4] = file.readFloat(); mm.matrices[j].m[5] = file.readFloat();
+                mm.matrices[j].m[6] = file.readFloat(); mm.matrices[j].m[7] = file.readFloat();
+                mm.matrices[j].m[8] = file.readFloat(); mm.matrices[j].m[9] = file.readFloat();
+                mm.matrices[j].m[10] = file.readFloat(); mm.matrices[j].m[11] = file.readFloat();
             }
         }
 
@@ -422,16 +422,16 @@ public class Bmd
             jnt.unk2 = file.readByte();
             file.skip(1);
 
-            jnt.scale.X = file.readFloat();
-            jnt.scale.Y = file.readFloat();
-            jnt.scale.Z = file.readFloat();
-            jnt.rotation.X = (float)((file.readShort() * Math.PI) / 32768f);
-            jnt.rotation.Y = (float)((file.readShort() * Math.PI) / 32768f);
-            jnt.rotation.Z = (float)((file.readShort() * Math.PI) / 32768f);
+            jnt.scale.x = file.readFloat();
+            jnt.scale.y = file.readFloat();
+            jnt.scale.z = file.readFloat();
+            jnt.rotation.x = (float)((file.readShort() * Math.PI) / 32768f);
+            jnt.rotation.y = (float)((file.readShort() * Math.PI) / 32768f);
+            jnt.rotation.z = (float)((file.readShort() * Math.PI) / 32768f);
             file.skip(2);
-            jnt.translation.X = file.readFloat();
-            jnt.translation.Y = file.readFloat();
-            jnt.translation.Z = file.readFloat();
+            jnt.translation.x = file.readFloat();
+            jnt.translation.y = file.readFloat();
+            jnt.translation.z = file.readFloat();
 
             jnt.matrix = Helper.SRTToMatrix(jnt.scale, jnt.rotation, jnt.translation);
 
@@ -751,16 +751,16 @@ public class Bmd
                 
                 if (constcolor_id[j] == 0xFFFF)
                 {
-                    mat.constColors[j].R = 0; mat.constColors[j].G = 0;
-                    mat.constColors[j].B = 0; mat.constColors[j].A = 0;
+                    mat.constColors[j].r = 0; mat.constColors[j].g = 0;
+                    mat.constColors[j].b = 0; mat.constColors[j].a = 0;
                 }
                 else
                 {
                     file.position(sectionstart + offsets[18] + (constcolor_id[j] * 4));
-                    mat.constColors[j].R = file.readByte() & 0xFF;
-                    mat.constColors[j].G = file.readByte() & 0xFF;
-                    mat.constColors[j].B = file.readByte() & 0xFF;
-                    mat.constColors[j].A = file.readByte() & 0xFF;
+                    mat.constColors[j].r = file.readByte() & 0xFF;
+                    mat.constColors[j].g = file.readByte() & 0xFF;
+                    mat.constColors[j].b = file.readByte() & 0xFF;
+                    mat.constColors[j].a = file.readByte() & 0xFF;
                 }
             }
 
@@ -781,16 +781,16 @@ public class Bmd
                 
                 if (colors10_id[j] == 0xFFFF)
                 {
-                    mat.colorS10[j].R = 255; mat.colorS10[j].G = 0;
-                    mat.colorS10[j].B = 255; mat.colorS10[j].A = 255;
+                    mat.colorS10[j].r = 255; mat.colorS10[j].g = 0;
+                    mat.colorS10[j].b = 255; mat.colorS10[j].a = 255;
                 }
                 else
                 {
                     file.position(sectionstart + offsets[17] + (colors10_id[j] * 8));
-                    mat.colorS10[j].R = file.readShort() & 0xFFFF;
-                    mat.colorS10[j].G = file.readShort() & 0xFFFF;
-                    mat.colorS10[j].B = file.readShort() & 0xFFFF;
-                    mat.colorS10[j].A = file.readShort() & 0xFFFF;
+                    mat.colorS10[j].r = file.readShort() & 0xFFFF;
+                    mat.colorS10[j].g = file.readShort() & 0xFFFF;
+                    mat.colorS10[j].b = file.readShort() & 0xFFFF;
+                    mat.colorS10[j].a = file.readShort() & 0xFFFF;
                 }
             }
 
@@ -843,10 +843,10 @@ public class Bmd
                 if (tevswaptbl_id[j] == 0xFFFF) continue; // safety
                 file.position(sectionstart + offsets[22] + (tevswaptbl_id[j] * 4));
 
-                mat.tevSwapTable[j].R = file.readByte();
-                mat.tevSwapTable[j].G = file.readByte();
-                mat.tevSwapTable[j].B = file.readByte();
-                mat.tevSwapTable[j].A = file.readByte();
+                mat.tevSwapTable[j].r = file.readByte();
+                mat.tevSwapTable[j].g = file.readByte();
+                mat.tevSwapTable[j].b = file.readByte();
+                mat.tevSwapTable[j].a = file.readByte();
             }
 
             file.position(sectionstart + offsets[24] + (alphacomp_id * 8));
@@ -1225,7 +1225,7 @@ public class Bmd
 
         public class ColorInfo
         {
-            public int R, G, B, A;
+            public int r, g, b, a;
         }
 
         public class TexGenInfo
@@ -1260,7 +1260,7 @@ public class Bmd
 
         public class TevSwapModeTable
         {
-            public byte R, G, B, A;
+            public byte r, g, b, a;
         }
 
         public class AlphaCompInfo

@@ -41,15 +41,24 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         GLCanvas glc = new GLCanvas();
         glc.addGLEventListener(new GalaxyRenderer());
+        //
         
-        Animator anim = new Animator();
-        anim.add(glc);
+        //Animator anim = new Animator();
+        //anim.add(glc);
         
-        /*pnlGLPanel.*/add(glc, BorderLayout.CENTER);
-        glc.setVisible(true);
+        pnlGLPanel.setLayout(new BorderLayout());
+        pnlGLPanel.add(glc, BorderLayout.CENTER);
+        pnlGLPanel.doLayout();
+        //glc.setSize(pnlGLPanel.getSize());
+        //glc.setVisible(true);
         
-        anim.start();
+        //anim.start();
         //glc.repaint();
+        
+        System.out.println(pnlGLPanel.getSize());
+        System.out.println(pnlGLPanel.getLocation());
+        System.out.println(glc.getSize());
+        System.out.println(glc.getLocation());
     }
 
     /**
@@ -74,11 +83,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         pnlGLPanel.setLayout(pnlGLPanelLayout);
         pnlGLPanelLayout.setHorizontalGroup(
             pnlGLPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 348, Short.MAX_VALUE)
+            .addGap(0, 452, Short.MAX_VALUE)
         );
         pnlGLPanelLayout.setVerticalGroup(
             pnlGLPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 254, Short.MAX_VALUE)
+            .addGap(0, 362, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -86,16 +95,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(48, 48, 48)
-                .addComponent(pnlGLPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(87, Short.MAX_VALUE))
+                .addGap(21, 21, 21)
+                .addComponent(pnlGLPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(66, Short.MAX_VALUE)
-                .addComponent(pnlGLPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(64, 64, 64))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(pnlGLPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -135,7 +144,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             // draw shit here
             
-            //glad.swapBuffers();
+            glad.swapBuffers();
             System.out.println("displayed crap");
         }
 
@@ -144,7 +153,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             GL2 gl = glad.getGL().getGL2();
             
-            gl.setSwapInterval(1);
+            //gl.setSwapInterval(1);
             gl.glViewport(x, y, width, height);
             System.out.println("resized crap");
         }

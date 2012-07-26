@@ -27,9 +27,9 @@ public class Helper
         Matrix4 ret = new Matrix4();
 
         Matrix4 mscale = Matrix4.scale(scale);
-        Matrix4 mxrot = Matrix4.createRotationX(rot.X);
-        Matrix4 myrot = Matrix4.createRotationY(rot.Y);
-        Matrix4 mzrot = Matrix4.createRotationZ(rot.Z);
+        Matrix4 mxrot = Matrix4.createRotationX(rot.x);
+        Matrix4 myrot = Matrix4.createRotationY(rot.y);
+        Matrix4 mzrot = Matrix4.createRotationZ(rot.z);
         Matrix4 mtrans = Matrix4.createTranslation(trans);
 
         ret = Matrix4.mult(ret, mscale);
