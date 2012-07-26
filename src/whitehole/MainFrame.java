@@ -230,13 +230,12 @@ public class MainFrame extends javax.swing.JFrame {
     private void GalaxyListMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_GalaxyListMouseClicked
     {//GEN-HEADEREND:event_GalaxyListMouseClicked
         if (evt.getClickCount() < 2) return;
-        
-        JOptionPane.showMessageDialog(this, "you opened galaxy " + GalaxyList.getSelectedValue());
+        new GalaxyEditorForm((String)GalaxyList.getSelectedValue()).setVisible(true);
     }//GEN-LAST:event_GalaxyListMouseClicked
 
     private void btnOpenGalaxyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnOpenGalaxyActionPerformed
     {//GEN-HEADEREND:event_btnOpenGalaxyActionPerformed
-        JOptionPane.showMessageDialog(this, "you indirectly opened galaxy " + GalaxyList.getSelectedValue());
+        new GalaxyEditorForm((String)GalaxyList.getSelectedValue()).setVisible(true);
     }//GEN-LAST:event_btnOpenGalaxyActionPerformed
 
     private void GalaxyListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_GalaxyListValueChanged

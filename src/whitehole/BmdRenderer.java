@@ -1,0 +1,714 @@
+/*
+    Copyright 2012 Mega-Mario
+
+    This file is part of Whitehole.
+
+    Whitehole is free software: you can redistribute it and/or modify it under
+    the terms of the GNU General Public License as published by the Free
+    Software Foundation, either version 3 of the License, or (at your option)
+    any later version.
+
+    Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
+    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along 
+    with Whitehole. If not, see http://www.gnu.org/licenses/.
+*/
+
+package whitehole;
+
+import java.io.*;
+import java.nio.*;
+import javax.media.opengl.*;
+import whitehole.vectors.*;
+
+public class BmdRenderer implements Renderer
+{
+    private void uploadTexture(GL2 gl, int id)
+    {
+        int[] wrapmodes = { gl.GL_CLAMP_TO_EDGE, gl.GL_REPEAT, gl.GL_MIRRORED_REPEAT };
+        int[] minfilters = { gl.GL_NEAREST, gl.GL_LINEAR,
+                             gl.GL_NEAREST_MIPMAP_NEAREST, gl.GL_LINEAR_MIPMAP_NEAREST,
+                             gl.GL_NEAREST_MIPMAP_LINEAR, gl.GL_LINEAR_MIPMAP_LINEAR };
+        int[] magfilters = { gl.GL_NEAREST, gl.GL_LINEAR,
+                             gl.GL_NEAREST, gl.GL_LINEAR,
+                             gl.GL_NEAREST, gl.GL_LINEAR, };
+
+        Bmd.Texture tex = model.textures[id];
+        int[] texids = new int[1];
+        gl.glGenTextures(1, texids, 0);
+        int texid = texids[0];
+        textures[id] = texid;
+
+        gl.glBindTexture(gl.GL_TEXTURE_2D, texid);
+
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAX_LEVEL, tex.mipmapCount - 1);
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, minfilters[tex.minFilter]);
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, magfilters[tex.magFilter]);
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, wrapmodes[tex.wrapS]);
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, wrapmodes[tex.wrapT]);
+
+        int ifmt, fmt;
+        switch (tex.format)
+        {
+            case 0:
+            case 1: ifmt = gl.GL_INTENSITY; fmt = gl.GL_LUMINANCE; break;
+
+            case 2:
+            case 3: ifmt = gl.GL_LUMINANCE8_ALPHA8; fmt = gl.GL_LUMINANCE_ALPHA; break;
+
+            default: ifmt = 4; fmt = gl.GL_BGRA; break;
+        }
+
+        int width = tex.width, height = tex.height;
+        for (int mip = 0; mip < tex.mipmapCount; mip++)
+        {
+            gl.glTexImage2D(gl.GL_TEXTURE_2D, mip, ifmt, width, height, 0, fmt, gl.GL_UNSIGNED_BYTE, ByteBuffer.wrap(tex.image[mip]));
+            width /= 2; height /= 2;
+        }
+    }
+
+    private void generateShaders(GL2 gl, int matid) throws GLException
+    {
+        String[] texgensrc = { "normalize(gl_Vertex)", "vec4(gl_Normal,1.0)", "argh", "argh",
+                                    "gl_MultiTexCoord0", "gl_MultiTexCoord1", "gl_MultiTexCoord2", "gl_MultiTexCoord3",
+                                    "gl_MultiTexCoord4", "gl_MultiTexCoord5", "gl_MultiTexCoord6", "gl_MultiTexCoord7" };
+
+        String[] outputregs = { "rprev", "r0", "r1", "r2" };
+
+        String[] c_inputregs = { "truncc3(rprev.rgb)", "truncc3(rprev.aaa)", "truncc3(r0.rgb)", "truncc3(r0.aaa)", 
+                                    "truncc3(r1.rgb)", "truncc3(r1.aaa)", "truncc3(r2.rgb)", "truncc3(r2.aaa)",
+                                    "texcolor.rgb", "texcolor.aaa", "rascolor.rgb", "rascolor.aaa", 
+                                    "vec3(1.0,1.0,1.0)", "vec3(0.5,0.5,0.5)", "konst.rgb", "vec3(0.0,0.0,0.0)" };
+        String[] c_inputregsD = { "rprev.rgb", "rprev.aaa", "r0.rgb", "r0.aaa", 
+                                    "r1.rgb", "r1.aaa", "r2.rgb", "r2.aaa",
+                                    "texcolor.rgb", "texcolor.aaa", "rascolor.rgb", "rascolor.aaa", 
+                                    "vec3(1.0,1.0,1.0)", "vec3(0.5,0.5,0.5)", "konst.rgb", "vec3(0.0,0.0,0.0)" };
+        String[] c_konstsel = { "vec3(1.0,1.0,1.0)", "vec3(0.875,0.875,0.875)", "vec3(0.75,0.75,0.75)", "vec3(0.625,0.625,0.625)",
+                                    "vec3(0.5,0.5,0.5)", "vec3(0.375,0.375,0.375)", "vec3(0.25,0.25,0.25)", "vec3(0.125,0.125,0.125)",
+                                    "", "", "", "", "k0.rgb", "k1.rgb", "k2.rgb", "k3.rgb",
+                                    "k0.rrr", "k1.rrr", "k2.rrr", "k3.rrr", "k0.ggg", "k1.ggg", "k2.ggg", "k3.ggg",
+                                    "k0.bbb", "k1.bbb", "k2.bbb", "k3.bbb", "k0.aaa", "k1.aaa", "k2.aaa", "k3.aaa" };
+
+        String[] a_inputregs = { "truncc1(rprev.a)", "truncc1(r0.a)", "truncc1(r1.a)", "truncc1(r2.a)",
+                                    "texcolor.a", "rascolor.a", "konst.a", "0.0" };
+        String[] a_inputregsD = { "rprev.a", "r0.a", "r1.a", "r2.a",
+                                    "texcolor.a", "rascolor.a", "konst.a", "0.0" };
+        String[] a_konstsel = { "1.0", "0.875", "0.75", "0.625", "0.5", "0.375", "0.25", "0.125",
+                                    "", "", "", "", "", "", "", "",
+                                    "k0.r", "k1.r", "k2.r", "k3.r", "k0.g", "k1.g", "k2.g", "k3.g",
+                                    "k0.b", "k1.b", "k2.b", "k3.b", "k0.a", "k1.a", "k2.a", "k3.a" };
+
+        String[] tevbias = { "0.0", "0.5", "-0.5" };
+        String[] tevscale = { "1.0", "2.0", "4.0", "0.5" };
+
+        String[] alphacompare = { "0 == 1", "%1$s < %2$f", "%1$s == %2$f", "%1$s <= %2$f", "%1$s > %2$f", "%1$s != %2$f", "%1$s >= %2$f", "1 == 1" };
+        // String[] alphacombine = { "all(bvec2(%1$s,%2$s))", "any(bvec2(%1$s,%2$s))", "any(bvec2(all(bvec2(%1$s,!%2$s)),all(bvec2(!%1$s,%2$s))))", "any(bvec2(all(bvec2(%1$s,%2$s)),all(bvec2(!%1$s,!%2$s))))" };
+        String[] alphacombine = { "(%1$s) && (%2$s)", "(%1$s) || (%2$s)", "((%1$s) && (!(%2$s))) || ((!(%1$s)) && (%2$s))", "((%1$s) && (%2$s)) || ((!(%1$s)) && (!(%2$s)))" };
+
+        // yes, oldstyle shaders
+        // I would use version 130 or above but there are certain
+        // of their new designs I don't agree with. Namely, what's
+        // up with removing texture coordinates. That's just plain
+        // retarded.
+
+        int success = 0;
+        Bmd.Material mat = model.materials[matid];
+
+        StringBuilder vert = new StringBuilder();
+        vert.append("#version 120\n");
+        vert.append("\n");
+        vert.append("void main()\n");
+        vert.append("{\n");
+        vert.append("    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n");
+        vert.append("    gl_FrontColor = gl_Color;\n");
+        vert.append("    gl_FrontSecondaryColor = gl_SecondaryColor;\n");
+        for (int i = 0; i < mat.numTexgens; i++)
+        {
+            // TODO matrices
+            vert.append(String.format("    gl_TexCoord[%1$d] = %2$s;\n", i, texgensrc[mat.texGen[i].src]));
+        }
+        vert.append("}\n");
+
+        int vertid = gl.glCreateShader(gl.GL_VERTEX_SHADER);
+        shaders[matid].vertexShader = vertid;
+        gl.glShaderSource(vertid, 1, new String[] { vert.toString() }, new int[] { vert.length() }, 0);
+        gl.glCompileShader(vertid);
+
+        int[] sillyarray = new int[1];
+        gl.glGetShaderiv(vertid, gl.GL_COMPILE_STATUS, sillyarray, 1);
+        success = sillyarray[0];
+        if (success == 0)
+        {
+            //string log = gl.glGetShaderInfoLog(vertid);
+            String log = "TODO port this shit from C#";
+            throw new GLException("!Failed to compile vertex shader: " + log);
+            // TODO: better error reporting/logging?
+        }
+
+        StringBuilder frag = new StringBuilder();
+        frag.append("#version 120\n");
+        frag.append("\n");
+
+        for (int i = 0; i < 8; i++)
+        {
+            if (mat.texStages[i] == 0xFFFF) continue;
+            frag.append(String.format("uniform sampler2D texture%1$d;\n", i));
+        }
+
+        frag.append("\n");
+        frag.append("float truncc1(float c)\n");
+        frag.append("{\n");
+        frag.append("    return (c == 0.0) ? 0.0 : ((fract(c) == 0.0) ? 1.0 : fract(c));\n");
+        frag.append("}\n");
+        frag.append("\n");
+        frag.append("vec3 truncc3(vec3 c)\n");
+        frag.append("{\n");
+        frag.append("    return vec3(truncc1(c.r), truncc1(c.g), truncc1(c.b));\n");
+        frag.append("}\n");
+        frag.append("\n");
+        frag.append("void main()\n");
+        frag.append("{\n");
+
+        for (int i = 0; i < 4; i++)
+        {
+            int _i = (i == 0) ? 3 : i - 1; // ???
+            frag.append(String.format("    vec4 %1$s = vec4(%2$f, %3$f, %4$f, %5$f);\n",
+                outputregs[i],
+                (float)mat.colorS10[_i].R / 255f, (float)mat.colorS10[_i].G / 255f,
+                (float)mat.colorS10[_i].B / 255f, (float)mat.colorS10[_i].A / 255f));
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            frag.append(String.format("    vec4 k%1$d = vec4(%2$f, %3$f, %4$f, %5$f);\n",
+                i,
+                (float)mat.constColors[i].R / 255f, (float)mat.constColors[i].G / 255f,
+                (float)mat.constColors[i].B / 255f, (float)mat.constColors[i].A / 255f));
+        }
+
+        frag.append("    vec4 texcolor, rascolor, konst;\n");
+
+        for (int i = 0; i < mat.numTevStages; i++)
+        {
+            frag.append(String.format("\n    // TEV stage %1$d", i));
+
+            // TEV inputs
+            // for registers prev/0/1/2: use fract() to emulate truncation
+            // if they're selected into a, b or c
+            String rout, a, b, c, d, operation = "";
+
+            frag.append("    konst.rgb = " + c_konstsel[mat.constColorSel[i]] + ";\n");
+            frag.append("    konst.a = " + a_konstsel[mat.constAlphaSel[i]] + ";\n");
+            if (mat.tevOrder[i].texMap != 0xFF && mat.tevOrder[i].texcoordID != 0xFF)
+                frag.append(String.format("    texcolor = texture2D(texture%1$d, gl_TexCoord[%2$d].st);\n",
+                    mat.tevOrder[i].texMap, mat.tevOrder[i].texcoordID));
+            frag.append("    rascolor = gl_Color;\n");
+            // TODO: take mat.TevOrder[i].ChanId into account
+            // TODO: tex/ras swizzle? (important or not?)
+            //mat.TevSwapMode[0].
+
+            if (mat.tevOrder[i].chanID != 4)
+                throw new GLException(String.format("!UNSUPPORTED CHANID %1$d", mat.tevOrder[i].chanID));
+
+            rout = outputregs[mat.tevStage[i].colorRegID] + ".rgb";
+            a = c_inputregs[mat.tevStage[i].colorIn[0]];
+            b = c_inputregs[mat.tevStage[i].colorIn[1]];
+            c = c_inputregs[mat.tevStage[i].colorIn[2]];
+            d = c_inputregsD[mat.tevStage[i].colorIn[3]];
+
+            switch (mat.tevStage[i].colorOp)
+            {
+                case 0:
+                    operation = "    %1$s = (%5$s + mix(%2$s,%3$s,%4$s) + vec3(%6$s,%6$s,%6$s)) * vec3(%7$s,%7$s,%7$s);\n";
+                    if (mat.tevStage[i].colorClamp != 0) operation += "    %1$s = clamp(%1$s, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));\n";
+                    break;
+
+                case 1:
+                    operation = "    %1$s = (%5$s - mix(%2$s,%3$s,%4$s) + vec3(%6$s,%6$s,%6$s)) * vec3(%7$s,%7$s,%7$s);\n";
+                    if (mat.tevStage[i].colorClamp != 0) operation += "    %1$s = clamp(%1$s, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));\n";
+                    break;
+
+                case 8:
+                    operation = "    %1$s = %5$s + (((%2$s).r > (%3$s).r) ? %4$s : vec(0.0,0.0,0.0));\n";
+                    break;
+
+                default:
+                    operation = "    %1$s = vec3(1.0,0.0,1.0);\n";
+                    throw new GLException(String.format("!colorop %1$d", mat.tevStage[i].colorOp));
+            }
+
+            operation = String.format(operation, 
+                rout, a, b, c, d, tevbias[mat.tevStage[i].colorBias],
+                tevscale[mat.tevStage[i].colorScale]);
+            frag.append(operation);
+
+            rout = outputregs[mat.tevStage[i].alphaRegID] + ".a";
+            a = a_inputregs[mat.tevStage[i].alphaIn[0]];
+            b = a_inputregs[mat.tevStage[i].alphaIn[1]];
+            c = a_inputregs[mat.tevStage[i].alphaIn[2]];
+            d = a_inputregsD[mat.tevStage[i].alphaIn[3]];
+
+            switch (mat.tevStage[i].alphaOp)
+            {
+                case 0:
+                    operation = "    %1$s = (%5$s + mix(%2$s,%3$s,%4$s) + %6$s) * %7$s;\n";
+                    if (mat.tevStage[i].alphaClamp != 0) operation += "   %1$s = clamp(%1$s, 0.0, 1.0);\n";
+                    break;
+
+                case 1:
+                    operation = "    %1$s = (%5$s - mix(%2$s,%3$s,%4$s) + %6$s) * %7$s;\n";
+                    if (mat.tevStage[i].alphaClamp != 0) operation += "   %1$s = clamp(%1$s, 0.0, 1.0);\n";
+                    break;
+
+                default:
+                    operation = "    %1$s = 1.0;";
+                    throw new GLException(String.format("!alphaop %1$d", mat.tevStage[i].alphaOp));
+            }
+
+            operation = String.format(operation,
+                rout, a, b, c, d, tevbias[mat.tevStage[i].alphaBias],
+                tevscale[mat.tevStage[i].alphaScale]);
+            frag.append(operation);
+        }
+
+        frag.append("\n");
+        frag.append("   gl_FragColor.rgb = truncc3(rprev.rgb);\n");
+        frag.append("   gl_FragColor.a = truncc1(rprev.a);\n");
+        frag.append("\n");
+
+        frag.append("    // Alpha test\n");
+        if (mat.alphaComp.mergeFunc == 1 && (mat.alphaComp.func0 == 7 || mat.alphaComp.func1 == 7))
+        {
+            // always pass -- do nothing :)
+        }
+        else if (mat.alphaComp.mergeFunc == 0 && (mat.alphaComp.func0 == 0 || mat.alphaComp.func1 == 0))
+        {
+            // never pass
+            // (we did all those color/alpha calculations for uh, nothing ;_; )
+            frag.append("    discard;\n");
+        }
+        else
+        {
+            String compare0 = String.format(alphacompare[mat.alphaComp.func0], "gl_FragColor.a", (float)mat.alphaComp.ref0 / 255f);
+            String compare1 = String.format(alphacompare[mat.alphaComp.func1], "gl_FragColor.a", (float)mat.alphaComp.ref1 / 255f);
+            String fullcompare = "";
+
+            if (mat.alphaComp.mergeFunc == 1)
+            {
+                if (mat.alphaComp.func0 == 0) fullcompare = compare1;
+                else if (mat.alphaComp.func1 == 0) fullcompare = compare0;
+            }
+            else if (mat.alphaComp.mergeFunc == 0)
+            {
+                if (mat.alphaComp.func0 == 7) fullcompare = compare1;
+                else if (mat.alphaComp.func1 == 7) fullcompare = compare0;
+            }
+
+            if (fullcompare == "") fullcompare = String.format(alphacombine[mat.alphaComp.mergeFunc], compare0, compare1);
+
+            frag.append("    if (!(" + fullcompare + ")) discard;\n");
+        }
+
+        frag.append("}\n");
+
+        int fragid = gl.glCreateShader(gl.GL_FRAGMENT_SHADER);
+        shaders[matid].fragmentShader = fragid;
+        gl.glShaderSource(fragid, 1, new String[] { frag.toString() }, new int[] { frag.length()}, 0);
+        gl.glCompileShader(fragid);
+
+        gl.glGetShaderiv(fragid, gl.GL_COMPILE_STATUS, sillyarray, 1);
+        success = sillyarray[0];
+        if (success == 0)
+        {
+            //string log = gl.glGetShaderInfoLog(fragid);
+            String log = "TODO: port this shit from C#";
+            throw new GLException("!Failed to compile fragment shader: " + log);
+            // TODO: better error reporting/logging?
+        }
+
+        int sid = gl.glCreateProgram();
+        shaders[matid].program = sid;
+
+        gl.glAttachShader(sid, vertid);
+        gl.glAttachShader(sid, fragid);
+
+        gl.glLinkProgram(sid);
+        gl.glGetProgramiv(sid, gl.GL_LINK_STATUS, sillyarray, 1);
+        success = sillyarray[0];
+        if (success == 0)
+        {
+            //string log = gl.glGetProgramInfoLog(sid);
+            String log = "TODO: port this shit from C#";
+            throw new GLException("!Failed to link shader program: " + log);
+            // TODO: better error reporting/logging?
+        }
+    }
+
+
+    public BmdRenderer(RenderInfo info, Bmd model) throws GLException
+    {
+        GL2 gl = info.drawable.getGL().getGL2();
+        model = model;
+
+        String extensions = gl.glGetString(gl.GL_EXTENSIONS);
+        hasShaders = extensions.contains("GL_ARB_shading_language_100") &&
+            extensions.contains("GL_ARB_shader_objects") &&
+            extensions.contains("GL_ARB_vertex_shader") &&
+            extensions.contains("GL_ARB_fragment_shader");
+        // TODO: setting for turning shaders on/off
+
+        textures = new int[model.textures.length];
+        for (int i = 0; i < model.textures.length; i++)
+            uploadTexture(gl, i);
+
+        if (hasShaders)
+        {
+            shaders = new Shader[model.materials.length];
+            for (int i = 0; i < model.materials.length; i++)
+            {
+                try { generateShaders(gl, i); }
+                catch (GLException ex)
+                {
+                    // really ugly hack
+                    if (ex.getMessage().charAt(0) == '!')
+                    {
+                        //StringBuilder src = new StringBuilder(10000); int lolz;
+                        //gl.glGetShaderSource(shaders[i].FragmentShader, 10000, out lolz, src);
+                        //System.Windows.Forms.MessageBox.Show(ex.Message + "\n" + src.ToString());
+                        throw ex;
+                    }
+
+                    shaders[i].program = 0;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void close(RenderInfo info) throws GLException
+    {
+        GL2 gl = info.drawable.getGL().getGL2();
+        
+        if (hasShaders)
+        {
+            for (Shader shader : shaders)
+            {
+                if (shader.vertexShader > 0)
+                {
+                    gl.glDetachShader(shader.program, shader.vertexShader);
+                    gl.glDeleteShader(shader.vertexShader);
+                }
+
+                if (shader.fragmentShader > 0)
+                {
+                    gl.glDetachShader(shader.program, shader.fragmentShader);
+                    gl.glDeleteShader(shader.fragmentShader);
+                }
+
+                if (shader.program > 0)
+                    gl.glDeleteProgram(shader.program);
+            }
+        }
+
+        for (int tex : textures)
+            gl.glDeleteTextures(1, new int[] { tex }, 0);
+
+        try { model.close(); }
+        catch (IOException ex) { }
+    }
+
+    @Override
+    public Boolean gottaRender(RenderInfo info) throws GLException
+    {
+        for (Bmd.Material mat : model.materials)
+        {
+            if (!((mat.drawFlag == 4) ^ (info.renderMode == RenderMode.TRANSLUCENT)))
+                return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void render(RenderInfo info) throws GLException
+    {
+        GL2 gl = info.drawable.getGL().getGL2();
+        
+        int[] blendsrc = { gl.GL_ZERO, gl.GL_ONE,
+                           gl.GL_ONE, gl.GL_ZERO, // um...
+                           gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA, 
+                           gl.GL_DST_ALPHA, gl.GL_ONE_MINUS_DST_ALPHA,
+                           gl.GL_DST_COLOR, gl.GL_ONE_MINUS_DST_COLOR };
+        int[] blenddst = { gl.GL_ZERO, gl.GL_ONE,
+                           gl.GL_SRC_COLOR, gl.GL_ONE_MINUS_SRC_COLOR,
+                           gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA, 
+                           gl.GL_DST_ALPHA, gl.GL_ONE_MINUS_DST_ALPHA,
+                           gl.GL_DST_COLOR, gl.GL_ONE_MINUS_DST_COLOR };
+        int[] logicop = { gl.GL_CLEAR, gl.GL_AND, gl.GL_AND_REVERSE, gl.GL_COPY,
+                          gl.GL_AND_INVERTED, gl.GL_NOOP, gl.GL_XOR, gl.GL_OR,
+                          gl.GL_NOR, gl.GL_EQUIV, gl.GL_INVERT, gl.GL_OR_REVERSE,
+                          gl.GL_COPY_INVERTED, gl.GL_OR_INVERTED, gl.GL_NAND, gl.GL_SET };
+
+        Matrix4[] lastmatrixtable = null;
+
+        for (Bmd.SceneGraphNode node : model.sceneGraph)
+        {
+            if (node.nodeType != 0) continue;
+            int shape = node.nodeID;
+
+            if (node.materialID != 0xFFFF)
+            {
+                int[] cullmodes = { gl.GL_FRONT, gl.GL_BACK, gl.GL_FRONT_AND_BACK };
+                int[] depthfuncs = { gl.GL_NEVER, gl.GL_LESS, gl.GL_EQUAL, gl.GL_LEQUAL,
+                                     gl.GL_GREATER, gl.GL_NOTEQUAL, gl.GL_GEQUAL, gl.GL_ALWAYS };
+
+                Bmd.Material mat = model.materials[node.materialID];
+
+                if ((mat.drawFlag == 4) ^ (info.renderMode == RenderMode.TRANSLUCENT))
+                    continue;
+
+                if (hasShaders)
+                {
+                    // shader: handles multitexturing, color combination, alpha test
+                    gl.glUseProgram(shaders[node.materialID].program);
+
+                    // do multitexturing
+                    for (int i = 0; i < 8; i++)
+                    {
+                        gl.glActiveTexture(gl.GL_TEXTURE0 + i);
+
+                        if (mat.texStages[i] == 0xFFFF)
+                        {
+                            gl.glDisable(gl.GL_TEXTURE_2D);
+                            continue;
+                        }
+
+                        int loc = gl.glGetUniformLocation(shaders[node.materialID].program, String.format("texture%1$d", i));
+                        gl.glUniform1i(loc, i);
+
+                        int texid = textures[mat.texStages[i]];
+                        gl.glEnable(gl.GL_TEXTURE_2D);
+                        gl.glBindTexture(gl.GL_TEXTURE_2D, texid);
+                    }
+                }
+                else
+                {
+                    int[] alphafunc = { gl.GL_NEVER, gl.GL_LESS, gl.GL_EQUAL, gl.GL_LEQUAL,
+                                        gl.GL_GREATER, gl.GL_NOTEQUAL, gl.GL_GEQUAL, gl.GL_ALWAYS };
+
+                    // texturing -- texture 0 will be used
+                    if (mat.texStages[0] != 0xFFFF)
+                    {
+                        int texid = textures[mat.texStages[0]];
+                        gl.glEnable(gl.GL_TEXTURE_2D);
+                        gl.glBindTexture(gl.GL_TEXTURE_2D, texid);
+                    }
+                    else
+                        gl.glDisable(gl.GL_TEXTURE_2D);
+
+                    // alpha test -- only one comparison can be done
+                    if (mat.alphaComp.mergeFunc == 1 && (mat.alphaComp.func0 == 7 || mat.alphaComp.func1 == 7))
+                        gl.glDisable(gl.GL_ALPHA_TEST);
+                    else if (mat.alphaComp.mergeFunc == 0 && (mat.alphaComp.func0 == 0 || mat.alphaComp.func1 == 0))
+                    {
+                        gl.glEnable(gl.GL_ALPHA_TEST);
+                        gl.glAlphaFunc(gl.GL_NEVER, 0f);
+                    }
+                    else
+                    {
+                        gl.glEnable(gl.GL_ALPHA_TEST);
+
+                        if ((mat.alphaComp.mergeFunc == 1 && mat.alphaComp.func0 == 0) || (mat.alphaComp.mergeFunc == 0 && mat.alphaComp.func0 == 7))
+                            gl.glAlphaFunc(alphafunc[mat.alphaComp.func1], (float)mat.alphaComp.ref1 / 255f);
+                        else
+                            gl.glAlphaFunc(alphafunc[mat.alphaComp.func0], (float)mat.alphaComp.ref0 / 255f);
+                    }
+                }
+
+                switch (mat.blendMode.blendMode)
+                {
+                    case 0: 
+                        gl.glDisable(gl.GL_BLEND);
+                        gl.glDisable(gl.GL_COLOR_LOGIC_OP);
+                        break;
+
+                    case 1:
+                    case 3:
+                        gl.glEnable(gl.GL_BLEND);
+                        gl.glDisable(gl.GL_COLOR_LOGIC_OP);
+
+                        if (mat.blendMode.blendMode == 3)
+                            gl.glBlendEquation(gl.GL_FUNC_SUBTRACT);
+                        else
+                            gl.glBlendEquation(gl.GL_FUNC_ADD);
+
+                        gl.glBlendFunc(blendsrc[mat.blendMode.srcFactor], blenddst[mat.blendMode.dstFactor]);
+                        break;
+
+                    case 2:
+                        gl.glDisable(gl.GL_BLEND);
+                        gl.glEnable(gl.GL_COLOR_LOGIC_OP);
+                        gl.glLogicOp(logicop[mat.blendMode.blendOp]);
+                        break;
+                }
+
+
+                if (mat.cullMode == 0)
+                    gl.glDisable(gl.GL_CULL_FACE);
+                else
+                {
+                    gl.glEnable(gl.GL_CULL_FACE);
+                    gl.glCullFace(cullmodes[mat.cullMode - 1]);
+                }
+
+                if (mat.zMode.enableZTest)
+                {
+                    gl.glEnable(gl.GL_DEPTH_TEST);
+                    gl.glDepthFunc(depthfuncs[mat.zMode.func]);
+                }
+                else
+                    gl.glDisable(gl.GL_DEPTH_TEST);
+
+                gl.glDepthMask(mat.zMode.enableZWrite);
+            }
+            else
+            {
+                //if (info.Mode != RenderMode.Opaque) continue;
+                // if (m_HasShaders) gl.glUseProgram(0);
+                throw new GLException(String.format("Material-less geometry node %1$d", node.nodeID));
+            }
+
+
+            Bmd.Batch batch = model.batches[shape];
+
+            /*if (batch.MatrixType == 1)
+            {
+                gl.glPushMatrix();
+                gl.glCallList(info.BillboardDL);
+            }
+            else if (batch.MatrixType == 2)
+            {
+                gl.glPushMatrix();
+                gl.glCallList(info.YBillboardDL);
+            }*/
+
+            for (Bmd.Batch.Packet packet : batch.packets)
+            {
+                Matrix4[] mtxtable = new Matrix4[packet.matrixTable.length];
+                int[] mtx_debug = new int[packet.matrixTable.length];
+
+                for (int i = 0; i < packet.matrixTable.length; i++)
+                {
+                    if (packet.matrixTable[i] == 0xFFFF)
+                    {
+                        mtxtable[i] = lastmatrixtable[i];
+                        mtx_debug[i] = 2;
+                    }
+                    else
+                    {
+                        Bmd.MatrixType mtxtype = model.matrixTypes[packet.matrixTable[i]];
+
+                        if (mtxtype.isWeighted)
+                        {
+                            //throw new NotImplementedException("weighted matrix");
+
+                            // code inspired from bmdview2, except doesn't work right
+                            /*Matrix4 mtx = new Matrix4();
+                            Bmd.MultiMatrix mm = m_Model.MultiMatrices[mtxtype.Index];
+                            for (int j = 0; j < mm.NumMatrices; j++)
+                            {
+                                Matrix4 wmtx = mm.Matrices[j];
+                                float weight = mm.MatrixWeights[j];
+
+                                Matrix4.Mult(ref wmtx, ref m_Model.Joints[mm.MatrixIndices[j]].Matrix, out wmtx);
+
+                                Vector4.Mult(ref wmtx.Row0, weight, out wmtx.Row0);
+                                Vector4.Mult(ref wmtx.Row1, weight, out wmtx.Row1);
+                                Vector4.Mult(ref wmtx.Row2, weight, out wmtx.Row2);
+                                //Vector4.Mult(ref wmtx.Row3, weight, out wmtx.Row3);
+
+                                Vector4.Add(ref mtx.Row0, ref wmtx.Row0, out mtx.Row0);
+                                Vector4.Add(ref mtx.Row1, ref wmtx.Row1, out mtx.Row1);
+                                Vector4.Add(ref mtx.Row2, ref wmtx.Row2, out mtx.Row2);
+                                //Vector4.Add(ref mtx.Row3, ref wmtx.Row3, out mtx.Row3);
+                            }
+                            mtx.M44 = 1f;
+                            mtxtable[i] = mtx;*/
+
+                            // seems fine in most cases
+                            // but hey, certainly not right, that data has to be used in some way
+                            mtxtable[i] = new Matrix4();
+
+                            mtx_debug[i] = 1;
+                        }
+                        else
+                        {
+                            mtxtable[i] = model.joints[mtxtype.index].finalMatrix;
+                            mtx_debug[i] = 0;
+                        }
+                    }
+                }
+
+                lastmatrixtable = mtxtable;
+
+                for (Bmd.Batch.Packet.Primitive prim : packet.primitives)
+                {
+                    int[] primtypes = { gl.GL_QUADS, gl.GL_POINTS, gl.GL_TRIANGLES, gl.GL_TRIANGLE_STRIP,
+                                        gl.GL_TRIANGLE_FAN, gl.GL_LINES, gl.GL_LINE_STRIP, gl.GL_POINTS };
+                    gl.glBegin(primtypes[(prim.primitiveType - 0x80) / 8]);
+                    //gl.glBegin(BeginMode.Points);
+
+                    for (int i = 0; i < prim.numIndices; i++)
+                    {
+
+                        if ((prim.arrayMask & (1 << 11)) != 0) { Color4 c = model.colorArray[0][prim.colorIndices[0][i]]; gl.glColor4f(c.R, c.G, c.B, c.A); }
+
+                        if (hasShaders)
+                        {
+                            if ((prim.arrayMask & (1 << 12)) != 0) { Color4 c = model.colorArray[1][prim.colorIndices[1][i]]; gl.glSecondaryColor3f(c.R, c.G, c.B); }
+
+                            if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE0, t.X, t.Y); }
+                            if ((prim.arrayMask & (1 << 14)) != 0) { Vector2 t = model.texcoordArray[1][prim.texcoordIndices[1][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE1, t.X, t.Y); }
+                            if ((prim.arrayMask & (1 << 15)) != 0) { Vector2 t = model.texcoordArray[2][prim.texcoordIndices[2][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE2, t.X, t.Y); }
+                            if ((prim.arrayMask & (1 << 16)) != 0) { Vector2 t = model.texcoordArray[3][prim.texcoordIndices[3][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE3, t.X, t.Y); }
+                            if ((prim.arrayMask & (1 << 17)) != 0) { Vector2 t = model.texcoordArray[4][prim.texcoordIndices[4][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE4, t.X, t.Y); }
+                            if ((prim.arrayMask & (1 << 18)) != 0) { Vector2 t = model.texcoordArray[5][prim.texcoordIndices[5][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE5, t.X, t.Y); }
+                            if ((prim.arrayMask & (1 << 19)) != 0) { Vector2 t = model.texcoordArray[6][prim.texcoordIndices[6][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE6, t.X, t.Y); }
+                            if ((prim.arrayMask & (1 << 20)) != 0) { Vector2 t = model.texcoordArray[7][prim.texcoordIndices[7][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE7, t.X, t.Y); }
+                        }
+                        else
+                        {
+                            if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glTexCoord2f(t.X, t.Y); }
+                        }
+                        //if ((prim.ArrayMask & (1 << 0)) != 0) gl.glColor4(debug[prim.PosMatrixIndices[i]]);
+
+                        if ((prim.arrayMask & (1 << 10)) != 0) { Vector3 n = model.normalArray[prim.normalIndices[i]]; gl.glNormal3f(n.X, n.Y, n.Z); }
+
+                        Vector3 pos = model.positionArray[prim.positionIndices[i]];
+                        if ((prim.arrayMask & (1 << 0)) != 0) pos = Vector3.transform(pos, mtxtable[prim.posMatrixIndices[i]]);
+                        else pos = Vector3.transform(pos, mtxtable[0]);
+                        gl.glVertex3f(pos.X, pos.Y, pos.Z);
+                    }
+
+                    gl.glEnd();
+                }
+            }
+
+            //if (batch.MatrixType == 1 || batch.MatrixType == 2)
+            //     gl.glPopMatrix();
+        }
+    }
+
+
+    private class Shader
+    {
+        public int program, vertexShader, fragmentShader;
+    }
+
+    private Bmd model;
+    private int[] textures;
+    private Boolean hasShaders;
+    private Shader[] shaders;
+}
