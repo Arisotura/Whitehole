@@ -1074,20 +1074,20 @@ public class Bmd
                                     {
                                         for (int sbx = 0; sbx < 8; sbx += 4)
                                         {
-                                            short c1 = file.readShort();
-                                            short c2 = file.readShort();
+                                            int c1 = file.readShort() & 0xFFFF;
+                                            int c2 = file.readShort() & 0xFFFF;
                                             int block = file.readInt();
 
-                                            byte r1 = (byte)((c1 & 0xF800) >>> 8);
-                                            byte g1 = (byte)((c1 & 0x07E0) >>> 3);
-                                            byte b1 = (byte)((c1 & 0x001F) << 3);
-                                            byte r2 = (byte)((c2 & 0xF800) >>> 8);
-                                            byte g2 = (byte)((c2 & 0x07E0) >>> 3);
-                                            byte b2 = (byte)((c2 & 0x001F) << 3);
+                                            int r1 = (c1 & 0xF800) >>> 8;
+                                            int g1 = (c1 & 0x07E0) >>> 3;
+                                            int b1 = (c1 & 0x001F) << 3;
+                                            int r2 = (c2 & 0xF800) >>> 8;
+                                            int g2 = (c2 & 0x07E0) >>> 3;
+                                            int b2 = (c2 & 0x001F) << 3;
 
-                                            byte[][] colors = new byte[4][4];
-                                            colors[0][0] = (byte)255; colors[0][1] = r1; colors[0][2] = g1; colors[0][3] = b1;
-                                            colors[1][0] = (byte)255; colors[1][1] = r2; colors[1][2] = g2; colors[1][3] = b2;
+                                            int[][] colors = new int[4][4];
+                                            colors[0][0] = 255; colors[0][1] = r1; colors[0][2] = g1; colors[0][3] = b1;
+                                            colors[1][0] = 255; colors[1][1] = r2; colors[1][2] = g2; colors[1][3] = b2;
                                             if (c1 > c2)
                                             {
                                                 int r3 = ((r1 << 1) + r2) / 3;
@@ -1098,15 +1098,15 @@ public class Bmd
                                                 int g4 = (g1 + (g2 << 1)) / 3;
                                                 int b4 = (b1 + (b2 << 1)) / 3;
 
-                                                colors[2][0] = (byte)255; colors[2][1] = (byte)r3; colors[2][2] = (byte)g3; colors[2][3] = (byte)b3;
-                                                colors[3][0] = (byte)255; colors[3][1] = (byte)r4; colors[3][2] = (byte)g4; colors[3][3] = (byte)b4;
+                                                colors[2][0] = 255; colors[2][1] = r3; colors[2][2] = g3; colors[2][3] = b3;
+                                                colors[3][0] = 255; colors[3][1] = r4; colors[3][2] = g4; colors[3][3] = b4;
                                             }
                                             else
                                             {
-                                                colors[2][0] = (byte)255;
-                                                colors[2][1] = (byte)((r1 + r2) / 2);
-                                                colors[2][2] = (byte)((g1 + g2) / 2);
-                                                colors[2][3] = (byte)((b1 + b2) / 2);
+                                                colors[2][0] = 255;
+                                                colors[2][1] = ((r1 + r2) / 2);
+                                                colors[2][2] = ((g1 + g2) / 2);
+                                                colors[2][3] = ((b1 + b2) / 2);
                                                 colors[3][0] = 0; colors[3][1] = r2; colors[3][2] = g2; colors[3][3] = b2;
                                             }
 
@@ -1114,12 +1114,12 @@ public class Bmd
                                             {
                                                 for (int x = 0; x < 4; x++)
                                                 {
-                                                    int c = (int)(block >>> 30);
+                                                    int c = block >>> 30;
                                                     int outp = (((by + sby + y) * width) + (bx + sbx + x)) * 4;
-                                                    image[outp++] = (byte)(colors[c][3] | (colors[c][3] >> 5));
-                                                    image[outp++] = (byte)(colors[c][2] | (colors[c][2] >> 5));
-                                                    image[outp++] = (byte)(colors[c][1] | (colors[c][1] >> 5));
-                                                    image[outp  ] = colors[c][0];
+                                                    image[outp++] = (byte)(colors[c][3] | (colors[c][3] >>> 5));
+                                                    image[outp++] = (byte)(colors[c][2] | (colors[c][2] >>> 5));
+                                                    image[outp++] = (byte)(colors[c][1] | (colors[c][1] >>> 5));
+                                                    image[outp  ] = (byte)colors[c][0];
                                                     block <<= 2;
                                                 }
                                             }

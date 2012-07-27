@@ -109,7 +109,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             renderinfo.renderMode = Renderer.RenderMode.OPAQUE;
             
             try { 
-                String objname = "Kinoko";//"HeavenlyBeachPlanet";
+                String objname = "HeavenlyBeachPlanet";
                 RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/"+objname+".arc"));
                 testmodel = new Bmd(arc.openFile("/"+objname+"/"+objname+".bdl")); 
             } catch (IOException ex) {}
@@ -134,11 +134,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glClearDepth(1f);
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
             
-            Matrix4 mv = Matrix4.lookAt(new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 0f), new Vector3(0f, 1f, 0f));
+            Matrix4 mv = Matrix4.lookAt(new Vector3(1f, 1f, 1f), new Vector3(0f, 0f, 0f), new Vector3(0f, 1f, 0f));
             
             gl.glMatrixMode(GL2.GL_MODELVIEW);
             gl.glLoadMatrixf(mv.m, 0);
-            gl.glScalef(0.001f, 0.001f, 0.001f);
+            gl.glScalef(0.0002f, 0.0002f, 0.0002f);
             
             gl.glEnable(GL2.GL_TEXTURE_2D);
             
