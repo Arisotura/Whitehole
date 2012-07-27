@@ -20,6 +20,7 @@ package whitehole;
 
 import javax.swing.*;
 import java.nio.charset.Charset;
+import javax.media.opengl.GLProfile;
 
 public class Whitehole 
 {
@@ -57,6 +58,7 @@ public class Whitehole
         {
         }
 
+        GLProfile.initSingleton();
         new MainFrame().setVisible(true);
     }
 }

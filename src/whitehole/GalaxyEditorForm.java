@@ -41,24 +41,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     public GalaxyEditorForm(String galaxy)
     {
         initComponents();
+
         galaxyName = galaxy;
-        
+        System.out.println("GLCanvas create start");
         GLCanvas glc = new GLCanvas();
         glc.addGLEventListener(new GalaxyRenderer());
-        //
-        
-        //Animator anim = new Animator();
-        //anim.add(glc);
         
         pnlGLPanel.setLayout(new BorderLayout());
         pnlGLPanel.add(glc, BorderLayout.CENTER);
         pnlGLPanel.doLayout();
-        //glc.setSize(pnlGLPanel.getSize());
-        //glc.setVisible(true);
-        
-        //anim.start();
-        //glc.repaint();
-        glc.invalidate();
     }
 
     /**
@@ -83,29 +74,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         pnlGLPanel.setLayout(pnlGLPanelLayout);
         pnlGLPanelLayout.setHorizontalGroup(
             pnlGLPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 452, Short.MAX_VALUE)
+            .addGap(0, 483, Short.MAX_VALUE)
         );
         pnlGLPanelLayout.setVerticalGroup(
             pnlGLPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 362, Short.MAX_VALUE)
+            .addGap(0, 384, Short.MAX_VALUE)
         );
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(21, 21, 21)
-                .addComponent(pnlGLPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(pnlGLPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+        getContentPane().add(pnlGLPanel, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -133,8 +109,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             renderinfo.renderMode = Renderer.RenderMode.OPAQUE;
             
             try { 
-                RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/HeavenlyBeachPlanet.arc"));
-                testmodel = new Bmd(arc.openFile("/heavenlybeachplanet/heavenlybeachplanet.bdl")); 
+                String objname = "Kinoko";//"HeavenlyBeachPlanet";
+                RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/"+objname+".arc"));
+                testmodel = new Bmd(arc.openFile("/"+objname+"/"+objname+".bdl")); 
             } catch (IOException ex) {}
             testrenderer = new BmdRenderer(renderinfo, testmodel);
             
@@ -154,21 +131,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             GL2 gl = glad.getGL().getGL2();
             
             gl.glClearColor(0f, 0f, 0.125f, 1f);
-            gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
+            gl.glClearDepth(1f);
+            gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
             
             Matrix4 mv = Matrix4.lookAt(new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 0f), new Vector3(0f, 1f, 0f));
             
             gl.glMatrixMode(GL2.GL_MODELVIEW);
             gl.glLoadMatrixf(mv.m, 0);
-            gl.glScalef(0.0001f, 0.0001f, 0.0001f);
+            gl.glScalef(0.001f, 0.001f, 0.001f);
             
-            //gl.glEnable(GL2.GL_TEXTURE_2D);
+            gl.glEnable(GL2.GL_TEXTURE_2D);
             
-            //renderinfo.drawable = glad;
-            //testrenderer.render(renderinfo);
+            renderinfo.drawable = glad;
+            testrenderer.render(renderinfo);
             
-            //gl.glUseProgram(0);
-            //gl.glDisable(GL2.GL_TEXTURE_2D);
+            gl.glUseProgram(0);
+            gl.glDisable(GL2.GL_TEXTURE_2D);
             
             gl.glBegin(GL2.GL_LINES);
             gl.glColor4f(1f, 0f, 0f, 1f);

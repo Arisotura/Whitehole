@@ -112,7 +112,7 @@ public class BmdRenderer implements Renderer
         // of their new designs I don't agree with. Namely, what's
         // up with removing texture coordinates. That's just plain
         // retarded.
-
+System.out.println("4");
         int success;
         Bmd.Material mat = model.materials[matid];
         shaders[matid] = new Shader();
@@ -144,6 +144,7 @@ public class BmdRenderer implements Renderer
         {
             //string log = gl.glGetShaderInfoLog(vertid);
             String log = "TODO port this shit from C#";
+            System.out.println("ARGH");
             throw new GLException("!Failed to compile vertex shader: " + log);
             // TODO: better error reporting/logging?
         }
@@ -157,7 +158,7 @@ public class BmdRenderer implements Renderer
             if (mat.texStages[i] == 0xFFFF) continue;
             frag.append(String.format("uniform sampler2D texture%1$d;\n", i));
         }
-
+System.out.println("3");
         frag.append("\n");
         frag.append("float truncc1(float c)\n");
         frag.append("{\n");
@@ -190,7 +191,7 @@ public class BmdRenderer implements Renderer
         }
 
         frag.append("    vec4 texcolor, rascolor, konst;\n");
-
+System.out.println("2");
         for (int i = 0; i < mat.numTevStages; i++)
         {
             frag.append(String.format("\n    // TEV stage %1$d", i));
@@ -237,6 +238,7 @@ public class BmdRenderer implements Renderer
 
                 default:
                     operation = "    %1$s = vec3(1.0,0.0,1.0);\n";
+                    System.out.println("COLOROP ARGH"); System.out.println(mat.tevStage[i].colorOp);
                     throw new GLException(String.format("!colorop %1$d", mat.tevStage[i].colorOp));
             }
 
@@ -265,6 +267,7 @@ public class BmdRenderer implements Renderer
 
                 default:
                     operation = "    %1$s = 1.0;";
+                    System.out.println("ALPHAOP ARGH"); System.out.println(mat.tevStage[i].alphaOp);
                     throw new GLException(String.format("!alphaop %1$d", mat.tevStage[i].alphaOp));
             }
 
@@ -313,9 +316,10 @@ public class BmdRenderer implements Renderer
         }
 
         frag.append("}\n");
-
+System.out.println("1");
         int fragid = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
         shaders[matid].fragmentShader = fragid;
+        String lol = frag.toString();    
         gl.glShaderSource(fragid, 1, new String[] { frag.toString() }, new int[] { frag.length()}, 0);
         gl.glCompileShader(fragid);
 
@@ -345,6 +349,7 @@ public class BmdRenderer implements Renderer
             throw new GLException("!Failed to link shader program: " + log);
             // TODO: better error reporting/logging?
         }
+        System.out.println("Shader successfully generated");
     }
 
 
