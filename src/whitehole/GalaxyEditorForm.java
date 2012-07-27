@@ -43,7 +43,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         initComponents();
 
         galaxyName = galaxy;
-        System.out.println("GLCanvas create start");
+
         GLCanvas glc = new GLCanvas();
         glc.addGLEventListener(new GalaxyRenderer());
         
@@ -179,8 +179,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     -ymax * aspectRatio, ymax * aspectRatio,
                     -ymax, ymax,
                     0.01f, 1000f);
-            
-            System.out.println(String.format("resize %1$d %2$d %3$d %4$d", x, y, width, height));
         }
     }
     

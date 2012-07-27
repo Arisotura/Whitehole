@@ -352,7 +352,6 @@ public class BmdRenderer implements Renderer
             throw new GLException("!Failed to link shader program: " + log);
             // TODO: better error reporting/logging?
         }
-        System.out.println(frag.toString());
     }
 
 
