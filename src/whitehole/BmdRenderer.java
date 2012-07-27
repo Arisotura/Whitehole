@@ -20,6 +20,7 @@ package whitehole;
 
 import java.io.*;
 import java.nio.*;
+import java.util.Locale;
 import javax.media.opengl.*;
 import whitehole.vectors.*;
 
@@ -71,6 +72,8 @@ public class BmdRenderer implements Renderer
 
     private void generateShaders(GL2 gl, int matid) throws GLException
     {
+        Locale usa = new Locale("en-US");
+        
         String[] texgensrc = { "normalize(gl_Vertex)", "vec4(gl_Normal,1.0)", "argh", "argh",
                                     "gl_MultiTexCoord0", "gl_MultiTexCoord1", "gl_MultiTexCoord2", "gl_MultiTexCoord3",
                                     "gl_MultiTexCoord4", "gl_MultiTexCoord5", "gl_MultiTexCoord6", "gl_MultiTexCoord7" };
@@ -112,7 +115,7 @@ public class BmdRenderer implements Renderer
         // of their new designs I don't agree with. Namely, what's
         // up with removing texture coordinates. That's just plain
         // retarded.
-System.out.println("4");
+
         int success;
         Bmd.Material mat = model.materials[matid];
         shaders[matid] = new Shader();
@@ -136,9 +139,9 @@ System.out.println("4");
         shaders[matid].vertexShader = vertid;
         gl.glShaderSource(vertid, 1, new String[] { vert.toString() }, new int[] { vert.length() }, 0);
         gl.glCompileShader(vertid);
-
         int[] sillyarray = new int[1];
-        gl.glGetShaderiv(vertid, GL2.GL_COMPILE_STATUS, sillyarray, 1);
+        gl.glGetShaderiv(vertid, GL2.GL_COMPILE_STATUS, sillyarray, 0);
+
         success = sillyarray[0];
         if (success == 0)
         {
@@ -155,10 +158,10 @@ System.out.println("4");
 
         for (int i = 0; i < 8; i++)
         {
-            if (mat.texStages[i] == 0xFFFF) continue;
+            if (mat.texStages[i] == (short)0xFFFF) continue;
             frag.append(String.format("uniform sampler2D texture%1$d;\n", i));
         }
-System.out.println("3");
+
         frag.append("\n");
         frag.append("float truncc1(float c)\n");
         frag.append("{\n");
@@ -176,7 +179,7 @@ System.out.println("3");
         for (int i = 0; i < 4; i++)
         {
             int _i = (i == 0) ? 3 : i - 1; // ???
-            frag.append(String.format("    vec4 %1$s = vec4(%2$f, %3$f, %4$f, %5$f);\n",
+            frag.append(String.format(usa, "    vec4 %1$s = vec4(%2$f, %3$f, %4$f, %5$f);\n",
                 outputregs[i],
                 (float)mat.colorS10[_i].r / 255f, (float)mat.colorS10[_i].g / 255f,
                 (float)mat.colorS10[_i].b / 255f, (float)mat.colorS10[_i].a / 255f));
@@ -184,17 +187,17 @@ System.out.println("3");
 
         for (int i = 0; i < 4; i++)
         {
-            frag.append(String.format("    vec4 k%1$d = vec4(%2$f, %3$f, %4$f, %5$f);\n",
+            frag.append(String.format(usa, "    vec4 k%1$d = vec4(%2$f, %3$f, %4$f, %5$f);\n",
                 i,
                 (float)mat.constColors[i].r / 255f, (float)mat.constColors[i].g / 255f,
                 (float)mat.constColors[i].b / 255f, (float)mat.constColors[i].a / 255f));
         }
 
         frag.append("    vec4 texcolor, rascolor, konst;\n");
-System.out.println("2");
+
         for (int i = 0; i < mat.numTevStages; i++)
         {
-            frag.append(String.format("\n    // TEV stage %1$d", i));
+            frag.append(String.format("\n    // TEV stage %1$d\n", i));
 
             // TEV inputs
             // for registers prev/0/1/2: use fract() to emulate truncation
@@ -203,7 +206,7 @@ System.out.println("2");
 
             frag.append("    konst.rgb = " + c_konstsel[mat.constColorSel[i]] + ";\n");
             frag.append("    konst.a = " + a_konstsel[mat.constAlphaSel[i]] + ";\n");
-            if (mat.tevOrder[i].texMap != 0xFF && mat.tevOrder[i].texcoordID != 0xFF)
+            if (mat.tevOrder[i].texMap != (byte)0xFF && mat.tevOrder[i].texcoordID != (byte)0xFF)
                 frag.append(String.format("    texcolor = texture2D(texture%1$d, gl_TexCoord[%2$d].st);\n",
                     mat.tevOrder[i].texMap, mat.tevOrder[i].texcoordID));
             frag.append("    rascolor = gl_Color;\n");
@@ -295,8 +298,8 @@ System.out.println("2");
         }
         else
         {
-            String compare0 = String.format(alphacompare[mat.alphaComp.func0], "gl_FragColor.a", (float)mat.alphaComp.ref0 / 255f);
-            String compare1 = String.format(alphacompare[mat.alphaComp.func1], "gl_FragColor.a", (float)mat.alphaComp.ref1 / 255f);
+            String compare0 = String.format(usa, alphacompare[mat.alphaComp.func0], "gl_FragColor.a", (float)mat.alphaComp.ref0 / 255f);
+            String compare1 = String.format(usa, alphacompare[mat.alphaComp.func1], "gl_FragColor.a", (float)mat.alphaComp.ref1 / 255f);
             String fullcompare = "";
 
             if (mat.alphaComp.mergeFunc == 1)
@@ -316,19 +319,19 @@ System.out.println("2");
         }
 
         frag.append("}\n");
-System.out.println("1");
+
         int fragid = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
         shaders[matid].fragmentShader = fragid;
         String lol = frag.toString();    
         gl.glShaderSource(fragid, 1, new String[] { frag.toString() }, new int[] { frag.length()}, 0);
         gl.glCompileShader(fragid);
 
-        gl.glGetShaderiv(fragid, GL2.GL_COMPILE_STATUS, sillyarray, 1);
+        gl.glGetShaderiv(fragid, GL2.GL_COMPILE_STATUS, sillyarray, 0);
         success = sillyarray[0];
         if (success == 0)
         {
             //string log = gl.glGetShaderInfoLog(fragid);
-            String log = "TODO: port this shit from C#";
+            String log = frag.toString();//"TODO: port this shit from C#";
             throw new GLException("!Failed to compile fragment shader: " + log);
             // TODO: better error reporting/logging?
         }
@@ -340,7 +343,7 @@ System.out.println("1");
         gl.glAttachShader(sid, fragid);
 
         gl.glLinkProgram(sid);
-        gl.glGetProgramiv(sid, GL2.GL_LINK_STATUS, sillyarray, 1);
+        gl.glGetProgramiv(sid, GL2.GL_LINK_STATUS, sillyarray, 0);
         success = sillyarray[0];
         if (success == 0)
         {
@@ -349,7 +352,7 @@ System.out.println("1");
             throw new GLException("!Failed to link shader program: " + log);
             // TODO: better error reporting/logging?
         }
-        System.out.println("Shader successfully generated");
+        System.out.println(frag.toString());
     }
 
 
@@ -485,7 +488,7 @@ System.out.println("1");
                     {
                         gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
 
-                        if (mat.texStages[i] == 0xFFFF)
+                        if (mat.texStages[i] == (short)0xFFFF)
                         {
                             gl.glDisable(GL2.GL_TEXTURE_2D);
                             continue;
@@ -505,7 +508,7 @@ System.out.println("1");
                                         GL2.GL_GREATER, GL2.GL_NOTEQUAL, GL2.GL_GEQUAL, GL2.GL_ALWAYS };
 
                     // texturing -- texture 0 will be used
-                    if (mat.texStages[0] != 0xFFFF)
+                    if (mat.texStages[0] != (short)0xFFFF)
                     {
                         int texid = textures[mat.texStages[0]];
                         gl.glEnable(GL2.GL_TEXTURE_2D);
@@ -607,7 +610,7 @@ System.out.println("1");
 
                 for (int i = 0; i < packet.matrixTable.length; i++)
                 {
-                    if (packet.matrixTable[i] == 0xFFFF)
+                    if (packet.matrixTable[i] == (short)0xFFFF)
                     {
                         mtxtable[i] = lastmatrixtable[i];
                         mtx_debug[i] = 2;
@@ -693,7 +696,7 @@ System.out.println("1");
                         if ((prim.arrayMask & (1 << 10)) != 0) { Vector3 n = model.normalArray[prim.normalIndices[i]]; gl.glNormal3f(n.x, n.y, n.z); }
 
                         Vector3 pos = model.positionArray[prim.positionIndices[i]];
-                        if ((prim.arrayMask & (1 << 0)) != 0) pos = Vector3.transform(pos, mtxtable[prim.posMatrixIndices[i]]);
+                        if ((prim.arrayMask & 1) != 0) pos = Vector3.transform(pos, mtxtable[prim.posMatrixIndices[i]]);
                         else pos = Vector3.transform(pos, mtxtable[0]);
                         gl.glVertex3f(pos.x, pos.y, pos.z);
                     }

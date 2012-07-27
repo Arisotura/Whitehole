@@ -731,7 +731,7 @@ public class Bmd
             mat.texStages = new short[8];
             for (int j = 0; j < 8; j++)
             {
-                if (texstage_id[j] == 0xFFFF)
+                if (texstage_id[j] == (short)0xFFFF)
                 {
                     mat.texStages[j] = (short)0xFFFF;
                     continue;
@@ -746,7 +746,7 @@ public class Bmd
             {
                 mat.constColors[j] = mat.new ColorInfo();
                 
-                if (constcolor_id[j] == 0xFFFF)
+                if (constcolor_id[j] == (short)0xFFFF)
                 {
                     mat.constColors[j].r = 0; mat.constColors[j].g = 0;
                     mat.constColors[j].b = 0; mat.constColors[j].a = 0;
@@ -777,7 +777,7 @@ public class Bmd
             {
                 mat.colorS10[j] = mat.new ColorInfo();
                 
-                if (colors10_id[j] == 0xFFFF)
+                if (colors10_id[j] == (short)0xFFFF)
                 {
                     mat.colorS10[j].r = 255; mat.colorS10[j].g = 0;
                     mat.colorS10[j].b = 255; mat.colorS10[j].a = 255;
@@ -785,10 +785,10 @@ public class Bmd
                 else
                 {
                     file.position(sectionstart + offsets[17] + (colors10_id[j] * 8));
-                    mat.colorS10[j].r = file.readShort() & 0xFFFF;
-                    mat.colorS10[j].g = file.readShort() & 0xFFFF;
-                    mat.colorS10[j].b = file.readShort() & 0xFFFF;
-                    mat.colorS10[j].a = file.readShort() & 0xFFFF;
+                    mat.colorS10[j].r = file.readShort();
+                    mat.colorS10[j].g = file.readShort();
+                    mat.colorS10[j].b = file.readShort();
+                    mat.colorS10[j].a = file.readShort();
                 }
             }
 
@@ -820,7 +820,7 @@ public class Bmd
             {
                 mat.tevSwapMode[j] = mat.new TevSwapModeInfo();
                 
-                if (tevswap_id[j] == 0xFFFF)
+                if (tevswap_id[j] == (short)0xFFFF)
                 {
                     mat.tevSwapMode[j].rasSel = 0;
                     mat.tevSwapMode[j].texSel = 0;
@@ -838,7 +838,7 @@ public class Bmd
             for (int j = 0; j < 4; j++)
             {
                 mat.tevSwapTable[j] = mat.new TevSwapModeTable();
-                if (tevswaptbl_id[j] == 0xFFFF) continue; // safety
+                if (tevswaptbl_id[j] == (short)0xFFFF) continue; // safety
                 file.position(sectionstart + offsets[22] + (tevswaptbl_id[j] * 4));
 
                 mat.tevSwapTable[j].r = file.readByte();
