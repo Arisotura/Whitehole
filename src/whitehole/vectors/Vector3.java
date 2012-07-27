@@ -41,6 +41,34 @@ public class Vector3
                 v.x * m.m[2] + v.y * m.m[6] + v.z * m.m[10] + m.m[14]);
     }
     
+    public float length()
+    {
+        return (float)Math.sqrt(x * x + y * y + z * z);
+    }
+    
+    public static Vector3 normalize(Vector3 v)
+    {
+        float len = v.length();
+        if (len < 0.000001f) len = 1f;
+        return new Vector3(
+                v.x / len,
+                v.y / len,
+                v.z / len);
+    }
+    
+    public static Vector3 subtract(Vector3 a, Vector3 b)
+    {
+        return new Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
+    }
+    
+    public static Vector3 cross(Vector3 a, Vector3 b)
+    {
+        return new Vector3(
+                a.y * b.z - a.z * b.y,
+                a.z * b.x - a.x * b.z,
+                a.x * b.y - a.y * b.x);
+    }
+    
     
     public float x, y, z;
 }

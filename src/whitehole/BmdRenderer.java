@@ -27,13 +27,13 @@ public class BmdRenderer implements Renderer
 {
     private void uploadTexture(GL2 gl, int id)
     {
-        int[] wrapmodes = { gl.GL_CLAMP_TO_EDGE, gl.GL_REPEAT, gl.GL_MIRRORED_REPEAT };
-        int[] minfilters = { gl.GL_NEAREST, gl.GL_LINEAR,
-                             gl.GL_NEAREST_MIPMAP_NEAREST, gl.GL_LINEAR_MIPMAP_NEAREST,
-                             gl.GL_NEAREST_MIPMAP_LINEAR, gl.GL_LINEAR_MIPMAP_LINEAR };
-        int[] magfilters = { gl.GL_NEAREST, gl.GL_LINEAR,
-                             gl.GL_NEAREST, gl.GL_LINEAR,
-                             gl.GL_NEAREST, gl.GL_LINEAR, };
+        int[] wrapmodes = { GL2.GL_CLAMP_TO_EDGE, GL2.GL_REPEAT, GL2.GL_MIRRORED_REPEAT };
+        int[] minfilters = { GL2.GL_NEAREST, GL2.GL_LINEAR,
+                             GL2.GL_NEAREST_MIPMAP_NEAREST, GL2.GL_LINEAR_MIPMAP_NEAREST,
+                             GL2.GL_NEAREST_MIPMAP_LINEAR, GL2.GL_LINEAR_MIPMAP_LINEAR };
+        int[] magfilters = { GL2.GL_NEAREST, GL2.GL_LINEAR,
+                             GL2.GL_NEAREST, GL2.GL_LINEAR,
+                             GL2.GL_NEAREST, GL2.GL_LINEAR, };
 
         Bmd.Texture tex = model.textures[id];
         int[] texids = new int[1];
@@ -41,30 +41,30 @@ public class BmdRenderer implements Renderer
         int texid = texids[0];
         textures[id] = texid;
 
-        gl.glBindTexture(gl.GL_TEXTURE_2D, texid);
+        gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
 
-        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAX_LEVEL, tex.mipmapCount - 1);
-        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, minfilters[tex.minFilter]);
-        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, magfilters[tex.magFilter]);
-        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, wrapmodes[tex.wrapS]);
-        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, wrapmodes[tex.wrapT]);
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAX_LEVEL, tex.mipmapCount - 1);
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, minfilters[tex.minFilter]);
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, magfilters[tex.magFilter]);
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_S, wrapmodes[tex.wrapS]);
+        gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_T, wrapmodes[tex.wrapT]);
 
         int ifmt, fmt;
         switch (tex.format)
         {
             case 0:
-            case 1: ifmt = gl.GL_INTENSITY; fmt = gl.GL_LUMINANCE; break;
+            case 1: ifmt = GL2.GL_INTENSITY; fmt = GL2.GL_LUMINANCE; break;
 
             case 2:
-            case 3: ifmt = gl.GL_LUMINANCE8_ALPHA8; fmt = gl.GL_LUMINANCE_ALPHA; break;
+            case 3: ifmt = GL2.GL_LUMINANCE8_ALPHA8; fmt = GL2.GL_LUMINANCE_ALPHA; break;
 
-            default: ifmt = 4; fmt = gl.GL_BGRA; break;
+            default: ifmt = 4; fmt = GL2.GL_BGRA; break;
         }
 
         int width = tex.width, height = tex.height;
         for (int mip = 0; mip < tex.mipmapCount; mip++)
         {
-            gl.glTexImage2D(gl.GL_TEXTURE_2D, mip, ifmt, width, height, 0, fmt, gl.GL_UNSIGNED_BYTE, ByteBuffer.wrap(tex.image[mip]));
+            gl.glTexImage2D(GL2.GL_TEXTURE_2D, mip, ifmt, width, height, 0, fmt, GL2.GL_UNSIGNED_BYTE, ByteBuffer.wrap(tex.image[mip]));
             width /= 2; height /= 2;
         }
     }
@@ -113,8 +113,9 @@ public class BmdRenderer implements Renderer
         // up with removing texture coordinates. That's just plain
         // retarded.
 
-        int success = 0;
+        int success;
         Bmd.Material mat = model.materials[matid];
+        shaders[matid] = new Shader();
 
         StringBuilder vert = new StringBuilder();
         vert.append("#version 120\n");
@@ -131,13 +132,13 @@ public class BmdRenderer implements Renderer
         }
         vert.append("}\n");
 
-        int vertid = gl.glCreateShader(gl.GL_VERTEX_SHADER);
+        int vertid = gl.glCreateShader(GL2.GL_VERTEX_SHADER);
         shaders[matid].vertexShader = vertid;
         gl.glShaderSource(vertid, 1, new String[] { vert.toString() }, new int[] { vert.length() }, 0);
         gl.glCompileShader(vertid);
 
         int[] sillyarray = new int[1];
-        gl.glGetShaderiv(vertid, gl.GL_COMPILE_STATUS, sillyarray, 1);
+        gl.glGetShaderiv(vertid, GL2.GL_COMPILE_STATUS, sillyarray, 1);
         success = sillyarray[0];
         if (success == 0)
         {
@@ -197,7 +198,7 @@ public class BmdRenderer implements Renderer
             // TEV inputs
             // for registers prev/0/1/2: use fract() to emulate truncation
             // if they're selected into a, b or c
-            String rout, a, b, c, d, operation = "";
+            String rout, a, b, c, d, operation;
 
             frag.append("    konst.rgb = " + c_konstsel[mat.constColorSel[i]] + ";\n");
             frag.append("    konst.a = " + a_konstsel[mat.constAlphaSel[i]] + ";\n");
@@ -313,12 +314,12 @@ public class BmdRenderer implements Renderer
 
         frag.append("}\n");
 
-        int fragid = gl.glCreateShader(gl.GL_FRAGMENT_SHADER);
+        int fragid = gl.glCreateShader(GL2.GL_FRAGMENT_SHADER);
         shaders[matid].fragmentShader = fragid;
         gl.glShaderSource(fragid, 1, new String[] { frag.toString() }, new int[] { frag.length()}, 0);
         gl.glCompileShader(fragid);
 
-        gl.glGetShaderiv(fragid, gl.GL_COMPILE_STATUS, sillyarray, 1);
+        gl.glGetShaderiv(fragid, GL2.GL_COMPILE_STATUS, sillyarray, 1);
         success = sillyarray[0];
         if (success == 0)
         {
@@ -335,7 +336,7 @@ public class BmdRenderer implements Renderer
         gl.glAttachShader(sid, fragid);
 
         gl.glLinkProgram(sid);
-        gl.glGetProgramiv(sid, gl.GL_LINK_STATUS, sillyarray, 1);
+        gl.glGetProgramiv(sid, GL2.GL_LINK_STATUS, sillyarray, 1);
         success = sillyarray[0];
         if (success == 0)
         {
@@ -350,9 +351,9 @@ public class BmdRenderer implements Renderer
     public BmdRenderer(RenderInfo info, Bmd model) throws GLException
     {
         GL2 gl = info.drawable.getGL().getGL2();
-        model = model;
+        this.model = model;
 
-        String extensions = gl.glGetString(gl.GL_EXTENSIONS);
+        String extensions = gl.glGetString(GL2.GL_EXTENSIONS);
         hasShaders = extensions.contains("GL_ARB_shading_language_100") &&
             extensions.contains("GL_ARB_shader_objects") &&
             extensions.contains("GL_ARB_vertex_shader") &&
@@ -436,20 +437,20 @@ public class BmdRenderer implements Renderer
     {
         GL2 gl = info.drawable.getGL().getGL2();
         
-        int[] blendsrc = { gl.GL_ZERO, gl.GL_ONE,
-                           gl.GL_ONE, gl.GL_ZERO, // um...
-                           gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA, 
-                           gl.GL_DST_ALPHA, gl.GL_ONE_MINUS_DST_ALPHA,
-                           gl.GL_DST_COLOR, gl.GL_ONE_MINUS_DST_COLOR };
-        int[] blenddst = { gl.GL_ZERO, gl.GL_ONE,
-                           gl.GL_SRC_COLOR, gl.GL_ONE_MINUS_SRC_COLOR,
-                           gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA, 
-                           gl.GL_DST_ALPHA, gl.GL_ONE_MINUS_DST_ALPHA,
-                           gl.GL_DST_COLOR, gl.GL_ONE_MINUS_DST_COLOR };
-        int[] logicop = { gl.GL_CLEAR, gl.GL_AND, gl.GL_AND_REVERSE, gl.GL_COPY,
-                          gl.GL_AND_INVERTED, gl.GL_NOOP, gl.GL_XOR, gl.GL_OR,
-                          gl.GL_NOR, gl.GL_EQUIV, gl.GL_INVERT, gl.GL_OR_REVERSE,
-                          gl.GL_COPY_INVERTED, gl.GL_OR_INVERTED, gl.GL_NAND, gl.GL_SET };
+        int[] blendsrc = { GL2.GL_ZERO, GL2.GL_ONE,
+                           GL2.GL_ONE, GL2.GL_ZERO, // um...
+                           GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA, 
+                           GL2.GL_DST_ALPHA, GL2.GL_ONE_MINUS_DST_ALPHA,
+                           GL2.GL_DST_COLOR, GL2.GL_ONE_MINUS_DST_COLOR };
+        int[] blenddst = { GL2.GL_ZERO, GL2.GL_ONE,
+                           GL2.GL_SRC_COLOR, GL2.GL_ONE_MINUS_SRC_COLOR,
+                           GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA, 
+                           GL2.GL_DST_ALPHA, GL2.GL_ONE_MINUS_DST_ALPHA,
+                           GL2.GL_DST_COLOR, GL2.GL_ONE_MINUS_DST_COLOR };
+        int[] logicop = { GL2.GL_CLEAR, GL2.GL_AND, GL2.GL_AND_REVERSE, GL2.GL_COPY,
+                          GL2.GL_AND_INVERTED, GL2.GL_NOOP, GL2.GL_XOR, GL2.GL_OR,
+                          GL2.GL_NOR, GL2.GL_EQUIV, GL2.GL_INVERT, GL2.GL_OR_REVERSE,
+                          GL2.GL_COPY_INVERTED, GL2.GL_OR_INVERTED, GL2.GL_NAND, GL2.GL_SET };
 
         Matrix4[] lastmatrixtable = null;
 
@@ -460,9 +461,9 @@ public class BmdRenderer implements Renderer
 
             if (node.materialID != 0xFFFF)
             {
-                int[] cullmodes = { gl.GL_FRONT, gl.GL_BACK, gl.GL_FRONT_AND_BACK };
-                int[] depthfuncs = { gl.GL_NEVER, gl.GL_LESS, gl.GL_EQUAL, gl.GL_LEQUAL,
-                                     gl.GL_GREATER, gl.GL_NOTEQUAL, gl.GL_GEQUAL, gl.GL_ALWAYS };
+                int[] cullmodes = { GL2.GL_FRONT, GL2.GL_BACK, GL2.GL_FRONT_AND_BACK };
+                int[] depthfuncs = { GL2.GL_NEVER, GL2.GL_LESS, GL2.GL_EQUAL, GL2.GL_LEQUAL,
+                                     GL2.GL_GREATER, GL2.GL_NOTEQUAL, GL2.GL_GEQUAL, GL2.GL_ALWAYS };
 
                 Bmd.Material mat = model.materials[node.materialID];
 
@@ -477,11 +478,11 @@ public class BmdRenderer implements Renderer
                     // do multitexturing
                     for (int i = 0; i < 8; i++)
                     {
-                        gl.glActiveTexture(gl.GL_TEXTURE0 + i);
+                        gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
 
                         if (mat.texStages[i] == 0xFFFF)
                         {
-                            gl.glDisable(gl.GL_TEXTURE_2D);
+                            gl.glDisable(GL2.GL_TEXTURE_2D);
                             continue;
                         }
 
@@ -489,36 +490,36 @@ public class BmdRenderer implements Renderer
                         gl.glUniform1i(loc, i);
 
                         int texid = textures[mat.texStages[i]];
-                        gl.glEnable(gl.GL_TEXTURE_2D);
-                        gl.glBindTexture(gl.GL_TEXTURE_2D, texid);
+                        gl.glEnable(GL2.GL_TEXTURE_2D);
+                        gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
                     }
                 }
                 else
                 {
-                    int[] alphafunc = { gl.GL_NEVER, gl.GL_LESS, gl.GL_EQUAL, gl.GL_LEQUAL,
-                                        gl.GL_GREATER, gl.GL_NOTEQUAL, gl.GL_GEQUAL, gl.GL_ALWAYS };
+                    int[] alphafunc = { GL2.GL_NEVER, GL2.GL_LESS, GL2.GL_EQUAL, GL2.GL_LEQUAL,
+                                        GL2.GL_GREATER, GL2.GL_NOTEQUAL, GL2.GL_GEQUAL, GL2.GL_ALWAYS };
 
                     // texturing -- texture 0 will be used
                     if (mat.texStages[0] != 0xFFFF)
                     {
                         int texid = textures[mat.texStages[0]];
-                        gl.glEnable(gl.GL_TEXTURE_2D);
-                        gl.glBindTexture(gl.GL_TEXTURE_2D, texid);
+                        gl.glEnable(GL2.GL_TEXTURE_2D);
+                        gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
                     }
                     else
-                        gl.glDisable(gl.GL_TEXTURE_2D);
+                        gl.glDisable(GL2.GL_TEXTURE_2D);
 
                     // alpha test -- only one comparison can be done
                     if (mat.alphaComp.mergeFunc == 1 && (mat.alphaComp.func0 == 7 || mat.alphaComp.func1 == 7))
-                        gl.glDisable(gl.GL_ALPHA_TEST);
+                        gl.glDisable(GL2.GL_ALPHA_TEST);
                     else if (mat.alphaComp.mergeFunc == 0 && (mat.alphaComp.func0 == 0 || mat.alphaComp.func1 == 0))
                     {
-                        gl.glEnable(gl.GL_ALPHA_TEST);
-                        gl.glAlphaFunc(gl.GL_NEVER, 0f);
+                        gl.glEnable(GL2.GL_ALPHA_TEST);
+                        gl.glAlphaFunc(GL2.GL_NEVER, 0f);
                     }
                     else
                     {
-                        gl.glEnable(gl.GL_ALPHA_TEST);
+                        gl.glEnable(GL2.GL_ALPHA_TEST);
 
                         if ((mat.alphaComp.mergeFunc == 1 && mat.alphaComp.func0 == 0) || (mat.alphaComp.mergeFunc == 0 && mat.alphaComp.func0 == 7))
                             gl.glAlphaFunc(alphafunc[mat.alphaComp.func1], (float)mat.alphaComp.ref1 / 255f);
@@ -530,46 +531,46 @@ public class BmdRenderer implements Renderer
                 switch (mat.blendMode.blendMode)
                 {
                     case 0: 
-                        gl.glDisable(gl.GL_BLEND);
-                        gl.glDisable(gl.GL_COLOR_LOGIC_OP);
+                        gl.glDisable(GL2.GL_BLEND);
+                        gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
                         break;
 
                     case 1:
                     case 3:
-                        gl.glEnable(gl.GL_BLEND);
-                        gl.glDisable(gl.GL_COLOR_LOGIC_OP);
+                        gl.glEnable(GL2.GL_BLEND);
+                        gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
 
                         if (mat.blendMode.blendMode == 3)
-                            gl.glBlendEquation(gl.GL_FUNC_SUBTRACT);
+                            gl.glBlendEquation(GL2.GL_FUNC_SUBTRACT);
                         else
-                            gl.glBlendEquation(gl.GL_FUNC_ADD);
+                            gl.glBlendEquation(GL2.GL_FUNC_ADD);
 
                         gl.glBlendFunc(blendsrc[mat.blendMode.srcFactor], blenddst[mat.blendMode.dstFactor]);
                         break;
 
                     case 2:
-                        gl.glDisable(gl.GL_BLEND);
-                        gl.glEnable(gl.GL_COLOR_LOGIC_OP);
+                        gl.glDisable(GL2.GL_BLEND);
+                        gl.glEnable(GL2.GL_COLOR_LOGIC_OP);
                         gl.glLogicOp(logicop[mat.blendMode.blendOp]);
                         break;
                 }
 
 
                 if (mat.cullMode == 0)
-                    gl.glDisable(gl.GL_CULL_FACE);
+                    gl.glDisable(GL2.GL_CULL_FACE);
                 else
                 {
-                    gl.glEnable(gl.GL_CULL_FACE);
+                    gl.glEnable(GL2.GL_CULL_FACE);
                     gl.glCullFace(cullmodes[mat.cullMode - 1]);
                 }
 
                 if (mat.zMode.enableZTest)
                 {
-                    gl.glEnable(gl.GL_DEPTH_TEST);
+                    gl.glEnable(GL2.GL_DEPTH_TEST);
                     gl.glDepthFunc(depthfuncs[mat.zMode.func]);
                 }
                 else
-                    gl.glDisable(gl.GL_DEPTH_TEST);
+                    gl.glDisable(GL2.GL_DEPTH_TEST);
 
                 gl.glDepthMask(mat.zMode.enableZWrite);
             }
@@ -655,8 +656,8 @@ public class BmdRenderer implements Renderer
 
                 for (Bmd.Batch.Packet.Primitive prim : packet.primitives)
                 {
-                    int[] primtypes = { gl.GL_QUADS, gl.GL_POINTS, gl.GL_TRIANGLES, gl.GL_TRIANGLE_STRIP,
-                                        gl.GL_TRIANGLE_FAN, gl.GL_LINES, gl.GL_LINE_STRIP, gl.GL_POINTS };
+                    int[] primtypes = { GL2.GL_QUADS, GL2.GL_POINTS, GL2.GL_TRIANGLES, GL2.GL_TRIANGLE_STRIP,
+                                        GL2.GL_TRIANGLE_FAN, GL2.GL_LINES, GL2.GL_LINE_STRIP, GL2.GL_POINTS };
                     gl.glBegin(primtypes[(prim.primitiveType - 0x80) / 8]);
                     //gl.glBegin(BeginMode.Points);
 
@@ -669,14 +670,14 @@ public class BmdRenderer implements Renderer
                         {
                             if ((prim.arrayMask & (1 << 12)) != 0) { Color4 c = model.colorArray[1][prim.colorIndices[1][i]]; gl.glSecondaryColor3f(c.r, c.g, c.b); }
 
-                            if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE0, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 14)) != 0) { Vector2 t = model.texcoordArray[1][prim.texcoordIndices[1][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE1, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 15)) != 0) { Vector2 t = model.texcoordArray[2][prim.texcoordIndices[2][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE2, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 16)) != 0) { Vector2 t = model.texcoordArray[3][prim.texcoordIndices[3][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE3, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 17)) != 0) { Vector2 t = model.texcoordArray[4][prim.texcoordIndices[4][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE4, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 18)) != 0) { Vector2 t = model.texcoordArray[5][prim.texcoordIndices[5][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE5, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 19)) != 0) { Vector2 t = model.texcoordArray[6][prim.texcoordIndices[6][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE6, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 20)) != 0) { Vector2 t = model.texcoordArray[7][prim.texcoordIndices[7][i]]; gl.glMultiTexCoord2f(gl.GL_TEXTURE7, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE0, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 14)) != 0) { Vector2 t = model.texcoordArray[1][prim.texcoordIndices[1][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE1, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 15)) != 0) { Vector2 t = model.texcoordArray[2][prim.texcoordIndices[2][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE2, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 16)) != 0) { Vector2 t = model.texcoordArray[3][prim.texcoordIndices[3][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE3, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 17)) != 0) { Vector2 t = model.texcoordArray[4][prim.texcoordIndices[4][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE4, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 18)) != 0) { Vector2 t = model.texcoordArray[5][prim.texcoordIndices[5][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE5, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 19)) != 0) { Vector2 t = model.texcoordArray[6][prim.texcoordIndices[6][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE6, t.x, t.y); }
+                            if ((prim.arrayMask & (1 << 20)) != 0) { Vector2 t = model.texcoordArray[7][prim.texcoordIndices[7][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE7, t.x, t.y); }
                         }
                         else
                         {

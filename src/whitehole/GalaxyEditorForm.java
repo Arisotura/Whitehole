@@ -18,11 +18,15 @@
 
 package whitehole;
 
+import whitehole.fileio.*;
+import java.io.*;
 import com.jogamp.opengl.util.Animator;
 import java.awt.BorderLayout;
 import javax.swing.*;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.*;
+import javax.media.opengl.glu.GLU;
+import whitehole.vectors.*;
 
 /**
  *
@@ -54,11 +58,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         //anim.start();
         //glc.repaint();
-        
-        System.out.println(pnlGLPanel.getSize());
-        System.out.println(pnlGLPanel.getLocation());
-        System.out.println(glc.getSize());
-        System.out.println(glc.getLocation());
+        glc.invalidate();
     }
 
     /**
@@ -118,20 +118,34 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     public class GalaxyRenderer implements GLEventListener
     {
+        private Bmd testmodel;
+        private BmdRenderer testrenderer;
+        private Renderer.RenderInfo renderinfo;
+        
+        
         @Override
         public void init(GLAutoDrawable glad)
         {
             GL2 gl = glad.getGL().getGL2();
             
+            renderinfo = new Renderer.RenderInfo();
+            renderinfo.drawable = glad;
+            renderinfo.renderMode = Renderer.RenderMode.OPAQUE;
+            
+            try { 
+                RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/HeavenlyBeachPlanet.arc"));
+                testmodel = new Bmd(arc.openFile("/heavenlybeachplanet/heavenlybeachplanet.bdl")); 
+            } catch (IOException ex) {}
+            testrenderer = new BmdRenderer(renderinfo, testmodel);
+            
             //gl.glClearColor(0f, 1f, 0f, 1f);
-            System.out.println("inited crap");
+            gl.glFrontFace(GL2.GL_CW);
         }
 
         @Override
         public void dispose(GLAutoDrawable glad)
         {
             GL2 gl = glad.getGL().getGL2();
-            System.out.println("disposed crap");
         }
 
         @Override
@@ -139,13 +153,36 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             GL2 gl = glad.getGL().getGL2();
             
-            gl.glClearColor(0f, 1f, 0f, 1f);
-            gl.glClear(gl.GL_COLOR_BUFFER_BIT);
+            gl.glClearColor(0f, 0f, 0.125f, 1f);
+            gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
             
-            // draw shit here
+            Matrix4 mv = Matrix4.lookAt(new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 0f), new Vector3(0f, 1f, 0f));
+            
+            gl.glMatrixMode(GL2.GL_MODELVIEW);
+            gl.glLoadMatrixf(mv.m, 0);
+            gl.glScalef(0.0001f, 0.0001f, 0.0001f);
+            
+            //gl.glEnable(GL2.GL_TEXTURE_2D);
+            
+            //renderinfo.drawable = glad;
+            //testrenderer.render(renderinfo);
+            
+            //gl.glUseProgram(0);
+            //gl.glDisable(GL2.GL_TEXTURE_2D);
+            
+            gl.glBegin(GL2.GL_LINES);
+            gl.glColor4f(1f, 0f, 0f, 1f);
+            gl.glVertex3f(0f, 0f, 0f);
+            gl.glVertex3f(100000f, 0f, 0f);
+            gl.glColor4f(0f, 1f, 0f, 1f);
+            gl.glVertex3f(0f, 0f, 0f);
+            gl.glVertex3f(0, 100000f, 0f);
+            gl.glColor4f(0f, 0f, 1f, 1f);
+            gl.glVertex3f(0f, 0f, 0f);
+            gl.glVertex3f(0f, 0f, 100000f);
+            gl.glEnd();
             
             glad.swapBuffers();
-            System.out.println("displayed crap");
         }
 
         @Override
@@ -155,7 +192,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             //gl.setSwapInterval(1);
             gl.glViewport(x, y, width, height);
-            System.out.println("resized crap");
+            
+            float aspectRatio = (float)width / (float)height;
+            gl.glMatrixMode(GL2.GL_PROJECTION);
+            gl.glLoadIdentity();
+            float ymax = 0.01f * (float)Math.tan(0.5f * (float)((70f * Math.PI) / 180f));
+            gl.glFrustum(
+                    -ymax * aspectRatio, ymax * aspectRatio,
+                    -ymax, ymax,
+                    0.01f, 1000f);
+            
+            System.out.println(String.format("resize %1$d %2$d %3$d %4$d", x, y, width, height));
         }
     }
     

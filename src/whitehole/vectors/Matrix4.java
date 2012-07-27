@@ -124,5 +124,22 @@ public class Matrix4
     }
     
     
+    public static Matrix4 lookAt(Vector3 eye, Vector3 target, Vector3 up)
+    {
+        Vector3 z = Vector3.normalize(Vector3.subtract(eye, target));
+        Vector3 x = Vector3.normalize(Vector3.cross(up, z));
+        Vector3 y = Vector3.normalize(Vector3.cross(z, x));
+        
+        Matrix4 rot = new Matrix4(
+                x.x, y.x, z.x, 0f,
+                x.y, y.y, z.y, 0f,
+                x.z, y.z, z.z, 0f,
+                0f, 0f, 0f, 1f);
+        Matrix4 trans = Matrix4.createTranslation(new Vector3(-eye.x, -eye.y, -eye.z));
+        
+        return Matrix4.mult(trans, rot);
+    }
+    
+    
     public float m[];
 }

@@ -422,16 +422,13 @@ public class Bmd
             jnt.unk2 = file.readByte();
             file.skip(1);
 
-            jnt.scale.x = file.readFloat();
-            jnt.scale.y = file.readFloat();
-            jnt.scale.z = file.readFloat();
-            jnt.rotation.x = (float)((file.readShort() * Math.PI) / 32768f);
-            jnt.rotation.y = (float)((file.readShort() * Math.PI) / 32768f);
-            jnt.rotation.z = (float)((file.readShort() * Math.PI) / 32768f);
+            jnt.scale = new Vector3(file.readFloat(), file.readFloat(), file.readFloat());
+            jnt.rotation = new Vector3(
+                    (float)((file.readShort() * Math.PI) / 32768f),
+                    (float)((file.readShort() * Math.PI) / 32768f),
+                    (float)((file.readShort() * Math.PI) / 32768f));
             file.skip(2);
-            jnt.translation.x = file.readFloat();
-            jnt.translation.y = file.readFloat();
-            jnt.translation.z = file.readFloat();
+            jnt.translation = new Vector3(file.readFloat(), file.readFloat(), file.readFloat());
 
             jnt.matrix = Helper.SRTToMatrix(jnt.scale, jnt.rotation, jnt.translation);
 
@@ -546,7 +543,7 @@ public class Bmd
                 {
                     if (file.position() >= packetend) break;
 
-                    byte primtype = file.readByte();
+                    int primtype = file.readByte() & 0xFF;
                     if (primtype == 0) break;
                     short numvertices = file.readShort();
 
@@ -764,9 +761,10 @@ public class Bmd
                 }
             }
 
-            mat.tevOrder = new Material.tevOrderInfo[mat.numTevStages];
+            mat.tevOrder = new Material.TevOrderInfo[mat.numTevStages];
             for (int j = 0; j < mat.numTevStages; j++)
             {
+                mat.tevOrder[j] = mat.new TevOrderInfo();
                 file.position(sectionstart + offsets[16] + (tevorder_id[j] * 4));
 
                 mat.tevOrder[j].texcoordID = file.readByte();
@@ -957,7 +955,7 @@ public class Bmd
                                             byte b = file.readByte();
 
                                             int outp = (((by + y) * width) + (bx + x));
-                                            image[outp++] = (byte)((b & 0xF0) | (b >> 4));
+                                            image[outp++] = (byte)((b & 0xF0) | (b >>> 4));
                                             image[outp  ] = (byte)((b << 4) | (b & 0x0F));
                                         }
                                     }
@@ -1005,7 +1003,7 @@ public class Bmd
 
                                             int outp = (((by + y) * width) + (bx + x)) * 2;
                                             image[outp++] = (byte)((b << 4) | (b & 0x0F));
-                                            image[outp  ] = (byte)((b & 0xF0) | (b >> 4));
+                                            image[outp  ] = (byte)((b & 0xF0) | (b >>> 4));
                                         }
                                     }
                                 }
@@ -1053,9 +1051,9 @@ public class Bmd
                                             short col = file.readShort();
 
                                             int outp = (((by + y) * width) + (bx + x)) * 4;
-                                            image[outp++] = (byte)(((col & 0x001F) << 3) | ((col & 0x001F) >> 2));
-                                            image[outp++] = (byte)(((col & 0x07E0) >> 3) | ((col & 0x07E0) >> 8));
-                                            image[outp++] = (byte)(((col & 0xF800) >> 8) | ((col & 0xF800) >> 13));
+                                            image[outp++] = (byte)(((col & 0x001F) << 3) | ((col & 0x001F) >>> 2));
+                                            image[outp++] = (byte)(((col & 0x07E0) >>> 3) | ((col & 0x07E0) >>> 8));
+                                            image[outp++] = (byte)(((col & 0xF800) >>> 8) | ((col & 0xF800) >>> 13));
                                             image[outp  ] = (byte)255;
                                         }
                                     }
@@ -1080,11 +1078,11 @@ public class Bmd
                                             short c2 = file.readShort();
                                             int block = file.readInt();
 
-                                            byte r1 = (byte)((c1 & 0xF800) >> 8);
-                                            byte g1 = (byte)((c1 & 0x07E0) >> 3);
+                                            byte r1 = (byte)((c1 & 0xF800) >>> 8);
+                                            byte g1 = (byte)((c1 & 0x07E0) >>> 3);
                                             byte b1 = (byte)((c1 & 0x001F) << 3);
-                                            byte r2 = (byte)((c2 & 0xF800) >> 8);
-                                            byte g2 = (byte)((c2 & 0x07E0) >> 3);
+                                            byte r2 = (byte)((c2 & 0xF800) >>> 8);
+                                            byte g2 = (byte)((c2 & 0x07E0) >>> 3);
                                             byte b2 = (byte)((c2 & 0x001F) << 3);
 
                                             byte[][] colors = new byte[4][4];
@@ -1116,7 +1114,7 @@ public class Bmd
                                             {
                                                 for (int x = 0; x < 4; x++)
                                                 {
-                                                    int c = (int)(block >> 30);
+                                                    int c = (int)(block >>> 30);
                                                     int outp = (((by + sby + y) * width) + (bx + sbx + x)) * 4;
                                                     image[outp++] = (byte)(colors[c][3] | (colors[c][3] >> 5));
                                                     image[outp++] = (byte)(colors[c][2] | (colors[c][2] >> 5));
@@ -1160,7 +1158,7 @@ public class Bmd
             public class Primitive
             {
                 public int numIndices;
-                public byte primitiveType;
+                public int primitiveType;
 
                 public int arrayMask;
                 public int[] posMatrixIndices;
@@ -1216,7 +1214,7 @@ public class Bmd
             public Boolean enableZWrite;
         }
 
-        public class tevOrderInfo
+        public class TevOrderInfo
         {
             public byte texcoordID;
             public byte texMap;
@@ -1301,7 +1299,7 @@ public class Bmd
         public ColorInfo[] constColors;
         public byte[] constColorSel;
         public byte[] constAlphaSel;
-        public tevOrderInfo[] tevOrder;
+        public TevOrderInfo[] tevOrder;
         public ColorInfo[] colorS10;
         public TevStageInfo[] tevStage;
         public TevSwapModeInfo[] tevSwapMode;

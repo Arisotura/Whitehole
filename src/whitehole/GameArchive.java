@@ -70,5 +70,5 @@ public class GameArchive
     }
     
     
-    private FilesystemBase filesystem;
+    public FilesystemBase filesystem;
 }
