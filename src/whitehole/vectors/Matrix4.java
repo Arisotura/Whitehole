@@ -42,6 +42,15 @@ public class Matrix4
     }
     
     
+    public static Matrix4 scale(float factor)
+    {
+        return new Matrix4(
+                factor, 0f, 0f, 0f,
+                0f, factor, 0f, 0f,
+                0f, 0f, factor, 0f,
+                0f, 0f, 0f, 1f);
+    }
+    
     public static Matrix4 scale(Vector3 factor)
     {
         return new Matrix4(

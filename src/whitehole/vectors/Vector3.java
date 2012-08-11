@@ -56,6 +56,11 @@ public class Vector3
                 v.z / len);
     }
     
+    public static Vector3 add(Vector3 a, Vector3 b)
+    {
+        return new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+    }
+    
     public static Vector3 subtract(Vector3 a, Vector3 b)
     {
         return new Vector3(a.x - b.x, a.y - b.y, a.z - b.z);

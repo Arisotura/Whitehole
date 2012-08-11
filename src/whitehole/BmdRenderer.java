@@ -20,6 +20,7 @@ package whitehole;
 
 import java.io.*;
 import java.nio.*;
+import java.nio.charset.*;
 import java.util.Locale;
 import javax.media.opengl.*;
 import whitehole.vectors.*;
@@ -103,7 +104,7 @@ public class BmdRenderer implements Renderer
                                     "k0.r", "k1.r", "k2.r", "k3.r", "k0.g", "k1.g", "k2.g", "k3.g",
                                     "k0.b", "k1.b", "k2.b", "k3.b", "k0.a", "k1.a", "k2.a", "k3.a" };
 
-        String[] tevbias = { "0.0", "0.5", "-0.5" };
+        String[] tevbias = { "0.0", "0.5", "-0.5", "## ILLEGAL TEV BIAS ##" };
         String[] tevscale = { "1.0", "2.0", "4.0", "0.5" };
 
         String[] alphacompare = { "0 == 1", "%1$s < %2$f", "%1$s == %2$f", "%1$s <= %2$f", "%1$s > %2$f", "%1$s != %2$f", "%1$s >= %2$f", "1 == 1" };
@@ -236,7 +237,7 @@ public class BmdRenderer implements Renderer
                     break;
 
                 case 8:
-                    operation = "    %1$s = %5$s + (((%2$s).r > (%3$s).r) ? %4$s : vec(0.0,0.0,0.0));\n";
+                    operation = "    %1$s = %5$s + (((%2$s).r > (%3$s).r) ? %4$s : vec3(0.0,0.0,0.0));\n";
                     break;
 
                 default:
@@ -331,8 +332,13 @@ public class BmdRenderer implements Renderer
         if (success == 0)
         {
             //string log = gl.glGetShaderInfoLog(fragid);
-            String log = frag.toString();//"TODO: port this shit from C#";
-            throw new GLException("!Failed to compile fragment shader: " + log);
+            gl.glGetShaderiv(fragid, GL2.GL_INFO_LOG_LENGTH, sillyarray, 0);
+            int loglength = sillyarray[0];
+            byte[] _log = new byte[loglength];
+            gl.glGetShaderInfoLog(fragid, loglength, sillyarray, 0, _log, 0);
+            CharBuffer log;
+            try { log = Charset.forName("ASCII").newDecoder().decode(ByteBuffer.wrap(_log)); } catch (Exception ex) { log = CharBuffer.wrap("lolfail"); }
+            throw new GLException("!Failed to compile fragment shader: " + log.toString() + "\n" + frag.toString());
             // TODO: better error reporting/logging?
         }
 

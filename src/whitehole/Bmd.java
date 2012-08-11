@@ -488,10 +488,10 @@ public class Bmd
 
             batch.matrixType = file.readByte();
             file.skip(1);
-            short numpackets = file.readShort();
-            short attribsoffset = file.readShort();
-            short firstmtxindex = file.readShort();
-            short firstpktindex = file.readShort();
+            int numpackets = file.readShort() & 0xFFFF;
+            int attribsoffset = file.readShort() & 0xFFFF;
+            int firstmtxindex = file.readShort() & 0xFFFF;
+            int firstpktindex = file.readShort() & 0xFFFF;
 
             file.skip(2);
             batch.unk = file.readFloat();
@@ -581,12 +581,12 @@ public class Bmd
                             {
                                 case 0x0000:
                                 case 0x0100:
-                                    val = (int)file.readByte();
+                                    val = file.readByte() & 0xFF;
                                     break;
 
                                 case 0x0200:
                                 case 0x0300:
-                                    val = (int)file.readShort();
+                                    val = file.readShort() & 0xFFFF;
                                     break;
 
                                 default: throw new IOException(String.format("Bmd: unsupported index attrib %1$04X", attrib));

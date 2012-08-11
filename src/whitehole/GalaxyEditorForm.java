@@ -21,7 +21,8 @@ package whitehole;
 import whitehole.fileio.*;
 import java.io.*;
 import com.jogamp.opengl.util.Animator;
-import java.awt.BorderLayout;
+import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.*;
@@ -45,7 +46,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         galaxyName = galaxy;
 
         GLCanvas glc = new GLCanvas();
-        glc.addGLEventListener(new GalaxyRenderer());
+        glc.addGLEventListener(renderer = new GalaxyRenderer());
+        glc.addMouseListener(renderer);
+        glc.addMouseMotionListener(renderer);
+        glc.addMouseWheelListener(renderer);
         
         pnlGLPanel.setLayout(new BorderLayout());
         pnlGLPanel.add(glc, BorderLayout.CENTER);
@@ -92,28 +96,31 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_formWindowOpened
 
     
-    public class GalaxyRenderer implements GLEventListener
+    public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener
     {
-        private Bmd testmodel;
-        private BmdRenderer testrenderer;
-        private Renderer.RenderInfo renderinfo;
-        
-        
         @Override
         public void init(GLAutoDrawable glad)
         {
             GL2 gl = glad.getGL().getGL2();
+            
+            lastMouseMove = new Point(-1, -1);
             
             renderinfo = new Renderer.RenderInfo();
             renderinfo.drawable = glad;
             renderinfo.renderMode = Renderer.RenderMode.OPAQUE;
             
             try { 
-                String objname = "HeavenlyBeachPlanet";
+                String objname = "IceMountainPlanet";
                 RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/"+objname+".arc"));
                 testmodel = new Bmd(arc.openFile("/"+objname+"/"+objname+".bdl")); 
             } catch (IOException ex) {}
             testrenderer = new BmdRenderer(renderinfo, testmodel);
+            
+            camDistance = 1f;
+            camRotation = new Vector2(0f, 0f);
+            camTarget = new Vector3(0f, 0f, 0f);
+            camPosition = new Vector3(0f, 0f, 0f);
+            updateCamera();
             
             //gl.glClearColor(0f, 1f, 0f, 1f);
             gl.glFrontFace(GL2.GL_CW);
@@ -134,11 +141,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glClearDepth(1f);
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
             
-            Matrix4 mv = Matrix4.lookAt(new Vector3(1f, 1f, 1f), new Vector3(0f, 0f, 0f), new Vector3(0f, 1f, 0f));
-            
             gl.glMatrixMode(GL2.GL_MODELVIEW);
-            gl.glLoadMatrixf(mv.m, 0);
-            gl.glScalef(0.0002f, 0.0002f, 0.0002f);
+            gl.glLoadMatrixf(modelViewMatrix.m, 0);
+            //gl.glScalef(0.0001f, 0.0001f, 0.0001f);
             
             gl.glEnable(GL2.GL_TEXTURE_2D);
             
@@ -180,10 +185,140 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     -ymax, ymax,
                     0.01f, 1000f);
         }
+        
+        
+        public void updateCamera()
+        {
+            Vector3 up;
+            
+            if (Math.cos(camRotation.y) < 0f)
+            {
+                upsideDown = true;
+                up = new Vector3(0f, -1f, 0f);
+            }
+            else
+            {
+                upsideDown = false;
+                up = new Vector3(0f, 1f, 0f);
+            }
+            
+            camPosition.x = camDistance * (float)Math.cos(camRotation.x) * (float)Math.cos(camRotation.y);
+            camPosition.y = camDistance * (float)Math.sin(camRotation.y);
+            camPosition.z = camDistance * (float)Math.sin(camRotation.x) * (float)Math.cos(camRotation.y);
+            
+            camPosition = Vector3.add(camPosition, camTarget);
+            
+            modelViewMatrix = Matrix4.lookAt(camPosition, camTarget, up);
+            
+            modelViewMatrix = Matrix4.mult(Matrix4.scale(0.0001f), modelViewMatrix);
+        }
+        
+
+        @Override
+        public void mouseDragged(MouseEvent e)
+        {
+            if (lastMouseMove == null) return; // lame hack but how else can we avoid that
+            
+            float xdelta = e.getX() - lastMouseMove.x;
+            float ydelta = e.getY() - lastMouseMove.y;
+            
+            lastMouseMove = e.getPoint();
+            
+            if (mouseButton == MouseEvent.BUTTON3)
+            {
+                if (upsideDown) xdelta = -xdelta;
+
+                camRotation.x -= xdelta * 0.002f;
+                camRotation.y -= ydelta * 0.002f;
+            }
+            else if (mouseButton == MouseEvent.BUTTON1)
+            {
+                xdelta *= 0.005f;
+                ydelta *= 0.005f;
+
+                camTarget.x -= xdelta * (float)Math.sin(camRotation.x);
+                camTarget.x -= ydelta * (float)Math.cos(camRotation.x) * (float)Math.sin(camRotation.y);
+                camTarget.y += ydelta * (float)Math.cos(camRotation.y);
+                camTarget.z += xdelta * (float)Math.cos(camRotation.x);
+                camTarget.z -= ydelta * (float)Math.sin(camRotation.x) * (float)Math.sin(camRotation.y);
+            }
+
+            updateCamera();
+            e.getComponent().repaint();
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e)
+        {
+            //
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e)
+        {
+            //throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e)
+        {
+            if (mouseButton != MouseEvent.NOBUTTON) return;
+            
+            mouseButton = e.getButton();
+            lastMouseMove = e.getPoint();
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e)
+        {
+            if (e.getButton() != mouseButton) return;
+            
+            mouseButton = MouseEvent.NOBUTTON;
+            lastMouseMove = e.getPoint();
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e)
+        {
+            //throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e)
+        {
+            //throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e)
+        {
+            float delta = (float)(e.getPreciseWheelRotation() * 0.1f);
+            camTarget.x += delta * (float)Math.cos(camRotation.x) * (float)Math.cos(camRotation.y);
+            camTarget.y += delta * (float)Math.sin(camRotation.y);
+            camTarget.z += delta * (float)Math.sin(camRotation.x) * (float)Math.cos(camRotation.y);
+            
+            updateCamera();
+            e.getComponent().repaint();
+        }
+        
+        
+        private Bmd testmodel;
+        private BmdRenderer testrenderer;
+        private Renderer.RenderInfo renderinfo;
+        
+        private Matrix4 modelViewMatrix;
+        private float camDistance;
+        private Vector2 camRotation;
+        private Vector3 camPosition, camTarget;
+        private Boolean upsideDown;
+        
+        private int mouseButton;
+        private Point lastMouseMove;
     }
     
    
     public String galaxyName;
+    private GalaxyRenderer renderer;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel pnlGLPanel;
     // End of variables declaration//GEN-END:variables
