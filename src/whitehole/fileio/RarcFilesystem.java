@@ -43,8 +43,8 @@ public class RarcFilesystem implements FilesystemBase
         file.skip(0x4);
         stringTableOffset = file.readInt() + 0x20;
 
-        dirEntries = new HashMap<>();
-        fileEntries = new HashMap<>();
+        dirEntries = new LinkedHashMap<>();
+        fileEntries = new LinkedHashMap<>();
 
         DirEntry root = new DirEntry();
         root.ID = 0;
@@ -306,6 +306,6 @@ public class RarcFilesystem implements FilesystemBase
     private int fileEntriesOffset;
     private int stringTableOffset;
 
-    private HashMap<Integer, FileEntry> fileEntries;
-    private HashMap<Integer, DirEntry> dirEntries;
+    private LinkedHashMap<Integer, FileEntry> fileEntries;
+    private LinkedHashMap<Integer, DirEntry> dirEntries;
 }

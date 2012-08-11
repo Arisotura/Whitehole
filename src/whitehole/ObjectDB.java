@@ -31,8 +31,8 @@ public class ObjectDB
         fallback = true;
         timestamp = 0;
         
-        categories = new HashMap<>();
-        objects = new HashMap<>();
+        categories = new LinkedHashMap<>();
+        objects = new LinkedHashMap<>();
         
         File odbfile = new File("objectdb.xml");
         if (!odbfile.exists()) return;
@@ -79,6 +79,6 @@ public class ObjectDB
     
     public static Boolean fallback;
     public static long timestamp;
-    public static HashMap<Integer, String> categories;
-    public static HashMap<String, Object> objects;
+    public static LinkedHashMap<Integer, String> categories;
+    public static LinkedHashMap<String, Object> objects;
 }

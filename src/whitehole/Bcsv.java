@@ -35,7 +35,7 @@ public class Bcsv
         int dataoffset = file.readInt();
         int entrydatasize = file.readInt();
         
-        fields = new HashMap<>(fieldcount);
+        fields = new LinkedHashMap<>(fieldcount);
         entries = new ArrayList<>(entrycount);
 
         int stringtableoffset = (int)(dataoffset + (entrycount * entrydatasize));
@@ -275,7 +275,7 @@ public class Bcsv
         public String name;
     }
 
-    public class Entry extends HashMap<Integer, Object>
+    public class Entry extends LinkedHashMap<Integer, Object>
     {
         public Entry()
         { super(); }
@@ -299,7 +299,7 @@ public class Bcsv
 
     private FileBase file;
 
-    public HashMap<Integer, Field> fields;
+    public LinkedHashMap<Integer, Field> fields;
     public List<Entry> entries;
 
 
