@@ -16,10 +16,11 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole;
+package whitehole.smg;
 
 import java.io.*;
 import java.util.*;
+import whitehole.rendering.Helper;
 import whitehole.fileio.*;
 import whitehole.vectors.*;
 

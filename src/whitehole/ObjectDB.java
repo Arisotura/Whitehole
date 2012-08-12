@@ -26,7 +26,7 @@ import org.jdom2.filter.*;
 
 public class ObjectDB 
 {
-    public static void Initialize()
+    public static void initialize()
     {
         fallback = true;
         timestamp = 0;

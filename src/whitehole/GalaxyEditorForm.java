@@ -18,16 +18,16 @@
 
 package whitehole;
 
-import whitehole.fileio.*;
 import java.io.*;
-import com.jogamp.opengl.util.Animator;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.*;
-import javax.media.opengl.glu.GLU;
 import whitehole.vectors.*;
+import whitehole.rendering.*;
+import whitehole.smg.*;
+import whitehole.fileio.*;
 
 /**
  *
@@ -78,11 +78,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         pnlGLPanel.setLayout(pnlGLPanelLayout);
         pnlGLPanelLayout.setHorizontalGroup(
             pnlGLPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 483, Short.MAX_VALUE)
+            .addGap(0, 701, Short.MAX_VALUE)
         );
         pnlGLPanelLayout.setVerticalGroup(
             pnlGLPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 384, Short.MAX_VALUE)
+            .addGap(0, 520, Short.MAX_VALUE)
         );
 
         getContentPane().add(pnlGLPanel, java.awt.BorderLayout.CENTER);
@@ -105,9 +105,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             lastMouseMove = new Point(-1, -1);
             
-            renderinfo = new Renderer.RenderInfo();
+            renderinfo = new GLRenderer.RenderInfo();
             renderinfo.drawable = glad;
-            renderinfo.renderMode = Renderer.RenderMode.OPAQUE;
+            renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;
             
             try { 
                 String objname = "IceMountainPlanet";
@@ -304,7 +304,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         private Bmd testmodel;
         private BmdRenderer testrenderer;
-        private Renderer.RenderInfo renderinfo;
+        private GLRenderer.RenderInfo renderinfo;
         
         private Matrix4 modelViewMatrix;
         private float camDistance;

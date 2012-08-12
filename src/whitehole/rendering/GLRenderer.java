@@ -16,11 +16,11 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole;
+package whitehole.rendering;
 
 import javax.media.opengl.*;
 
-public interface Renderer 
+public interface GLRenderer 
 {
     public void close(RenderInfo info) throws GLException;
 
@@ -37,7 +37,7 @@ public interface Renderer
     
     public class RenderInfo
     {
-        GLAutoDrawable drawable;
-        RenderMode renderMode;
+        public GLAutoDrawable drawable;
+        public RenderMode renderMode;
     }
 }

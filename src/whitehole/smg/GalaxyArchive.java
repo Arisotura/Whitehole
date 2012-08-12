@@ -16,7 +16,7 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole;
+package whitehole.smg;
 
 import java.util.*;
 import java.io.*;
@@ -24,27 +24,25 @@ import whitehole.fileio.*;
 
 public class GalaxyArchive 
 {
-    public GalaxyArchive(GameArchive arc, String name)
+    public GalaxyArchive(GameArchive arc, String name) throws IOException
     {
         game = arc;
+        filesystem = arc.filesystem;
+        
         galaxyName = name;
         
-        try
+        zoneList = new ArrayList<>();
+        RarcFilesystem scenario = new RarcFilesystem(filesystem.openFile("/StageData/"+galaxyName+"/"+galaxyName+"Scenario.arc"));
+
+        Bcsv zonelist = new Bcsv(scenario.openFile(String.format("/%1$sScenario/ZoneList.bcsv", galaxyName)));
+        for (Bcsv.Entry entry : zonelist.entries)
         {
-            zoneList = new ArrayList<>();
-            RarcFilesystem scenario = new RarcFilesystem(game.openGalaxyFile(galaxyName, "Scenario"));
-            
-            Bcsv zonelist = new Bcsv(scenario.openFile(String.format("/%1$sScenario/ZoneList.bcsv", galaxyName)));
-            for (Bcsv.Entry entry : zonelist.entries)
-            {
-                zoneList.add((String)entry.get("ZoneName"));
-            }
-            
-            // todo moar crap
+            zoneList.add((String)entry.get("ZoneName"));
         }
-        catch (IOException ex)
-        {
-        }
+    }
+    
+    public void close()
+    {
     }
     
     
@@ -54,7 +52,16 @@ public class GalaxyArchive
     }
     
     
-    private GameArchive game;
+    public ZoneArchive openZone(String name) throws IOException
+    {
+        if (!zoneList.contains(name)) return null;
+        return new ZoneArchive(this, name);
+    }
+    
+    
+    public GameArchive game;
+    public FilesystemBase filesystem;
+    
     public String galaxyName;
     private List<String> zoneList;
 }

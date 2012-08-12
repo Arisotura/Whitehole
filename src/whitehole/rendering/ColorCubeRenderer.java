@@ -16,12 +16,12 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole;
+package whitehole.rendering;
 
 import javax.media.opengl.*;
 import whitehole.vectors.*;
 
-public class ColorCubeRenderer implements Renderer
+public class ColorCubeRenderer implements GLRenderer
 {
     public ColorCubeRenderer(float size, Color4 border, Color4 fill, Boolean axes)
     {

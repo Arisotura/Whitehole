@@ -18,8 +18,10 @@
 
 package whitehole;
 
+import whitehole.smg.*;
 import javax.swing.*;
 import java.nio.charset.Charset;
+import java.util.prefs.Preferences;
 import javax.media.opengl.GLProfile;
 
 public class Whitehole 
@@ -33,6 +35,11 @@ public class Whitehole
     public static final String websiteURL = "http://kuribo64.cjb.net/";
     
     public static GameArchive game;
+    
+    // settings
+    public static Boolean objectDBUpdate;
+    public static Boolean useShaders;
+    public static Boolean fastDrag;
 
     /**
      * @param args the command line arguments
@@ -46,9 +53,13 @@ public class Whitehole
             return;
         }
         
-        Bcsv.populateHashTable();
-        ObjectDB.Initialize();
+        Preferences prefs = Preferences.userRoot();
+        objectDBUpdate = prefs.getBoolean("ObjectDBUpdate", true);
+        useShaders = prefs.getBoolean("UseShaders", true);
+        fastDrag = prefs.getBoolean("FastDrag", false);
         
+        Bcsv.populateHashTable();
+        ObjectDB.initialize();
         
         try
         {

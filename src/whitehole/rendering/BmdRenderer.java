@@ -16,16 +16,18 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole;
+package whitehole.rendering;
 
 import java.io.*;
 import java.nio.*;
 import java.nio.charset.*;
 import java.util.Locale;
 import javax.media.opengl.*;
+import whitehole.*;
+import whitehole.smg.*;
 import whitehole.vectors.*;
 
-public class BmdRenderer implements Renderer
+public class BmdRenderer implements GLRenderer
 {
     private void uploadTexture(GL2 gl, int id)
     {
@@ -371,7 +373,7 @@ public class BmdRenderer implements Renderer
             extensions.contains("GL_ARB_shader_objects") &&
             extensions.contains("GL_ARB_vertex_shader") &&
             extensions.contains("GL_ARB_fragment_shader");
-        // TODO: setting for turning shaders on/off
+        hasShaders = hasShaders && Whitehole.useShaders;
 
         textures = new int[model.textures.length];
         for (int i = 0; i < model.textures.length; i++)

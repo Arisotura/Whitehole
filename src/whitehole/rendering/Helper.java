@@ -16,7 +16,7 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole;
+package whitehole.rendering;
 
 import whitehole.vectors.*;
 

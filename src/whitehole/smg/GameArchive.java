@@ -16,7 +16,7 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
-package whitehole;
+package whitehole.smg;
 
 import java.util.*;
 import java.io.*;
@@ -27,6 +27,11 @@ public class GameArchive
     public GameArchive(FilesystemBase fs)
     {
         filesystem = fs;
+    }
+    
+    public void close()
+    {
+        try { filesystem.close(); } catch (IOException ex) {}
     }
     
     
@@ -51,13 +56,13 @@ public class GameArchive
         return ret;
     }
     
-    public GalaxyArchive openGalaxy(String name)
+    public GalaxyArchive openGalaxy(String name) throws IOException
     {
         if (!galaxyExists(name)) return null;
         return new GalaxyArchive(this, name);
     }
     
-    public FileBase openGalaxyFile(String galaxy, String file)
+    /*public FileBase openGalaxyFile(String galaxy, String file)
     {
         try
         {
@@ -67,7 +72,7 @@ public class GameArchive
         {
             return null;
         }
-    }
+    }*/
     
     
     public FilesystemBase filesystem;

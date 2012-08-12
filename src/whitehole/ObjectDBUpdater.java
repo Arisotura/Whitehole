@@ -102,7 +102,7 @@ public class ObjectDBUpdater extends Thread
             }
             
             statusLabel.setText("Object database updated.");
-            ObjectDB.Initialize();
+            ObjectDB.initialize();
         }
         catch (MalformedURLException ex)
         {

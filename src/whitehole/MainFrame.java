@@ -18,6 +18,7 @@
 
 package whitehole;
 
+import whitehole.smg.GameArchive;
 import java.awt.*;
 import java.util.*;
 import java.util.prefs.Preferences;
@@ -49,6 +50,7 @@ public class MainFrame extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JToolBar.Separator();
         btnOpenGalaxy = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
+        btnSettings = new javax.swing.JButton();
         btnAbout = new javax.swing.JButton();
         btnBcsvEditor = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -91,6 +93,17 @@ public class MainFrame extends javax.swing.JFrame {
         });
         jToolBar1.add(btnOpenGalaxy);
         jToolBar1.add(jSeparator2);
+
+        btnSettings.setText("Settings");
+        btnSettings.setFocusable(false);
+        btnSettings.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnSettings.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnSettings.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSettingsActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnSettings);
 
         btnAbout.setText("About...");
         btnAbout.setFocusable(false);
@@ -193,10 +206,12 @@ public class MainFrame extends javax.swing.JFrame {
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
         lbStatusBar.setText("Ready");
         
-        // TODO make this optional
-        lbStatusBar.setText("Checking for object database updates...");
-        ObjectDBUpdater updater = new ObjectDBUpdater(lbStatusBar);
-        updater.start();
+        if (Preferences.userRoot().getBoolean("ObjectDBUpdate", true))
+        {
+            lbStatusBar.setText("Checking for object database updates...");
+            ObjectDBUpdater updater = new ObjectDBUpdater(lbStatusBar);
+            updater.start();
+        }
     }//GEN-LAST:event_formWindowOpened
 
     private void btnAboutActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnAboutActionPerformed
@@ -244,12 +259,18 @@ public class MainFrame extends javax.swing.JFrame {
         btnOpenGalaxy.setEnabled(hasSelection);
     }//GEN-LAST:event_GalaxyListValueChanged
 
+    private void btnSettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnSettingsActionPerformed
+    {//GEN-HEADEREND:event_btnSettingsActionPerformed
+        new SettingsForm(this, true).setVisible(true);
+    }//GEN-LAST:event_btnSettingsActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JList GalaxyList;
     private javax.swing.JButton btnAbout;
     private javax.swing.JButton btnBcsvEditor;
     private javax.swing.JButton btnOpenGalaxy;
     private javax.swing.JButton btnOpenGame;
+    private javax.swing.JButton btnSettings;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JToolBar.Separator jSeparator1;
