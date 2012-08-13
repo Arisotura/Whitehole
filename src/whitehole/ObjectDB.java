@@ -56,6 +56,32 @@ public class ObjectDB
                 
                 entry.name = objelem.getChildText("name");
                 
+                Element flags = objelem.getChild("flags");
+                entry.games = flags.getAttribute("games").getIntValue();
+                
+                entry.preferredFile = objelem.getChild("preferredfile").getAttributeValue("name");
+                entry.notes = objelem.getChildText("notes");
+                
+                entry.dataFiles = new ArrayList<>();
+                String datafiles = objelem.getChildText("files");
+                for (String datafile : datafiles.split("\n"))
+                    entry.dataFiles.add(datafile);
+                
+                List<Element> fields = objelem.getChildren("field");
+                entry.fields = new HashMap<>(fields.size());
+                for (Element field : fields)
+                {
+                    Object.Field fielddata = new Object.Field();
+                    
+                    fielddata.ID = field.getAttribute("id").getIntValue();
+                    fielddata.type = field.getAttributeValue("type");
+                    fielddata.name = field.getAttributeValue("name");
+                    fielddata.values = field.getAttributeValue("values");
+                    fielddata.notes = field.getAttributeValue("notes");
+                    
+                    entry.fields.put(fielddata.ID, fielddata);
+                }
+                
                 objects.put(entry.ID, entry);
             }
         }
@@ -71,9 +97,28 @@ public class ObjectDB
     
     public static class Object
     {
+        public static class Field
+        {
+            public int ID;
+            
+            public String type;
+            public String name;
+            public String values;
+            public String notes;
+        }
+        
+        
         public String ID;
         public String name;
-        // and so on
+        
+        // bit0=SMG1, bit1=SMG2
+        public int games;
+        
+        public String preferredFile;
+        public String notes;
+        public List<String> dataFiles;
+        
+        public HashMap<Integer, Field> fields;
     }
     
     

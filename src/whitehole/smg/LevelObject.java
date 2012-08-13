@@ -23,7 +23,15 @@ import whitehole.rendering.*;
 
 public class LevelObject 
 {
-    //
+    public LevelObject(Bcsv.Entry entry)
+    {
+        data = entry;
+        
+        name = (String)data.get("name");
+        dbInfo = ObjectDB.objects.get(name);
+        
+        // TODO setup renderer -- should it be done here or later?
+    }
     
     
     public String name;
