@@ -19,6 +19,7 @@
 package whitehole;
 
 import whitehole.smg.*;
+import whitehole.rendering.*;
 import javax.swing.*;
 import java.nio.charset.Charset;
 import java.util.prefs.Preferences;
@@ -60,6 +61,7 @@ public class Whitehole
         
         Bcsv.populateHashTable();
         ObjectDB.initialize();
+        RendererCache.initialize();
         
         try
         {

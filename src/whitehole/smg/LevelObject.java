@@ -18,6 +18,7 @@
 
 package whitehole.smg;
 
+import javax.media.opengl.GL2;
 import whitehole.*;
 import whitehole.rendering.*;
 
@@ -29,8 +30,46 @@ public class LevelObject
         
         name = (String)data.get("name");
         dbInfo = ObjectDB.objects.get(name);
+        renderer = null;
+    }
+    
+    
+    public void initRenderer(GLRenderer.RenderInfo info)
+    {
+        if (renderer != null) closeRenderer(info);
+        renderer = RendererCache.getObjectRenderer(info, this);
+        renderer.compileDisplayLists(info);
+    }
+    
+    public void closeRenderer(GLRenderer.RenderInfo info)
+    {
+        RendererCache.closeObjectRenderer(info, this);
+        renderer = null;
+    }
+    
+    public void render(GLRenderer.RenderInfo info)
+    {
+        GL2 gl = info.drawable.getGL().getGL2();
         
-        // TODO setup renderer -- should it be done here or later?
+        gl.glPushMatrix();
+        
+        gl.glTranslatef((float)data.get("pos_x"), (float)data.get("pos_y"), (float)data.get("pos_z"));
+        gl.glRotatef((float)data.get("dir_z"), 0f, 0f, 1f);
+        gl.glRotatef((float)data.get("dir_y"), 0f, 1f, 0f);
+        gl.glRotatef((float)data.get("dir_x"), 1f, 0f, 0f);
+        gl.glScalef((float)data.get("scale_x"), (float)data.get("scale_y"), (float)data.get("scale_z"));
+        
+        int dlid = -1;
+        switch (info.renderMode)
+        {
+            case PICKING: dlid = 0; break;
+            case OPAQUE: dlid = 1; break;
+            case TRANSLUCENT: dlid = 2; break;
+        }
+        
+        gl.glCallList(renderer.displayLists[dlid]);
+        
+        gl.glPopMatrix();
     }
     
     

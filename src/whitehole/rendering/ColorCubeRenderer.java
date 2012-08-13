@@ -21,7 +21,7 @@ package whitehole.rendering;
 import javax.media.opengl.*;
 import whitehole.vectors.*;
 
-public class ColorCubeRenderer implements GLRenderer
+public class ColorCubeRenderer extends GLRenderer
 {
     public ColorCubeRenderer(float size, Color4 border, Color4 fill, Boolean axes)
     {

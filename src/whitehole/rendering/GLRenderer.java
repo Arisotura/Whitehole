@@ -20,22 +20,82 @@ package whitehole.rendering;
 
 import javax.media.opengl.*;
 
-public interface GLRenderer 
+public class GLRenderer 
 {
-    public void close(RenderInfo info) throws GLException;
+    public GLRenderer()
+    {
+        displayLists = null;
+    }
+    
+    public void close(RenderInfo info) throws GLException 
+    {
+        GL2 gl = info.drawable.getGL().getGL2();
+        
+        if (displayLists != null)
+        {
+            gl.glDeleteLists(displayLists[0], 1);
+            gl.glDeleteLists(displayLists[1], 1);
+            gl.glDeleteLists(displayLists[2], 1);
+            displayLists = null;
+        }
+    }
 
-    public Boolean gottaRender(RenderInfo info) throws GLException;
-    public void render(RenderInfo info) throws GLException;
+    public Boolean gottaRender(RenderInfo info) throws GLException { return false; }
+    public void render(RenderInfo info) throws GLException {}
+    
+    public void compileDisplayLists(RenderInfo info) throws GLException
+    {
+        GL2 gl = info.drawable.getGL().getGL2();
+        RenderInfo info2 = new RenderInfo();
+        info2.drawable = info.drawable;
+        displayLists = new int[3];
+        
+        info2.renderMode = RenderMode.PICKING;
+        if (gottaRender(info2))
+        {
+            displayLists[0] = gl.glGenLists(1);
+            gl.glNewList(displayLists[0], GL2.GL_COMPILE);
+            render(info2);
+            gl.glEndList();
+        }
+        else
+            displayLists[0] = 0;
+        
+        info2.renderMode = RenderMode.OPAQUE;
+        if (gottaRender(info2))
+        {
+            displayLists[1] = gl.glGenLists(1);
+            gl.glNewList(displayLists[1], GL2.GL_COMPILE);
+            render(info2);
+            gl.glEndList();
+        }
+        else
+            displayLists[1] = 0;
+        
+        info2.renderMode = RenderMode.TRANSLUCENT;
+        if (gottaRender(info2))
+        {
+            displayLists[2] = gl.glGenLists(1);
+            gl.glNewList(displayLists[2], GL2.GL_COMPILE);
+            render(info2);
+            gl.glEndList();
+        }
+        else
+            displayLists[2] = 0;
+    }
     
     
-    public enum RenderMode
+    public int[] displayLists;
+    
+    
+    public static enum RenderMode
     {
         PICKING,
         OPAQUE,
         TRANSLUCENT
     }
     
-    public class RenderInfo
+    public static class RenderInfo
     {
         public GLAutoDrawable drawable;
         public RenderMode renderMode;

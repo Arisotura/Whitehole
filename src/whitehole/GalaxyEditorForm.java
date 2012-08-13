@@ -196,6 +196,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         public void dispose(GLAutoDrawable glad)
         {
             GL2 gl = glad.getGL().getGL2();
+            
+            // dispose objects here
         }
 
         @Override

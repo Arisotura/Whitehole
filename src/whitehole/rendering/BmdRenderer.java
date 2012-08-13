@@ -27,7 +27,7 @@ import whitehole.*;
 import whitehole.smg.*;
 import whitehole.vectors.*;
 
-public class BmdRenderer implements GLRenderer
+public class BmdRenderer extends GLRenderer
 {
     private void uploadTexture(GL2 gl, int id)
     {
