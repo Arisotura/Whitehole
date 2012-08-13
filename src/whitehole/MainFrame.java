@@ -225,7 +225,10 @@ public class MainFrame extends javax.swing.JFrame {
             "a part of a paid software package\n" + 
             "\n" +
             "Main coding: Mega-Mario\n" +
-            "Credits: Phantom Wings, Treeki, yaz0r, thakis, groepaz/hitmen\n" + 
+            "Credits: \n" +
+            " * Phantom Wings, Treeki, yaz0r, thakis, groepaz/hitmen\n" + 
+            " * Dirbaio for programming help\n" +
+            " * NWPlayer123 for design suggestions\n" + 
             "\n" + 
             "See " + Whitehole.websiteURL + " for more details.\n";
 

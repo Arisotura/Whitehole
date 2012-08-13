@@ -51,9 +51,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         glc.addMouseMotionListener(renderer);
         glc.addMouseWheelListener(renderer);
         
-        pnlGLPanel.setLayout(new BorderLayout());
+        //pnlGLPanel.setLayout(new BorderLayout());
         pnlGLPanel.add(glc, BorderLayout.CENTER);
-        pnlGLPanel.doLayout();
+        //pnlGLPanel.doLayout();
+        //pnlGLPanel.add(glc);
+        pnlGLPanel.validate();
     }
 
     /**
@@ -65,7 +67,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jToolBar1 = new javax.swing.JToolBar();
+        jLabel1 = new javax.swing.JLabel();
+        jSplitPane1 = new javax.swing.JSplitPane();
         pnlGLPanel = new javax.swing.JPanel();
+        jToolBar2 = new javax.swing.JToolBar();
+        jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -74,18 +81,27 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
         });
 
-        javax.swing.GroupLayout pnlGLPanelLayout = new javax.swing.GroupLayout(pnlGLPanel);
-        pnlGLPanel.setLayout(pnlGLPanelLayout);
-        pnlGLPanelLayout.setHorizontalGroup(
-            pnlGLPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 701, Short.MAX_VALUE)
-        );
-        pnlGLPanelLayout.setVerticalGroup(
-            pnlGLPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 520, Short.MAX_VALUE)
-        );
+        jToolBar1.setFloatable(false);
+        jToolBar1.setRollover(true);
 
-        getContentPane().add(pnlGLPanel, java.awt.BorderLayout.CENTER);
+        jLabel1.setText("placeholder");
+        jToolBar1.add(jLabel1);
+
+        getContentPane().add(jToolBar1, java.awt.BorderLayout.PAGE_START);
+
+        pnlGLPanel.setLayout(new java.awt.BorderLayout());
+
+        jToolBar2.setFloatable(false);
+        jToolBar2.setRollover(true);
+
+        jLabel2.setText("toolbar placeholder :D");
+        jToolBar2.add(jLabel2);
+
+        pnlGLPanel.add(jToolBar2, java.awt.BorderLayout.NORTH);
+
+        jSplitPane1.setRightComponent(pnlGLPanel);
+
+        getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -320,6 +336,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     public String galaxyName;
     private GalaxyRenderer renderer;
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JToolBar jToolBar2;
     private javax.swing.JPanel pnlGLPanel;
     // End of variables declaration//GEN-END:variables
 }
