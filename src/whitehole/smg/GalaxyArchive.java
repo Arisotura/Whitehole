@@ -34,11 +34,18 @@ public class GalaxyArchive
         zoneList = new ArrayList<>();
         RarcFilesystem scenario = new RarcFilesystem(filesystem.openFile("/StageData/"+galaxyName+"/"+galaxyName+"Scenario.arc"));
 
-        Bcsv zonelist = new Bcsv(scenario.openFile(String.format("/%1$sScenario/ZoneList.bcsv", galaxyName)));
-        for (Bcsv.Entry entry : zonelist.entries)
+        Bcsv zonesbcsv = new Bcsv(scenario.openFile(String.format("/%1$sScenario/ZoneList.bcsv", galaxyName)));
+        for (Bcsv.Entry entry : zonesbcsv.entries)
         {
             zoneList.add((String)entry.get("ZoneName"));
         }
+        zonesbcsv.close();
+        
+        Bcsv scenariobcsv = new Bcsv(scenario.openFile(String.format("/%1$sScenario/ScenarioData.bcsv", galaxyName)));
+        scenarioData = scenariobcsv.entries;
+        scenariobcsv.close();
+        
+        scenario.close();
     }
     
     public void close()
@@ -64,4 +71,5 @@ public class GalaxyArchive
     
     public String galaxyName;
     private List<String> zoneList;
+    public List<Bcsv.Entry> scenarioData;
 }

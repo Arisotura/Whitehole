@@ -44,9 +44,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         initComponents();
 
         galaxyName = galaxy;
+        try
+        {
+            galaxyArc = Whitehole.game.openGalaxy(galaxyName);
+        }
+        catch (IOException ex)
+        {
+            JOptionPane.showMessageDialog(this, "Failed to open the galaxy: "+ex.getMessage(), Whitehole.name, JOptionPane.ERROR_MESSAGE);
+            dispose();
+            return;
+        }
+        
+        setTitle(galaxyName + " - " + Whitehole.fullName);
+        setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
 
         GLCanvas glc = new GLCanvas();
-        glc.addGLEventListener(renderer = new GalaxyRenderer());
+        glc.addGLEventListener(renderer = new GalaxyRenderer(this));
         glc.addMouseListener(renderer);
         glc.addMouseMotionListener(renderer);
         glc.addMouseWheelListener(renderer);
@@ -56,6 +69,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         //pnlGLPanel.doLayout();
         //pnlGLPanel.add(glc);
         pnlGLPanel.validate();
+        
+        DefaultComboBoxModel scenlist = new DefaultComboBoxModel();
+        cbScenarioList.setModel(scenlist);
+        for (Bcsv.Entry scen : galaxyArc.scenarioData)
+        {
+            scenlist.addElement(String.format("[%1$d] %2$s", (int)scen.get("ScenarioNo"), (String)scen.get("ScenarioName")));
+        }
     }
 
     /**
@@ -68,11 +88,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private void initComponents() {
 
         jToolBar1 = new javax.swing.JToolBar();
+        btnSave = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
         jLabel1 = new javax.swing.JLabel();
+        cbScenarioList = new javax.swing.JComboBox();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
         jSplitPane1 = new javax.swing.JSplitPane();
         pnlGLPanel = new javax.swing.JPanel();
         jToolBar2 = new javax.swing.JToolBar();
         jLabel2 = new javax.swing.JLabel();
+        jSplitPane2 = new javax.swing.JSplitPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(800, 600));
@@ -85,10 +110,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
 
-        jLabel1.setText("placeholder");
+        btnSave.setText("Save");
+        btnSave.setFocusable(false);
+        btnSave.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnSave.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(btnSave);
+        jToolBar1.add(jSeparator1);
+
+        jLabel1.setText("Edit scenario:");
         jToolBar1.add(jLabel1);
 
+        cbScenarioList.setMaximumSize(new java.awt.Dimension(200, 32767));
+        jToolBar1.add(cbScenarioList);
+        jToolBar1.add(jSeparator2);
+
         getContentPane().add(jToolBar1, java.awt.BorderLayout.PAGE_START);
+
+        jSplitPane1.setDividerLocation(300);
 
         pnlGLPanel.setMinimumSize(new java.awt.Dimension(10, 10));
         pnlGLPanel.setLayout(new java.awt.BorderLayout());
@@ -103,6 +141,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         jSplitPane1.setRightComponent(pnlGLPanel);
 
+        jSplitPane2.setDividerLocation(150);
+        jSplitPane2.setPreferredSize(new java.awt.Dimension(300, 25));
+        jSplitPane1.setLeftComponent(jSplitPane2);
+
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
         pack();
@@ -116,6 +158,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener
     {
+        public GalaxyRenderer(GalaxyEditorForm parent)
+        {
+            super();
+            this.parent = parent;
+        }
+        
         @Override
         public void init(GLAutoDrawable glad)
         {
@@ -320,6 +368,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         
         
+        public GalaxyEditorForm parent;
+        
         private Bmd testmodel;
         private BmdRenderer testrenderer;
         private GLRenderer.RenderInfo renderinfo;
@@ -336,11 +386,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
    
     public String galaxyName;
+    public GalaxyArchive galaxyArc;
     private GalaxyRenderer renderer;
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnSave;
+    private javax.swing.JComboBox cbScenarioList;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JPanel pnlGLPanel;
