@@ -75,6 +75,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setPreferredSize(new java.awt.Dimension(800, 600));
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowOpened(java.awt.event.WindowEvent evt) {
                 formWindowOpened(evt);
@@ -89,6 +90,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.PAGE_START);
 
+        pnlGLPanel.setMinimumSize(new java.awt.Dimension(10, 10));
         pnlGLPanel.setLayout(new java.awt.BorderLayout());
 
         jToolBar2.setFloatable(false);
