@@ -18,11 +18,16 @@
 
 package whitehole.smg;
 
+import whitehole.*;
+import whitehole.rendering.*;
+
 public class LevelObject 
 {
     //
     
     
     public String name;
-    public int[] args;
+    public Bcsv.Entry data;
+    public ObjectDB.Object dbInfo;
+    public GLRenderer renderer;
 }

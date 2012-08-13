@@ -81,24 +81,30 @@ public class ObjectDBUpdater extends Thread
             
             File odbbkp = new File("objectdb.xml.bak");
             File odb = new File("objectdb.xml");
-            if (odb.renameTo(odbbkp))
+
+            try
             {
-                try
+                if (odb.exists())
                 {
+                    odb.renameTo(odbbkp);
                     odb.delete();
-                    odb.createNewFile();
-                    FileOutputStream odbstream = new FileOutputStream(odb);
-                    odbstream.write(data, 9, data.length-9);
-                    odbstream.flush();
-                    odbstream.close();
+                }
+                
+                odb.createNewFile();
+                FileOutputStream odbstream = new FileOutputStream(odb);
+                odbstream.write(data, 9, data.length-9);
+                odbstream.flush();
+                odbstream.close();
+                
+                if (odbbkp.exists())
                     odbbkp.delete();
-                }
-                catch (IOException ex)
-                {
-                    statusLabel.setText("Failed to save new object database.");
+            }
+            catch (IOException ex)
+            {
+                statusLabel.setText("Failed to save new object database.");
+                if (odbbkp.exists())
                     odbbkp.renameTo(odb);
-                    return;
-                }
+                return;
             }
             
             statusLabel.setText("Object database updated.");
