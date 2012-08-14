@@ -163,7 +163,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         jSplitPane1.setRightComponent(pnlGLPanel);
 
-        tpLeftPanel.setTabPlacement(javax.swing.JTabbedPane.BOTTOM);
         tpLeftPanel.setMinimumSize(new java.awt.Dimension(100, 5));
 
         jSplitPane3.setDividerLocation(200);

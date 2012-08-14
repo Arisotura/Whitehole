@@ -295,54 +295,6 @@ public class Bcsv
         {
             return this.containsKey(Bcsv.fieldNameToHash(key));
         }
-        
-        
-        public int getAsInt(String key)
-        {
-            Object ret = get(key);
-            if (ret.getClass() == int.class) return (int)ret;
-            if (ret.getClass() == short.class) return ((int)(short)ret) & 0xFFFF;
-            if (ret.getClass() == byte.class) return ((int)(byte)ret) & 0xFF;
-            if (ret.getClass() == float.class) return Float.floatToIntBits((float)ret);
-            return 0;
-        }
-        
-        public short getAsShort(String key)
-        {
-            Object ret = get(key);
-            if (ret.getClass() == short.class) return (short)ret;
-            if (ret.getClass() == byte.class) return (short)(((short)(byte)ret) & 0xFF);
-            return 0;
-        }
-        
-        public byte getAsByte(String key)
-        {
-            Object ret = get(key);
-            if (ret.getClass() == byte.class) return (byte)ret;
-            return 0;
-        }
-        
-        public Float getAsFloat(String key)
-        {
-            Object ret = get(key);
-            if (ret.getClass() == float.class) return (float)ret;
-            if (ret.getClass() == int.class) return Float.intBitsToFloat((int)ret);
-            return 0f;
-        }
-        
-        public String getAsString(String key)
-        {
-            Object ret = get(key);
-            if (ret.getClass() == String.class) return (String)ret;
-            return "";
-        }
-        
-        
-        /*public void putAsInt(String key, int val)
-        {
-            Object orig = get(key);
-            //
-        }*/
     }
 
 

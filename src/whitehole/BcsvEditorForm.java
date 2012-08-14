@@ -18,7 +18,13 @@
 
 package whitehole;
 
+import java.io.IOException;
+import java.util.Vector;
+import javax.swing.JOptionPane;
 import javax.swing.table.*;
+import whitehole.Whitehole;
+import whitehole.fileio.*;
+import whitehole.smg.Bcsv;
 
 public class BcsvEditorForm extends javax.swing.JFrame
 {
@@ -29,6 +35,9 @@ public class BcsvEditorForm extends javax.swing.JFrame
     public BcsvEditorForm()
     {
         initComponents();
+        
+        archive = null;
+        bcsv = null;
     }
 
     /**
@@ -50,20 +59,35 @@ public class BcsvEditorForm extends javax.swing.JFrame
         btnOpen = new javax.swing.JButton();
         jSeparator3 = new javax.swing.JToolBar.Separator();
         btnSave = new javax.swing.JButton();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
+        btnAddRow = new javax.swing.JButton();
+        btnDeleteRow = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblBcsv = new javax.swing.JTable();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("BCSV editor");
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
+        jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
 
         jLabel1.setText("Archive: ");
         jToolBar1.add(jLabel1);
+
+        tbArchiveName.setText("/StageData/HeavenlyBeachGalaxy/HeavenlyBeachGalaxyScenario.arc");
         jToolBar1.add(tbArchiveName);
         jToolBar1.add(jSeparator2);
 
         jLabel2.setText("File: ");
         jToolBar1.add(jLabel2);
+
+        tbFileName.setText("/heavenlybeachgalaxyscenario/scenariodata.bcsv");
+        tbFileName.setToolTipText("");
         jToolBar1.add(tbFileName);
         jToolBar1.add(jSeparator1);
 
@@ -83,17 +107,42 @@ public class BcsvEditorForm extends javax.swing.JFrame
         btnSave.setFocusable(false);
         btnSave.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnSave.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
         jToolBar1.add(btnSave);
+        jToolBar1.add(jSeparator4);
+
+        btnAddRow.setText("Add row");
+        btnAddRow.setFocusable(false);
+        btnAddRow.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnAddRow.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnAddRow.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddRowActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnAddRow);
+
+        btnDeleteRow.setText("Delete row");
+        btnDeleteRow.setFocusable(false);
+        btnDeleteRow.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnDeleteRow.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnDeleteRow.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteRowActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnDeleteRow);
 
         tblBcsv.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+
             }
         ));
         jScrollPane1.setViewportView(tblBcsv);
@@ -102,7 +151,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 675, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
@@ -118,12 +167,138 @@ public class BcsvEditorForm extends javax.swing.JFrame
 
     private void btnOpenActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnOpenActionPerformed
     {//GEN-HEADEREND:event_btnOpenActionPerformed
-        //tblBcsv.addColumn(new TableColumn("lol"));
-        //tblBcsv.getColumnModel().addColumn(new TableColumn(2));
-        tblBcsv.getColumnModel().getColumn(1).setHeaderValue("loltest");
+        try
+        {
+            if (archive != null) archive.close();
+            if (bcsv != null) bcsv.close();
+            archive = null; bcsv = null;
+            
+            archive = new RarcFilesystem(Whitehole.game.filesystem.openFile(tbArchiveName.getText()));
+            bcsv = new Bcsv(archive.openFile(tbFileName.getText()));
+        }
+        catch (IOException ex)
+        {
+            JOptionPane.showMessageDialog(this, "Failed to open BCSV file: "+ex.getMessage(), Whitehole.name, JOptionPane.ERROR_MESSAGE);
+            try
+            {
+                if (bcsv != null) bcsv.close();
+                if (archive != null) archive.close();
+            } catch (IOException ex2) {}
+            bcsv = null; archive = null;
+            return;
+        }
+        
+        DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
+        
+        for (Bcsv.Field field : bcsv.fields.values())
+        {
+            table.addColumn(field.name);
+        }
+        
+        for (Bcsv.Entry entry : bcsv.entries)
+        {
+            Vector<Object> row = new Vector<>(bcsv.fields.size());
+            for (Bcsv.Field field : bcsv.fields.values())
+            {
+                row.add(entry.get(field.nameHash));
+            }
+            table.addRow(row);
+        }
     }//GEN-LAST:event_btnOpenActionPerformed
 
+    private void btnAddRowActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnAddRowActionPerformed
+    {//GEN-HEADEREND:event_btnAddRowActionPerformed
+        DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
+        table.addRow((Object[])null);
+    }//GEN-LAST:event_btnAddRowActionPerformed
+
+    private void btnDeleteRowActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnDeleteRowActionPerformed
+    {//GEN-HEADEREND:event_btnDeleteRowActionPerformed
+        int sel = tblBcsv.getSelectedRow();
+        if (sel < 0) return;
+        
+        DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
+        table.removeRow(sel);
+    }//GEN-LAST:event_btnDeleteRowActionPerformed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
+    {//GEN-HEADEREND:event_formWindowClosing
+        try
+        {
+            if (bcsv != null) bcsv.close();
+            if (archive != null) archive.close();
+        } catch (IOException ex) {}
+    }//GEN-LAST:event_formWindowClosing
+
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnSaveActionPerformed
+    {//GEN-HEADEREND:event_btnSaveActionPerformed
+        bcsv.entries.clear();
+        
+        for (int r = 0; r < tblBcsv.getRowCount(); r++)
+        {
+            Bcsv.Entry entry = bcsv.new Entry();
+            
+            int c = 0;
+            for (Bcsv.Field field : bcsv.fields.values())
+            {
+                Object valobj = tblBcsv.getValueAt(r, c);
+                String val = (valobj == null) ? "" : valobj.toString();
+                
+                try
+                {
+                    switch (field.type)
+                    {
+                        case 0:
+                        case 3:
+                            entry.put(field.nameHash, Integer.parseInt(val));
+                            break;
+
+                        case 4:
+                            entry.put(field.nameHash, Short.parseShort(val));
+                            break;
+
+                        case 5:
+                            entry.put(field.nameHash, Byte.parseByte(val));
+                            break;
+
+                        case 2:
+                            entry.put(field.nameHash, Float.parseFloat(val));
+                            break;
+
+                        case 6:
+                            entry.put(field.nameHash, val);
+                            break;
+                    }
+                }
+                catch (NumberFormatException ex)
+                {
+                    switch (field.type)
+                    {
+                        case 0:
+                        case 3: entry.put(field.nameHash, (int)0); break;
+                        case 4: entry.put(field.nameHash, (short)0); break;
+                        case 5: entry.put(field.nameHash, (byte)0); break;
+                        case 2: entry.put(field.nameHash, 0f); break;
+                        case 6: entry.put(field.nameHash, ""); break;
+                    }
+                }
+                
+                c++;
+            }
+            
+            bcsv.entries.add(entry);
+        }
+        
+        try { bcsv.save(); }
+        catch (IOException ex) {}
+    }//GEN-LAST:event_btnSaveActionPerformed
+
+    private FilesystemBase archive;
+    private Bcsv bcsv;
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddRow;
+    private javax.swing.JButton btnDeleteRow;
     private javax.swing.JButton btnOpen;
     private javax.swing.JButton btnSave;
     private javax.swing.JLabel jLabel1;
@@ -132,6 +307,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JTextField tbArchiveName;
     private javax.swing.JTextField tbFileName;

@@ -114,7 +114,6 @@
         </Container>
         <Container class="javax.swing.JTabbedPane" name="tpLeftPanel">
           <Properties>
-            <Property name="tabPlacement" type="int" value="3"/>
             <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
               <Dimension value="[100, 5]"/>
             </Property>
