@@ -53,12 +53,6 @@ public class GalaxyArchive
     }
     
     
-    public List<String> getZones()
-    {
-        return zoneList;
-    }
-    
-    
     public ZoneArchive openZone(String name) throws IOException
     {
         if (!zoneList.contains(name)) return null;
@@ -70,6 +64,6 @@ public class GalaxyArchive
     public FilesystemBase filesystem;
     
     public String galaxyName;
-    private List<String> zoneList;
+    public List<String> zoneList;
     public List<Bcsv.Entry> scenarioData;
 }

@@ -76,6 +76,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             scenlist.addElement(String.format("[%1$d] %2$s", (int)scen.get("ScenarioNo"), (String)scen.get("ScenarioName")));
         }
+        
+        lbScenarioList.setSelectedIndex(0);
     }
 
     /**
@@ -94,7 +96,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         pnlGLPanel = new javax.swing.JPanel();
         jToolBar2 = new javax.swing.JToolBar();
         jLabel2 = new javax.swing.JLabel();
-        jSplitPane2 = new javax.swing.JSplitPane();
+        lbStatusLabel = new javax.swing.JLabel();
+        tpLeftPanel = new javax.swing.JTabbedPane();
         jSplitPane3 = new javax.swing.JSplitPane();
         jPanel1 = new javax.swing.JPanel();
         jToolBar3 = new javax.swing.JToolBar();
@@ -141,7 +144,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.PAGE_START);
 
-        jSplitPane1.setDividerLocation(300);
+        jSplitPane1.setDividerLocation(200);
+        jSplitPane1.setLastDividerLocation(200);
 
         pnlGLPanel.setMinimumSize(new java.awt.Dimension(10, 10));
         pnlGLPanel.setLayout(new java.awt.BorderLayout());
@@ -154,11 +158,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         pnlGLPanel.add(jToolBar2, java.awt.BorderLayout.NORTH);
 
+        lbStatusLabel.setText("status text goes here");
+        pnlGLPanel.add(lbStatusLabel, java.awt.BorderLayout.PAGE_END);
+
         jSplitPane1.setRightComponent(pnlGLPanel);
 
-        jSplitPane2.setDividerLocation(150);
-        jSplitPane2.setLastDividerLocation(150);
-        jSplitPane2.setPreferredSize(new java.awt.Dimension(300, 25));
+        tpLeftPanel.setTabPlacement(javax.swing.JTabbedPane.BOTTOM);
+        tpLeftPanel.setMinimumSize(new java.awt.Dimension(100, 5));
 
         jSplitPane3.setDividerLocation(200);
         jSplitPane3.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
@@ -194,6 +200,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jPanel1.add(jToolBar3, java.awt.BorderLayout.PAGE_START);
 
         lbScenarioList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        lbScenarioList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                lbScenarioListValueChanged(evt);
+            }
+        });
         jScrollPane1.setViewportView(lbScenarioList);
 
         jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
@@ -223,13 +234,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jPanel2.add(jToolBar4, java.awt.BorderLayout.PAGE_START);
 
         lbZoneList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        lbZoneList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                lbZoneListValueChanged(evt);
+            }
+        });
         jScrollPane2.setViewportView(lbZoneList);
 
         jPanel2.add(jScrollPane2, java.awt.BorderLayout.CENTER);
 
         jSplitPane3.setRightComponent(jPanel2);
 
-        jSplitPane2.setLeftComponent(jSplitPane3);
+        tpLeftPanel.addTab("Scenario/Zone", jSplitPane3);
 
         jSplitPane4.setDividerLocation(300);
         jSplitPane4.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
@@ -270,9 +286,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         pnlObjectSettings.setLayout(new java.awt.GridLayout(1, 2));
         jSplitPane4.setRightComponent(pnlObjectSettings);
 
-        jSplitPane2.setRightComponent(jSplitPane4);
+        tpLeftPanel.addTab("Objects", jSplitPane4);
 
-        jSplitPane1.setLeftComponent(jSplitPane2);
+        jSplitPane1.setLeftComponent(tpLeftPanel);
 
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
@@ -283,6 +299,57 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     {//GEN-HEADEREND:event_formWindowOpened
         //
     }//GEN-LAST:event_formWindowOpened
+
+    private void lbScenarioListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_lbScenarioListValueChanged
+    {//GEN-HEADEREND:event_lbScenarioListValueChanged
+        if (evt.getValueIsAdjusting())
+        {
+            return;
+        }
+        if (lbScenarioList.getSelectedValue() == null)
+        {
+            return;
+        }
+
+        DefaultListModel zonelist = new DefaultListModel();
+        lbZoneList.setModel(zonelist);
+        for (String zone : galaxyArc.zoneList)
+        {
+            String layerstr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ------";
+            int layermask = (int) galaxyArc.scenarioData.get(lbScenarioList.getSelectedIndex()).get(zone);
+            String layers = "";
+            for (int i = 0; i < 32; i++)
+            {
+                if ((layermask & (1 << i)) != 0)
+                {
+                    layers += layerstr.charAt(i);
+                }
+            }
+            if (layers.equals(""))
+            {
+                layers = "none";
+            }
+
+            zonelist.addElement(zone + " [" + layers + "]");
+        }
+
+        lbZoneList.setSelectedIndex(0);
+    }//GEN-LAST:event_lbScenarioListValueChanged
+
+    private void lbZoneListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_lbZoneListValueChanged
+    {//GEN-HEADEREND:event_lbZoneListValueChanged
+        if (evt.getValueIsAdjusting())
+        {
+            return;
+        }
+        if (lbZoneList.getSelectedValue() == null)
+        {
+            return;
+        }
+
+        int selid = lbZoneList.getSelectedIndex();
+        lbStatusLabel.setText("Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + galaxyArc.zoneList.get(selid));
+    }//GEN-LAST:event_lbZoneListValueChanged
 
     
     public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener
@@ -540,7 +607,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JSplitPane jSplitPane3;
     private javax.swing.JSplitPane jSplitPane4;
     private javax.swing.JToolBar jToolBar1;
@@ -549,9 +615,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JToolBar jToolBar4;
     private javax.swing.JToolBar jToolBar5;
     private javax.swing.JList lbScenarioList;
+    private javax.swing.JLabel lbStatusLabel;
     private javax.swing.JList lbZoneList;
     private javax.swing.JPanel pnlGLPanel;
     private javax.swing.JPanel pnlObjectSettings;
+    private javax.swing.JTabbedPane tpLeftPanel;
     private javax.swing.JTree tvObjectList;
     // End of variables declaration//GEN-END:variables
 }
