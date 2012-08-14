@@ -70,8 +70,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         //pnlGLPanel.add(glc);
         pnlGLPanel.validate();
         
-        DefaultComboBoxModel scenlist = new DefaultComboBoxModel();
-        cbScenarioList.setModel(scenlist);
+        DefaultListModel scenlist = new DefaultListModel();
+        lbScenarioList.setModel(scenlist);
         for (Bcsv.Entry scen : galaxyArc.scenarioData)
         {
             scenlist.addElement(String.format("[%1$d] %2$s", (int)scen.get("ScenarioNo"), (String)scen.get("ScenarioName")));
@@ -90,14 +90,36 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jToolBar1 = new javax.swing.JToolBar();
         btnSave = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
-        jLabel1 = new javax.swing.JLabel();
-        cbScenarioList = new javax.swing.JComboBox();
-        jSeparator2 = new javax.swing.JToolBar.Separator();
         jSplitPane1 = new javax.swing.JSplitPane();
         pnlGLPanel = new javax.swing.JPanel();
         jToolBar2 = new javax.swing.JToolBar();
         jLabel2 = new javax.swing.JLabel();
         jSplitPane2 = new javax.swing.JSplitPane();
+        jSplitPane3 = new javax.swing.JSplitPane();
+        jPanel1 = new javax.swing.JPanel();
+        jToolBar3 = new javax.swing.JToolBar();
+        jLabel3 = new javax.swing.JLabel();
+        btnAddScenario = new javax.swing.JButton();
+        btnEditScenario = new javax.swing.JButton();
+        btnDeleteScenario = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        lbScenarioList = new javax.swing.JList();
+        jPanel2 = new javax.swing.JPanel();
+        jToolBar4 = new javax.swing.JToolBar();
+        jLabel4 = new javax.swing.JLabel();
+        btnAddZone = new javax.swing.JButton();
+        btnDeleteZone = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        lbZoneList = new javax.swing.JList();
+        jSplitPane4 = new javax.swing.JSplitPane();
+        jPanel3 = new javax.swing.JPanel();
+        jToolBar5 = new javax.swing.JToolBar();
+        jLabel5 = new javax.swing.JLabel();
+        btnAddObject = new javax.swing.JButton();
+        btnDeleteObject = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        tvObjectList = new javax.swing.JTree();
+        pnlObjectSettings = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(800, 600));
@@ -117,13 +139,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jToolBar1.add(btnSave);
         jToolBar1.add(jSeparator1);
 
-        jLabel1.setText("Edit scenario:");
-        jToolBar1.add(jLabel1);
-
-        cbScenarioList.setMaximumSize(new java.awt.Dimension(200, 32767));
-        jToolBar1.add(cbScenarioList);
-        jToolBar1.add(jSeparator2);
-
         getContentPane().add(jToolBar1, java.awt.BorderLayout.PAGE_START);
 
         jSplitPane1.setDividerLocation(300);
@@ -142,7 +157,121 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jSplitPane1.setRightComponent(pnlGLPanel);
 
         jSplitPane2.setDividerLocation(150);
+        jSplitPane2.setLastDividerLocation(150);
         jSplitPane2.setPreferredSize(new java.awt.Dimension(300, 25));
+
+        jSplitPane3.setDividerLocation(200);
+        jSplitPane3.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jSplitPane3.setLastDividerLocation(200);
+
+        jPanel1.setPreferredSize(new java.awt.Dimension(201, 200));
+        jPanel1.setLayout(new java.awt.BorderLayout());
+
+        jToolBar3.setFloatable(false);
+        jToolBar3.setRollover(true);
+
+        jLabel3.setText("Scenarios:");
+        jToolBar3.add(jLabel3);
+
+        btnAddScenario.setText("Add");
+        btnAddScenario.setFocusable(false);
+        btnAddScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnAddScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar3.add(btnAddScenario);
+
+        btnEditScenario.setText("Edit");
+        btnEditScenario.setFocusable(false);
+        btnEditScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnEditScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar3.add(btnEditScenario);
+
+        btnDeleteScenario.setText("Delete");
+        btnDeleteScenario.setFocusable(false);
+        btnDeleteScenario.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnDeleteScenario.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar3.add(btnDeleteScenario);
+
+        jPanel1.add(jToolBar3, java.awt.BorderLayout.PAGE_START);
+
+        lbScenarioList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jScrollPane1.setViewportView(lbScenarioList);
+
+        jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+
+        jSplitPane3.setTopComponent(jPanel1);
+
+        jPanel2.setLayout(new java.awt.BorderLayout());
+
+        jToolBar4.setFloatable(false);
+        jToolBar4.setRollover(true);
+
+        jLabel4.setText("Zones:");
+        jToolBar4.add(jLabel4);
+
+        btnAddZone.setText("Add");
+        btnAddZone.setFocusable(false);
+        btnAddZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnAddZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar4.add(btnAddZone);
+
+        btnDeleteZone.setText("Delete");
+        btnDeleteZone.setFocusable(false);
+        btnDeleteZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnDeleteZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar4.add(btnDeleteZone);
+
+        jPanel2.add(jToolBar4, java.awt.BorderLayout.PAGE_START);
+
+        lbZoneList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jScrollPane2.setViewportView(lbZoneList);
+
+        jPanel2.add(jScrollPane2, java.awt.BorderLayout.CENTER);
+
+        jSplitPane3.setRightComponent(jPanel2);
+
+        jSplitPane2.setLeftComponent(jSplitPane3);
+
+        jSplitPane4.setDividerLocation(300);
+        jSplitPane4.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jSplitPane4.setFocusCycleRoot(true);
+        jSplitPane4.setLastDividerLocation(300);
+
+        jPanel3.setPreferredSize(new java.awt.Dimension(149, 300));
+        jPanel3.setLayout(new java.awt.BorderLayout());
+
+        jToolBar5.setFloatable(false);
+        jToolBar5.setRollover(true);
+
+        jLabel5.setText("Objects:");
+        jToolBar5.add(jLabel5);
+
+        btnAddObject.setText("Add");
+        btnAddObject.setFocusable(false);
+        btnAddObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnAddObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar5.add(btnAddObject);
+
+        btnDeleteObject.setText("Delete");
+        btnDeleteObject.setFocusable(false);
+        btnDeleteObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnDeleteObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar5.add(btnDeleteObject);
+
+        jPanel3.add(jToolBar5, java.awt.BorderLayout.PAGE_START);
+
+        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
+        tvObjectList.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+        jScrollPane3.setViewportView(tvObjectList);
+
+        jPanel3.add(jScrollPane3, java.awt.BorderLayout.CENTER);
+
+        jSplitPane4.setTopComponent(jPanel3);
+
+        pnlObjectSettings.setLayout(new java.awt.GridLayout(1, 2));
+        jSplitPane4.setRightComponent(pnlObjectSettings);
+
+        jSplitPane2.setRightComponent(jSplitPane4);
+
         jSplitPane1.setLeftComponent(jSplitPane2);
 
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
@@ -391,16 +520,38 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     public GalaxyArchive galaxyArc;
     private GalaxyRenderer renderer;
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddObject;
+    private javax.swing.JButton btnAddScenario;
+    private javax.swing.JButton btnAddZone;
+    private javax.swing.JButton btnDeleteObject;
+    private javax.swing.JButton btnDeleteScenario;
+    private javax.swing.JButton btnDeleteZone;
+    private javax.swing.JButton btnEditScenario;
     private javax.swing.JButton btnSave;
-    private javax.swing.JComboBox cbScenarioList;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator1;
-    private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
+    private javax.swing.JSplitPane jSplitPane3;
+    private javax.swing.JSplitPane jSplitPane4;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JToolBar jToolBar3;
+    private javax.swing.JToolBar jToolBar4;
+    private javax.swing.JToolBar jToolBar5;
+    private javax.swing.JList lbScenarioList;
+    private javax.swing.JList lbZoneList;
     private javax.swing.JPanel pnlGLPanel;
+    private javax.swing.JPanel pnlObjectSettings;
+    private javax.swing.JTree tvObjectList;
     // End of variables declaration//GEN-END:variables
 }
