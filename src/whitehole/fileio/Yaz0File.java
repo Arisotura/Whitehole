@@ -27,6 +27,7 @@ public class Yaz0File extends MemoryFile
         super(backendfile.getContents());
         
         buffer = Yaz0.decompress(buffer);
+        logicalSize = buffer.length;
         backend = backendfile;
         backend.releaseStorage();
     }

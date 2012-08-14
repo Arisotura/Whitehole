@@ -71,6 +71,7 @@ public class MemoryFile implements FileBase
     {
         if (length >= 0x80000000L) throw new IOException("hey calm down, you're gonna eat all the RAM");
         resizeBuffer((int)length);
+        logicalSize = (int)length;
     }
     
 
@@ -293,7 +294,7 @@ public class MemoryFile implements FileBase
     protected byte[] buffer;
     private int curPosition;
     private Boolean bigEndian;
-    private int logicalSize;
+    protected int logicalSize;
     
     
     private void resizeBuffer(int newsize)
@@ -307,6 +308,6 @@ public class MemoryFile implements FileBase
     private void autoExpand(int newend)
     {
         if (logicalSize < newend) logicalSize = newend;
-        if (buffer.length < newend) resizeBuffer(buffer.length * 2);
+        if (buffer.length < newend) resizeBuffer((buffer.length > 0) ? buffer.length * 2 : newend);
     }
 }

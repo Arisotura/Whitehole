@@ -292,7 +292,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
         }
         
         try { bcsv.save(); }
-        catch (IOException ex) {}
+        catch (IOException ex) { System.out.println(ex.getMessage()); ex.printStackTrace(); }
     }//GEN-LAST:event_btnSaveActionPerformed
 
     private FilesystemBase archive;
