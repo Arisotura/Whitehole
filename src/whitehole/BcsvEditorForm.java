@@ -189,6 +189,8 @@ public class BcsvEditorForm extends javax.swing.JFrame
         }
         
         DefaultTableModel table = (DefaultTableModel)tblBcsv.getModel();
+        table.setRowCount(0);
+        table.setColumnCount(0);
         
         for (Bcsv.Field field : bcsv.fields.values())
         {
