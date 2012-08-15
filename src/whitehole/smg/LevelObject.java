@@ -24,13 +24,20 @@ import whitehole.rendering.*;
 
 public class LevelObject 
 {
-    public LevelObject(Bcsv.Entry entry)
+    public LevelObject(String filepath, Bcsv.Entry entry)
     {
+        String[] stuff = filepath.split("/");
+        directory = stuff[0];
+        layer = stuff[1];
+        file = stuff[2];
+        
         data = entry;
         
         name = (String)data.get("name");
         dbInfo = ObjectDB.objects.get(name);
         renderer = null;
+        
+        uniqueID = -1;
     }
     
     
@@ -73,8 +80,11 @@ public class LevelObject
     }
     
     
+    public String directory, layer, file;
     public String name;
     public Bcsv.Entry data;
     public ObjectDB.Object dbInfo;
     public GLRenderer renderer;
+    
+    public int uniqueID;
 }

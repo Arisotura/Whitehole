@@ -19,6 +19,7 @@
 package whitehole.smg;
 
 import java.io.*;
+import java.util.*;
 import whitehole.fileio.*;
 
 public class ZoneArchive 
@@ -31,23 +32,66 @@ public class ZoneArchive
         
         zoneName = name;
         
+        String zonefile = "lolz";
+        
         // try SMG2-style first, then SMG1
-        if (filesystem.directoryExists("/StageData/" + zoneName))
+        if (filesystem.fileExists("/StageData/" + zoneName + "/" + zoneName + "Map.arc"))
         {
             // SMG2-style zone
             // * /StageData/<zoneName>/<zoneName>Design.arc -> ???
             // * /StageData/<zoneName>/<zoneName>Map.arc -> holds map objects
             // * /StageData/<zoneName>/<zoneName>Sound.arc -> seems to hold sound-related objects
+            
+            gameMask = 2;
+            zonefile = "/StageData/" + zoneName + "/" + zoneName + "Map.arc";
         }
         else
         {
             // SMG1-style zone
             // * /StageData/<zoneName>.arc -> holds all map objects
+            
+            gameMask = 1;
+            zonefile = "/StageData/" + zoneName + ".arc";
         }
+        
+        objects = new HashMap<>();
+        RarcFilesystem zonearc = new RarcFilesystem(filesystem.openFile(zonefile));
+        loadObjects(zonearc, "MapParts", "MapPartsInfo");
+        loadObjects(zonearc, "Placement", "ObjInfo");
     }
     
     public void close()
     {
+    }
+    
+    
+    private void loadObjects(RarcFilesystem arc, String dir, String file)
+    {
+        List<String> layers = arc.getDirectories("/Stage/Jmp/" + dir);
+        for (String layer : layers)
+            addObjectsToList(arc, dir + "/" + layer + "/" + file);
+    }
+    
+    private void addObjectsToList(RarcFilesystem arc, String filepath)
+    {
+        String layer = filepath.split("/")[1];
+        
+        if (!objects.containsKey(layer))
+            objects.put(layer, new ArrayList<LevelObject>());
+        
+        try
+        {
+            Bcsv bcsv = new Bcsv(arc.openFile("/Stage/Jmp/" + filepath));
+            for (Bcsv.Entry entry : bcsv.entries)
+                objects.get(layer).add(new LevelObject(filepath, entry));
+            bcsv.close();
+        }
+        catch (IOException ex)
+        {
+            // TODO better error handling, really
+            System.out.println(ex.getMessage());
+            ex.printStackTrace();
+        }
     }
     
     
@@ -56,4 +100,7 @@ public class ZoneArchive
     public FilesystemBase filesystem;
     
     public String zoneName;
+    
+    public int gameMask;
+    public HashMap<String, List<LevelObject>> objects;
 }

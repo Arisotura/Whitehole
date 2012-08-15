@@ -21,6 +21,8 @@ package whitehole;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.HashMap;
+import java.util.Iterator;
 import javax.swing.*;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.*;
@@ -42,11 +44,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     public GalaxyEditorForm(String galaxy)
     {
         initComponents();
+        
+        maxUniqueID = 0;
+        globalObjList = new HashMap<>();
 
         galaxyName = galaxy;
         try
         {
             galaxyArc = Whitehole.game.openGalaxy(galaxyName);
+            
+            zoneArcs = new HashMap<>(galaxyArc.zoneList.size());
+            for (String zone : galaxyArc.zoneList)
+                loadZone(zone);
         }
         catch (IOException ex)
         {
@@ -69,15 +78,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         //pnlGLPanel.doLayout();
         //pnlGLPanel.add(glc);
         pnlGLPanel.validate();
-        
-        DefaultListModel scenlist = new DefaultListModel();
-        lbScenarioList.setModel(scenlist);
-        for (Bcsv.Entry scen : galaxyArc.scenarioData)
+    }
+    
+    private void loadZone(String zone) throws IOException
+    {
+        ZoneArchive arc = galaxyArc.openZone(zone);
+        zoneArcs.put(zone, arc);
+        for (java.util.List<LevelObject> objlist : arc.objects.values())
         {
-            scenlist.addElement(String.format("[%1$d] %2$s", (int)scen.get("ScenarioNo"), (String)scen.get("ScenarioName")));
+            for (LevelObject obj : objlist)
+            {
+                globalObjList.put(maxUniqueID, obj);
+                obj.uniqueID = maxUniqueID;
+                
+                maxUniqueID++;
+            }
         }
-        
-        lbScenarioList.setSelectedIndex(0);
     }
 
     /**
@@ -296,6 +312,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
     private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
     {//GEN-HEADEREND:event_formWindowOpened
+        DefaultListModel scenlist = new DefaultListModel();
+        lbScenarioList.setModel(scenlist);
+        for (Bcsv.Entry scen : galaxyArc.scenarioData)
+        {
+            scenlist.addElement(String.format("[%1$d] %2$s", (int)scen.get("ScenarioNo"), (String)scen.get("ScenarioName")));
+        }
+        
+        lbScenarioList.setSelectedIndex(0);
+        
         //
     }//GEN-LAST:event_formWindowOpened
 
@@ -316,7 +341,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             String layerstr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ------";
             int layermask = (int) galaxyArc.scenarioData.get(lbScenarioList.getSelectedIndex()).get(zone);
-            String layers = "";
+            String layers = "Common+";
             for (int i = 0; i < 32; i++)
             {
                 if ((layermask & (1 << i)) != 0)
@@ -324,9 +349,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     layers += layerstr.charAt(i);
                 }
             }
-            if (layers.equals(""))
+            if (layers.equals("Common+"))
             {
-                layers = "none";
+                layers = "Common";
             }
 
             zonelist.addElement(zone + " [" + layers + "]");
@@ -370,18 +395,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             renderinfo.drawable = glad;
             renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;
             
-            try { 
+            /*try { 
                 String objname = "IceMountainPlanet";
                 RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/"+objname+".arc"));
                 testmodel = new Bmd(arc.openFile("/"+objname+"/"+objname+".bdl")); 
             } catch (IOException ex) {}
-            testrenderer = new BmdRenderer(renderinfo, testmodel);
+            testrenderer = new BmdRenderer(renderinfo, testmodel);*/
             
             camDistance = 1f;
             camRotation = new Vector2(0f, 0f);
             camTarget = new Vector3(0f, 0f, 0f);
             camPosition = new Vector3(0f, 0f, 0f);
             updateCamera();
+            
+            for (LevelObject obj : globalObjList.values())
+                obj.initRenderer(renderinfo);
             
             //gl.glClearColor(0f, 1f, 0f, 1f);
             gl.glFrontFace(GL2.GL_CW);
@@ -391,14 +419,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         public void dispose(GLAutoDrawable glad)
         {
             GL2 gl = glad.getGL().getGL2();
+            renderinfo.drawable = glad;
             
-            // dispose objects here
+            for (LevelObject obj : globalObjList.values())
+                obj.closeRenderer(renderinfo);
         }
-
+        
         @Override
         public void display(GLAutoDrawable glad)
         {
             GL2 gl = glad.getGL().getGL2();
+            
+            gl.glDepthMask(true);
             
             gl.glClearColor(0f, 0f, 0.125f, 1f);
             gl.glClearDepth(1f);
@@ -406,12 +438,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             gl.glMatrixMode(GL2.GL_MODELVIEW);
             gl.glLoadMatrixf(modelViewMatrix.m, 0);
-            //gl.glScalef(0.0001f, 0.0001f, 0.0001f);
             
             gl.glEnable(GL2.GL_TEXTURE_2D);
             
             renderinfo.drawable = glad;
-            testrenderer.render(renderinfo);
+            
+            renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;
+            for (LevelObject obj : globalObjList.values())
+                obj.render(renderinfo);
+            
+            renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;
+            for (LevelObject obj : globalObjList.values())
+                obj.render(renderinfo);
             
             gl.glUseProgram(0);
             gl.glDisable(GL2.GL_TEXTURE_2D);
@@ -581,10 +619,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         private Point lastMouseMove;
     }
     
-   
     public String galaxyName;
     public GalaxyArchive galaxyArc;
     private GalaxyRenderer renderer;
+    public HashMap<String, ZoneArchive> zoneArcs;
+    
+    public int maxUniqueID;
+    public HashMap<Integer, LevelObject> globalObjList;
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddObject;
     private javax.swing.JButton btnAddScenario;
