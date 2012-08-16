@@ -373,7 +373,7 @@ public class BmdRenderer extends GLRenderer
             extensions.contains("GL_ARB_shader_objects") &&
             extensions.contains("GL_ARB_vertex_shader") &&
             extensions.contains("GL_ARB_fragment_shader");
-        hasShaders = hasShaders && Whitehole.useShaders;
+        hasShaders = hasShaders && Settings.useShaders;
 
         textures = new int[model.textures.length];
         for (int i = 0; i < model.textures.length; i++)

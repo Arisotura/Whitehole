@@ -18,8 +18,6 @@
 
 package whitehole;
 
-import java.util.prefs.Preferences;
-
 /**
  *
  * @author lolol
@@ -121,9 +119,9 @@ public class SettingsForm extends javax.swing.JDialog
 
     private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
     {//GEN-HEADEREND:event_formWindowOpened
-        chkObjectDBUpdate.setSelected(Whitehole.objectDBUpdate);
-        chkUseShaders.setSelected(Whitehole.useShaders);
-        chkFastDrag.setSelected(Whitehole.fastDrag);
+        chkObjectDBUpdate.setSelected(Settings.objectDBUpdate);
+        chkUseShaders.setSelected(Settings.useShaders);
+        chkFastDrag.setSelected(Settings.fastDrag);
     }//GEN-LAST:event_formWindowOpened
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnCancelActionPerformed
@@ -133,10 +131,10 @@ public class SettingsForm extends javax.swing.JDialog
 
     private void btnOkActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnOkActionPerformed
     {//GEN-HEADEREND:event_btnOkActionPerformed
-        Preferences prefs = Preferences.userRoot();
-        prefs.putBoolean("ObjectDBUpdate", Whitehole.objectDBUpdate = chkObjectDBUpdate.isSelected());
-        prefs.putBoolean("UseShaders", Whitehole.useShaders = chkUseShaders.isSelected());
-        prefs.putBoolean("FastDrag", Whitehole.fastDrag = chkFastDrag.isSelected());
+        Settings.objectDBUpdate = chkObjectDBUpdate.isSelected();
+        Settings.useShaders = chkUseShaders.isSelected();
+        Settings.fastDrag = chkFastDrag.isSelected();
+        Settings.save();
         
         dispose();
     }//GEN-LAST:event_btnOkActionPerformed

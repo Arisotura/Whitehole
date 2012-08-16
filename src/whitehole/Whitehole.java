@@ -37,10 +37,6 @@ public class Whitehole
     
     public static GameArchive game;
     
-    // settings
-    public static Boolean objectDBUpdate;
-    public static Boolean useShaders;
-    public static Boolean fastDrag;
 
     /**
      * @param args the command line arguments
@@ -54,11 +50,7 @@ public class Whitehole
             return;
         }
         
-        Preferences prefs = Preferences.userRoot();
-        objectDBUpdate = prefs.getBoolean("ObjectDBUpdate", true);
-        useShaders = prefs.getBoolean("UseShaders", true);
-        fastDrag = prefs.getBoolean("FastDrag", false);
-        
+        Settings.initialize();
         Bcsv.populateHashTable();
         ObjectDB.initialize();
         RendererCache.initialize();

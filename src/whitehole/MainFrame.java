@@ -20,7 +20,6 @@ package whitehole;
 
 import whitehole.smg.GameArchive;
 import java.awt.*;
-import java.util.*;
 import java.util.prefs.Preferences;
 import javax.swing.*;
 import java.io.*;
@@ -206,7 +205,7 @@ public class MainFrame extends javax.swing.JFrame {
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
         lbStatusBar.setText("Ready");
         
-        if (Preferences.userRoot().getBoolean("ObjectDBUpdate", true))
+        if (Settings.objectDBUpdate)
         {
             lbStatusBar.setText("Checking for object database updates...");
             ObjectDBUpdater updater = new ObjectDBUpdater(lbStatusBar);

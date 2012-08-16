@@ -612,6 +612,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glFlush();
             gl.glReadPixels(lastMouseMove.x - 1, glad.getHeight() - lastMouseMove.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_BYTE, pickingFrameBuffer);
             
+            /*if (lightRepaint)
+            {
+                lightRepaint = false;
+                return;
+            }*/
+            
             // Rendering pass 2 -- standard rendering
             // (what the user will see)
 
@@ -623,6 +629,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glLoadMatrixf(modelViewMatrix.m, 0);
             
             gl.glEnable(GL2.GL_TEXTURE_2D);
+            
+            if (Settings.fastDrag)
+            {
+                if (mouseButton != MouseEvent.NOBUTTON) 
+                {
+                    gl.glPolygonMode(GL2.GL_FRONT, GL2.GL_LINE);
+                    gl.glPolygonMode(GL2.GL_BACK, GL2.GL_POINT);
+                }
+                else 
+                    gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
+            }
             
             renderinfo.drawable = glad;
             
@@ -735,6 +752,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             if (lastMouseMove == null) return; // lame hack but how else can we avoid that
             
             lastMouseMove = e.getPoint();
+            lightRepaint = true;
+            
+            e.getComponent().repaint();
         }
 
         @Override
@@ -750,6 +770,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             mouseButton = e.getButton();
             lastMouseMove = e.getPoint();
+            
+            e.getComponent().repaint();
         }
 
         @Override
@@ -759,6 +781,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             mouseButton = MouseEvent.NOBUTTON;
             lastMouseMove = e.getPoint();
+            
+            e.getComponent().repaint();
         }
 
         @Override
@@ -801,6 +825,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         private int mouseButton;
         private Point lastMouseMove;
         private IntBuffer pickingFrameBuffer;
+        private Boolean lightRepaint;
     }
     
     public String galaxyName;
