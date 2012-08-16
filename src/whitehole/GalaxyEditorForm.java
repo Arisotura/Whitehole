@@ -21,8 +21,7 @@ package whitehole;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import javax.swing.*;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.*;
@@ -334,13 +333,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             return;
         }
+        
+        curScenarioID = lbScenarioList.getSelectedIndex();
+        curScenario = galaxyArc.scenarioData.get(curScenarioID);
 
         DefaultListModel zonelist = new DefaultListModel();
         lbZoneList.setModel(zonelist);
         for (String zone : galaxyArc.zoneList)
         {
             String layerstr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ------";
-            int layermask = (int) galaxyArc.scenarioData.get(lbScenarioList.getSelectedIndex()).get(zone);
+            int layermask = (int) curScenario.get(zone);
             String layers = "Common+";
             for (int i = 0; i < 32; i++)
             {
@@ -416,15 +418,158 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             System.out.println("OBJECT COUNT:");
             System.out.println(globalObjList.size());
             
+            objDisplayLists = new HashMap<>();
+            zoneDisplayLists = new HashMap<>();
+            renderinfo.renderMode = GLRenderer.RenderMode.PICKING; renderAllObjects(gl);
+            renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE; renderAllObjects(gl);
+            renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT; renderAllObjects(gl);
+            
             //gl.glClearColor(0f, 1f, 0f, 1f);
             gl.glFrontFace(GL2.GL_CW);
         }
+        
+        
+        private void renderAllObjects(GL2 gl)
+        {
+            int mode = -1;
+            switch (renderinfo.renderMode)
+            {
+                case PICKING: mode = 0; break;
+                case OPAQUE: mode = 1; break;
+                case TRANSLUCENT: mode = 2; break;
+            }
+            
+           // objDisplayLists[mode] = gl.glGenLists(1);
+            //gl.glNewList(objDisplayLists[mode], GL2.GL_COMPILE);
+            
+            //for (LevelObject obj : globalObjList.values())
+            //    obj.render(renderinfo);
+            for (String zone : galaxyArc.zoneList)
+                prerenderZone(gl, zone);
+            
+            for (int s = 0; s < galaxyArc.scenarioData.size(); s++)
+            {
+                if (!zoneDisplayLists.containsKey(s))
+                    zoneDisplayLists.put(s, new int[3]);
+                
+                int dl = gl.glGenLists(1);
+                gl.glNewList(dl, GL2.GL_COMPILE);
+                
+                Bcsv.Entry scenario = galaxyArc.scenarioData.get(s);
+                renderZone(gl, scenario, galaxyName, (int)scenario.get(galaxyName), 0);
+                
+                gl.glEndList();
+                zoneDisplayLists.get(s)[mode] = dl;
+            }
+            
+            //gl.glEndList();
+        }
+        
+        private void prerenderZone(GL2 gl, String zone)
+        {
+            int mode = -1;
+            switch (renderinfo.renderMode)
+            {
+                case PICKING: mode = 0; break;
+                case OPAQUE: mode = 1; break;
+                case TRANSLUCENT: mode = 2; break;
+            }
+            
+            ZoneArchive zonearc = zoneArcs.get(zone);
+            Set<String> layers = zonearc.objects.keySet();
+            for (String layer : layers)
+            {
+                String key = zone + "/" + layer.toLowerCase();
+                if (!objDisplayLists.containsKey(key))
+                    objDisplayLists.put(key, new int[3]);
+                
+                int dl = gl.glGenLists(1);
+                gl.glNewList(dl, GL2.GL_COMPILE);
+                
+                for (LevelObject obj : zonearc.objects.get(layer))
+                    obj.render(renderinfo);
+
+                gl.glEndList();
+                objDisplayLists.get(key)[mode] = dl;
+            }
+        }
+        
+        private void renderZone(GL2 gl, Bcsv.Entry scenario, String zone, int layermask, int level)
+        {
+            String alphabet = "abcdefghijklmnopqrstuvwxyz------";
+            int mode = -1;
+            switch (renderinfo.renderMode)
+            {
+                case PICKING: mode = 0; break;
+                case OPAQUE: mode = 1; break;
+                case TRANSLUCENT: mode = 2; break;
+            }
+            
+            gl.glCallList(objDisplayLists.get(zone + "/common")[mode]);
+            for (int l = 0; l < 32; l++)
+            {
+                if ((layermask & (1 << l)) != 0)
+                    gl.glCallList(objDisplayLists.get(zone + "/layer" + alphabet.charAt(l))[mode]);
+            }
+            
+            if (level < 5)
+            {
+                for (Bcsv.Entry subzone : zoneArcs.get(zone).subZones.get("common"))
+                {
+                    gl.glPushMatrix();
+                    gl.glTranslatef((float)subzone.get("pos_x"), (float)subzone.get("pos_y"), (float)subzone.get("pos_z"));
+                    gl.glRotatef((float)subzone.get("dir_z"), 0f, 0f, 1f);
+                    gl.glRotatef((float)subzone.get("dir_y"), 0f, 1f, 0f);
+                    gl.glRotatef((float)subzone.get("dir_x"), 1f, 0f, 0f);
+
+                    String zonename = (String)subzone.get("name");
+                    renderZone(gl, scenario, zonename, (int)scenario.get(zonename), level + 1);
+
+                    gl.glPopMatrix();
+                }
+                
+                for (int l = 0; l < 32; l++)
+                {
+                    if ((layermask & (1 << l)) != 0)
+                    {
+                        for (Bcsv.Entry subzone : zoneArcs.get(zone).subZones.get("layer" + alphabet.charAt(l)))
+                        {
+                            gl.glPushMatrix();
+                            gl.glTranslatef((float)subzone.get("pos_x"), (float)subzone.get("pos_y"), (float)subzone.get("pos_z"));
+                            gl.glRotatef((float)subzone.get("dir_z"), 0f, 0f, 1f);
+                            gl.glRotatef((float)subzone.get("dir_y"), 0f, 1f, 0f);
+                            gl.glRotatef((float)subzone.get("dir_x"), 1f, 0f, 0f);
+
+                            String zonename = (String)subzone.get("name");
+                            renderZone(gl, scenario, zonename, (int)scenario.get(zonename), level + 1);
+
+                            gl.glPopMatrix();
+                        }
+                    }
+                }
+            }
+        }
+        
 
         @Override
         public void dispose(GLAutoDrawable glad)
         {
             GL2 gl = glad.getGL().getGL2();
             renderinfo.drawable = glad;
+            
+            for (int[] dls : zoneDisplayLists.values())
+            {
+                gl.glDeleteLists(dls[0], 1);
+                gl.glDeleteLists(dls[1], 1);
+                gl.glDeleteLists(dls[2], 1);
+            }
+            
+            for (int[] dls : objDisplayLists.values())
+            {
+                gl.glDeleteLists(dls[0], 1);
+                gl.glDeleteLists(dls[1], 1);
+                gl.glDeleteLists(dls[2], 1);
+            }
             
             for (LevelObject obj : globalObjList.values())
                 obj.closeRenderer(renderinfo);
@@ -448,13 +593,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             renderinfo.drawable = glad;
             
-            renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;
-            for (LevelObject obj : globalObjList.values())
-                obj.render(renderinfo);
+            for (int[] dls : zoneDisplayLists.values())
+                gl.glCallList(dls[1]);
             
-            renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;
-            for (LevelObject obj : globalObjList.values())
-                obj.render(renderinfo);
+            for (int[] dls : zoneDisplayLists.values())
+                gl.glCallList(dls[2]);
             
             gl.glUseProgram(0);
             gl.glDisable(GL2.GL_TEXTURE_2D);
@@ -609,9 +752,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         public GalaxyEditorForm parent;
         
-        private Bmd testmodel;
-        private BmdRenderer testrenderer;
         private GLRenderer.RenderInfo renderinfo;
+        private HashMap<String, int[]> objDisplayLists;
+        private HashMap<Integer, int[]> zoneDisplayLists;
         
         private Matrix4 modelViewMatrix;
         private float camDistance;
@@ -627,6 +770,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     public GalaxyArchive galaxyArc;
     private GalaxyRenderer renderer;
     public HashMap<String, ZoneArchive> zoneArcs;
+    
+    private int curScenarioID;
+    private Bcsv.Entry curScenario;
     
     public int maxUniqueID;
     public HashMap<Integer, LevelObject> globalObjList;

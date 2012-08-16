@@ -55,9 +55,15 @@ public class ZoneArchive
         }
         
         objects = new HashMap<>();
+        subZones = new HashMap<>();
         RarcFilesystem zonearc = new RarcFilesystem(filesystem.openFile(zonefile));
+        
         loadObjects(zonearc, "MapParts", "MapPartsInfo");
         loadObjects(zonearc, "Placement", "ObjInfo");
+        
+        loadSubZones(zonearc);
+        
+        zonearc.close();
     }
     
     public void close()
@@ -74,7 +80,7 @@ public class ZoneArchive
     
     private void addObjectsToList(RarcFilesystem arc, String filepath)
     {
-        String layer = filepath.split("/")[1];
+        String layer = filepath.split("/")[1].toLowerCase();
         
         if (!objects.containsKey(layer))
             objects.put(layer, new ArrayList<LevelObject>());
@@ -94,6 +100,26 @@ public class ZoneArchive
         }
     }
     
+    private void loadSubZones(RarcFilesystem arc)
+    {
+        List<String> layers = arc.getDirectories("/Stage/Jmp/Placement");
+        for (String layer : layers)
+        {
+            try
+            {
+                Bcsv bcsv = new Bcsv(arc.openFile("/Stage/Jmp/Placement/" + layer + "/StageObjInfo"));
+                subZones.put(layer.toLowerCase(), bcsv.entries); // lazy lol
+                bcsv.close();
+            }
+            catch (IOException ex)
+            {
+                // TODO better error handling, really
+                System.out.println(ex.getMessage());
+                ex.printStackTrace();
+            }
+        }
+    }
+    
     
     public GalaxyArchive galaxy;
     public GameArchive game;
@@ -103,4 +129,5 @@ public class ZoneArchive
     
     public int gameMask;
     public HashMap<String, List<LevelObject>> objects;
+    public HashMap<String, List<Bcsv.Entry>> subZones;
 }
