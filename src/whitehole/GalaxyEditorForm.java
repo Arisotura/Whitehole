@@ -411,6 +411,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             for (LevelObject obj : globalObjList.values())
                 obj.initRenderer(renderinfo);
             
+            System.out.println("MODELS IN CACHE:");
+            System.out.println(RendererCache.cache.size());
+            System.out.println("OBJECT COUNT:");
+            System.out.println(globalObjList.size());
+            
             //gl.glClearColor(0f, 1f, 0f, 1f);
             gl.glFrontFace(GL2.GL_CW);
         }

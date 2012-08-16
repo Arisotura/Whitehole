@@ -43,13 +43,14 @@ public class LevelObject
     
     public void initRenderer(GLRenderer.RenderInfo info)
     {
-        if (renderer != null) closeRenderer(info);
+        if (renderer != null) return;
         renderer = RendererCache.getObjectRenderer(info, this);
         renderer.compileDisplayLists(info);
     }
     
     public void closeRenderer(GLRenderer.RenderInfo info)
     {
+        if (renderer == null) return;
         RendererCache.closeObjectRenderer(info, this);
         renderer = null;
     }

@@ -45,6 +45,8 @@ public class GLRenderer
     
     public void compileDisplayLists(RenderInfo info) throws GLException
     {
+        if (displayLists != null) return;
+        
         GL2 gl = info.drawable.getGL().getGL2();
         RenderInfo info2 = new RenderInfo();
         info2.drawable = info.drawable;

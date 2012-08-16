@@ -217,8 +217,8 @@ public class BmdRenderer extends GLRenderer
             // TODO: tex/ras swizzle? (important or not?)
             //mat.TevSwapMode[0].
 
-            if (mat.tevOrder[i].chanID != 4)
-                throw new GLException(String.format("!UNSUPPORTED CHANID %1$d", mat.tevOrder[i].chanID));
+            //if (mat.tevOrder[i].chanID != 4)
+            //    throw new GLException(String.format("!UNSUPPORTED CHANID %1$d", mat.tevOrder[i].chanID));
 
             rout = outputregs[mat.tevStage[i].colorRegID] + ".rgb";
             a = c_inputregs[mat.tevStage[i].colorIn[0]];
