@@ -512,11 +512,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             camPosition.y = camDistance * (float)Math.sin(camRotation.y);
             camPosition.z = camDistance * (float)Math.sin(camRotation.x) * (float)Math.cos(camRotation.y);
             
-            camPosition = Vector3.add(camPosition, camTarget);
+            Vector3.add(camPosition, camTarget, camPosition);
             
             modelViewMatrix = Matrix4.lookAt(camPosition, camTarget, up);
-            
-            modelViewMatrix = Matrix4.mult(Matrix4.scale(0.0001f), modelViewMatrix);
+            Matrix4.mult(Matrix4.scale(0.0001f), modelViewMatrix, modelViewMatrix);
         }
         
 

@@ -32,13 +32,20 @@ public class Vector3
         this.z = z;
     }
     
-    
-    public static Vector3 transform(Vector3 v, Matrix4 m)
+    public Vector3(Vector3 copy)
     {
-        return new Vector3(
-                v.x * m.m[0] + v.y * m.m[4] + v.z * m.m[8] + m.m[12],
-                v.x * m.m[1] + v.y * m.m[5] + v.z * m.m[9] + m.m[13],
-                v.x * m.m[2] + v.y * m.m[6] + v.z * m.m[10] + m.m[14]);
+        this.x = copy.x;
+        this.y = copy.y;
+        this.z = copy.z;
+    }
+    
+    
+    public static void transform(Vector3 v, Matrix4 m, Vector3 out)
+    {
+        float x = v.x * m.m[0] + v.y * m.m[4] + v.z * m.m[8] + m.m[12],
+              y = v.x * m.m[1] + v.y * m.m[5] + v.z * m.m[9] + m.m[13],
+              z = v.x * m.m[2] + v.y * m.m[6] + v.z * m.m[10] + m.m[14];
+        out.x = x; out.y = y; out.z = z;
     }
     
     public float length()
@@ -46,32 +53,36 @@ public class Vector3
         return (float)Math.sqrt(x * x + y * y + z * z);
     }
     
-    public static Vector3 normalize(Vector3 v)
+    public static void normalize(Vector3 v, Vector3 out)
     {
         float len = v.length();
         if (len < 0.000001f) len = 1f;
-        return new Vector3(
-                v.x / len,
-                v.y / len,
-                v.z / len);
+        float x = v.x / len,
+              y = v.y / len,
+              z = v.z / len;
+        out.x = x; out.y = y; out.z = z;
     }
     
-    public static Vector3 add(Vector3 a, Vector3 b)
+    public static void add(Vector3 a, Vector3 b, Vector3 out)
     {
-        return new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+        out.x = a.x + b.x;
+        out.y = a.y + b.y;
+        out.z = a.z + b.z;
     }
     
-    public static Vector3 subtract(Vector3 a, Vector3 b)
+    public static void subtract(Vector3 a, Vector3 b, Vector3 out)
     {
-        return new Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
+        out.x = a.x - b.x;
+        out.y = a.y - b.y;
+        out.z = a.z - b.z;
     }
     
-    public static Vector3 cross(Vector3 a, Vector3 b)
+    public static void cross(Vector3 a, Vector3 b, Vector3 out)
     {
-        return new Vector3(
-                a.y * b.z - a.z * b.y,
-                a.z * b.x - a.x * b.z,
-                a.x * b.y - a.y * b.x);
+        float x = a.y * b.z - a.z * b.y,
+              y = a.z * b.x - a.x * b.z,
+              z = a.x * b.y - a.y * b.x;
+        out.x = x; out.y = y; out.z = z;
     }
     
     

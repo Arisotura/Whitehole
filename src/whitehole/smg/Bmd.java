@@ -452,7 +452,10 @@ public class Bmd
                 } while (parentnode.nodeType != 1);
 
                 if (parentnode != null)
-                    jnt.finalMatrix = Matrix4.mult(jnt.matrix, joints[parentnode.nodeID].finalMatrix);
+                {
+                    jnt.finalMatrix = new Matrix4();
+                    Matrix4.mult(jnt.matrix, joints[parentnode.nodeID].finalMatrix, jnt.finalMatrix);
+                }
                 else
                     jnt.finalMatrix = jnt.matrix;
 

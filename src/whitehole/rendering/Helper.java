@@ -32,11 +32,11 @@ public class Helper
         Matrix4 mzrot = Matrix4.createRotationZ(rot.z);
         Matrix4 mtrans = Matrix4.createTranslation(trans);
 
-        ret = Matrix4.mult(ret, mscale);
-        ret = Matrix4.mult(ret, mxrot);
-        ret = Matrix4.mult(ret, myrot);
-        ret = Matrix4.mult(ret, mzrot);
-        ret = Matrix4.mult(ret, mtrans);
+        Matrix4.mult(ret, mscale, ret);
+        Matrix4.mult(ret, mxrot, ret);
+        Matrix4.mult(ret, myrot, ret);
+        Matrix4.mult(ret, mzrot, ret);
+        Matrix4.mult(ret, mtrans, ret);
 
         return ret;
     }

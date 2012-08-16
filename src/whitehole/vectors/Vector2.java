@@ -31,6 +31,39 @@ public class Vector2
         this.y = y;
     }
     
+    public Vector2(Vector2 copy)
+    {
+        this.x = copy.x;
+        this.y = copy.y;
+    }
+    
+    
+    public float length()
+    {
+        return (float)Math.sqrt(x * x + y * y);
+    }
+    
+    public static void normalize(Vector2 v, Vector2 out)
+    {
+        float len = v.length();
+        if (len < 0.000001f) len = 1f;
+        float x = v.x / len,
+              y = v.y / len;
+        out.x = x; out.y = y;
+    }
+    
+    public static void add(Vector2 a, Vector2 b, Vector2 out)
+    {
+        out.x = a.x + b.x;
+        out.y = a.y + b.y;
+    }
+    
+    public static void subtract(Vector2 a, Vector2 b, Vector2 out)
+    {
+        out.x = a.x - b.x;
+        out.y = a.y - b.y;
+    }
+    
     
     public float x, y;
 }

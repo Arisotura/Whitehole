@@ -702,9 +702,9 @@ public class BmdRenderer extends GLRenderer
 
                         if ((prim.arrayMask & (1 << 10)) != 0) { Vector3 n = model.normalArray[prim.normalIndices[i]]; gl.glNormal3f(n.x, n.y, n.z); }
 
-                        Vector3 pos = model.positionArray[prim.positionIndices[i]];
-                        if ((prim.arrayMask & 1) != 0) pos = Vector3.transform(pos, mtxtable[prim.posMatrixIndices[i]]);
-                        else pos = Vector3.transform(pos, mtxtable[0]);
+                        Vector3 pos = new Vector3(model.positionArray[prim.positionIndices[i]]);
+                        if ((prim.arrayMask & 1) != 0) Vector3.transform(pos, mtxtable[prim.posMatrixIndices[i]], pos);
+                        else Vector3.transform(pos, mtxtable[0], pos);
                         gl.glVertex3f(pos.x, pos.y, pos.z);
                     }
 
