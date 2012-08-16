@@ -593,11 +593,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             renderinfo.drawable = glad;
             
-            for (int[] dls : zoneDisplayLists.values())
-                gl.glCallList(dls[1]);
+            gl.glCallList(zoneDisplayLists.get(curScenarioID)[1]);
             
-            for (int[] dls : zoneDisplayLists.values())
-                gl.glCallList(dls[2]);
+            gl.glCallList(zoneDisplayLists.get(curScenarioID)[2]);
             
             gl.glUseProgram(0);
             gl.glDisable(GL2.GL_TEXTURE_2D);
