@@ -54,22 +54,22 @@ public class ColorCubeRenderer extends GLRenderer
         {
             for (int i = 0; i < 8; i++)
             {
-                gl.glActiveTexture(gl.GL_TEXTURE0 + i);
-                gl.glDisable(gl.GL_TEXTURE_2D);
+                gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
+                gl.glDisable(GL2.GL_TEXTURE_2D);
             }
 
-            gl.glDepthFunc(gl.GL_LEQUAL);
+            gl.glDepthFunc(GL2.GL_LEQUAL);
             gl.glDepthMask(true);
             gl.glColor4f(fillColor.r, fillColor.g, fillColor.b, fillColor.a);
-            gl.glDisable(gl.GL_LIGHTING);
-            gl.glDisable(gl.GL_BLEND);
-            gl.glDisable(gl.GL_COLOR_LOGIC_OP);
-            gl.glDisable(gl.GL_ALPHA_TEST);
-            gl.glCullFace(gl.GL_FRONT);
+            gl.glDisable(GL2.GL_LIGHTING);
+            gl.glDisable(GL2.GL_BLEND);
+            gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
+            gl.glDisable(GL2.GL_ALPHA_TEST);
+            gl.glCullFace(GL2.GL_FRONT);
             try { gl.glUseProgram(0); } catch (GLException ex) { }
         }
 
-        gl.glBegin(gl.GL_TRIANGLE_STRIP);
+        gl.glBegin(GL2.GL_TRIANGLE_STRIP);
         gl.glVertex3f(-s, -s, -s);
         gl.glVertex3f(-s, s, -s);
         gl.glVertex3f(s, -s, -s);
@@ -82,14 +82,14 @@ public class ColorCubeRenderer extends GLRenderer
         gl.glVertex3f(-s, s, -s);
         gl.glEnd();
 
-        gl.glBegin(gl.GL_TRIANGLE_STRIP);
+        gl.glBegin(GL2.GL_TRIANGLE_STRIP);
         gl.glVertex3f(-s, s, -s);
         gl.glVertex3f(-s, s, s);
         gl.glVertex3f(s, s, -s);
         gl.glVertex3f(s, s, s);
         gl.glEnd();
 
-        gl.glBegin(gl.GL_TRIANGLE_STRIP);
+        gl.glBegin(GL2.GL_TRIANGLE_STRIP);
         gl.glVertex3f(-s, -s, -s);
         gl.glVertex3f(s, -s, -s);
         gl.glVertex3f(-s, -s, s);
@@ -101,7 +101,7 @@ public class ColorCubeRenderer extends GLRenderer
             gl.glLineWidth(1.5f);
             gl.glColor4f(borderColor.r, borderColor.g, borderColor.b, borderColor.a);
 
-            gl.glBegin(gl.GL_LINE_STRIP);
+            gl.glBegin(GL2.GL_LINE_STRIP);
             gl.glVertex3f(s, s, s);
             gl.glVertex3f(-s, s, s);
             gl.glVertex3f(-s, s, -s);
@@ -114,7 +114,7 @@ public class ColorCubeRenderer extends GLRenderer
             gl.glVertex3f(s, -s, s);
             gl.glEnd();
 
-            gl.glBegin(gl.GL_LINES);
+            gl.glBegin(GL2.GL_LINES);
             gl.glVertex3f(-s, s, s);
             gl.glVertex3f(-s, -s, s);
             gl.glVertex3f(-s, s, -s);
@@ -125,7 +125,7 @@ public class ColorCubeRenderer extends GLRenderer
 
             if (showAxes)
             {
-                gl.glBegin(gl.GL_LINES);
+                gl.glBegin(GL2.GL_LINES);
                 gl.glColor3f(1.0f, 0.0f, 0.0f);
                 gl.glVertex3f(0.0f, 0.0f, 0.0f);
                 gl.glColor3f(1.0f, 0.0f, 0.0f);

@@ -485,89 +485,93 @@ public class BmdRenderer extends GLRenderer
                 if ((mat.drawFlag == 4) ^ (info.renderMode == RenderMode.TRANSLUCENT))
                     continue;
 
-                if (hasShaders)
+                if (info.renderMode != RenderMode.PICKING)
                 {
-                    // shader: handles multitexturing, color combination, alpha test
-                    gl.glUseProgram(shaders[node.materialID].program);
-
-                    // do multitexturing
-                    for (int i = 0; i < 8; i++)
+                    if (hasShaders)
                     {
-                        gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
+                        // shader: handles multitexturing, color combination, alpha test
+                        gl.glUseProgram(shaders[node.materialID].program);
 
-                        if (mat.texStages[i] == (short)0xFFFF)
+                        // do multitexturing
+                        for (int i = 0; i < 8; i++)
                         {
-                            gl.glDisable(GL2.GL_TEXTURE_2D);
-                            continue;
+                            gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
+
+                            if (mat.texStages[i] == (short)0xFFFF)
+                            {
+                                gl.glDisable(GL2.GL_TEXTURE_2D);
+                                continue;
+                            }
+
+                            int loc = gl.glGetUniformLocation(shaders[node.materialID].program, String.format("texture%1$d", i));
+                            gl.glUniform1i(loc, i);
+
+                            int texid = textures[mat.texStages[i]];
+                            gl.glEnable(GL2.GL_TEXTURE_2D);
+                            gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
                         }
-
-                        int loc = gl.glGetUniformLocation(shaders[node.materialID].program, String.format("texture%1$d", i));
-                        gl.glUniform1i(loc, i);
-
-                        int texid = textures[mat.texStages[i]];
-                        gl.glEnable(GL2.GL_TEXTURE_2D);
-                        gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
-                    }
-                }
-                else
-                {
-                    int[] alphafunc = { GL2.GL_NEVER, GL2.GL_LESS, GL2.GL_EQUAL, GL2.GL_LEQUAL,
-                                        GL2.GL_GREATER, GL2.GL_NOTEQUAL, GL2.GL_GEQUAL, GL2.GL_ALWAYS };
-
-                    // texturing -- texture 0 will be used
-                    if (mat.texStages[0] != (short)0xFFFF)
-                    {
-                        int texid = textures[mat.texStages[0]];
-                        gl.glEnable(GL2.GL_TEXTURE_2D);
-                        gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
-                    }
-                    else
-                        gl.glDisable(GL2.GL_TEXTURE_2D);
-
-                    // alpha test -- only one comparison can be done
-                    if (mat.alphaComp.mergeFunc == 1 && (mat.alphaComp.func0 == 7 || mat.alphaComp.func1 == 7))
-                        gl.glDisable(GL2.GL_ALPHA_TEST);
-                    else if (mat.alphaComp.mergeFunc == 0 && (mat.alphaComp.func0 == 0 || mat.alphaComp.func1 == 0))
-                    {
-                        gl.glEnable(GL2.GL_ALPHA_TEST);
-                        gl.glAlphaFunc(GL2.GL_NEVER, 0f);
                     }
                     else
                     {
-                        gl.glEnable(GL2.GL_ALPHA_TEST);
+                        int[] alphafunc = { GL2.GL_NEVER, GL2.GL_LESS, GL2.GL_EQUAL, GL2.GL_LEQUAL,
+                                            GL2.GL_GREATER, GL2.GL_NOTEQUAL, GL2.GL_GEQUAL, GL2.GL_ALWAYS };
 
-                        if ((mat.alphaComp.mergeFunc == 1 && mat.alphaComp.func0 == 0) || (mat.alphaComp.mergeFunc == 0 && mat.alphaComp.func0 == 7))
-                            gl.glAlphaFunc(alphafunc[mat.alphaComp.func1], (float)mat.alphaComp.ref1 / 255f);
+                        // texturing -- texture 0 will be used
+                        gl.glActiveTexture(GL2.GL_TEXTURE0);
+                        if (mat.texStages[0] != (short)0xFFFF)
+                        {
+                            int texid = textures[mat.texStages[0]];
+                            gl.glEnable(GL2.GL_TEXTURE_2D);
+                            gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
+                        }
                         else
-                            gl.glAlphaFunc(alphafunc[mat.alphaComp.func0], (float)mat.alphaComp.ref0 / 255f);
+                            gl.glDisable(GL2.GL_TEXTURE_2D);
+
+                        // alpha test -- only one comparison can be done
+                        if (mat.alphaComp.mergeFunc == 1 && (mat.alphaComp.func0 == 7 || mat.alphaComp.func1 == 7))
+                            gl.glDisable(GL2.GL_ALPHA_TEST);
+                        else if (mat.alphaComp.mergeFunc == 0 && (mat.alphaComp.func0 == 0 || mat.alphaComp.func1 == 0))
+                        {
+                            gl.glEnable(GL2.GL_ALPHA_TEST);
+                            gl.glAlphaFunc(GL2.GL_NEVER, 0f);
+                        }
+                        else
+                        {
+                            gl.glEnable(GL2.GL_ALPHA_TEST);
+
+                            if ((mat.alphaComp.mergeFunc == 1 && mat.alphaComp.func0 == 0) || (mat.alphaComp.mergeFunc == 0 && mat.alphaComp.func0 == 7))
+                                gl.glAlphaFunc(alphafunc[mat.alphaComp.func1], (float)mat.alphaComp.ref1 / 255f);
+                            else
+                                gl.glAlphaFunc(alphafunc[mat.alphaComp.func0], (float)mat.alphaComp.ref0 / 255f);
+                        }
                     }
-                }
 
-                switch (mat.blendMode.blendMode)
-                {
-                    case 0: 
-                        gl.glDisable(GL2.GL_BLEND);
-                        gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
-                        break;
+                    switch (mat.blendMode.blendMode)
+                    {
+                        case 0: 
+                            gl.glDisable(GL2.GL_BLEND);
+                            gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
+                            break;
 
-                    case 1:
-                    case 3:
-                        gl.glEnable(GL2.GL_BLEND);
-                        gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
+                        case 1:
+                        case 3:
+                            gl.glEnable(GL2.GL_BLEND);
+                            gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
 
-                        if (mat.blendMode.blendMode == 3)
-                            gl.glBlendEquation(GL2.GL_FUNC_SUBTRACT);
-                        else
-                            gl.glBlendEquation(GL2.GL_FUNC_ADD);
+                            if (mat.blendMode.blendMode == 3)
+                                gl.glBlendEquation(GL2.GL_FUNC_SUBTRACT);
+                            else
+                                gl.glBlendEquation(GL2.GL_FUNC_ADD);
 
-                        gl.glBlendFunc(blendsrc[mat.blendMode.srcFactor], blenddst[mat.blendMode.dstFactor]);
-                        break;
+                            gl.glBlendFunc(blendsrc[mat.blendMode.srcFactor], blenddst[mat.blendMode.dstFactor]);
+                            break;
 
-                    case 2:
-                        gl.glDisable(GL2.GL_BLEND);
-                        gl.glEnable(GL2.GL_COLOR_LOGIC_OP);
-                        gl.glLogicOp(logicop[mat.blendMode.blendOp]);
-                        break;
+                        case 2:
+                            gl.glDisable(GL2.GL_BLEND);
+                            gl.glEnable(GL2.GL_COLOR_LOGIC_OP);
+                            gl.glLogicOp(logicop[mat.blendMode.blendOp]);
+                            break;
+                    }
                 }
 
 
@@ -676,36 +680,48 @@ public class BmdRenderer extends GLRenderer
                     gl.glBegin(primtypes[(prim.primitiveType - 0x80) / 8]);
                     //gl.glBegin(BeginMode.Points);
 
-                    for (int i = 0; i < prim.numIndices; i++)
+                    if (info.renderMode != RenderMode.PICKING)
                     {
-
-                        if ((prim.arrayMask & (1 << 11)) != 0) { Color4 c = model.colorArray[0][prim.colorIndices[0][i]]; gl.glColor4f(c.r, c.g, c.b, c.a); }
-
-                        if (hasShaders)
+                        for (int i = 0; i < prim.numIndices; i++)
                         {
-                            if ((prim.arrayMask & (1 << 12)) != 0) { Color4 c = model.colorArray[1][prim.colorIndices[1][i]]; gl.glSecondaryColor3f(c.r, c.g, c.b); }
+                            if ((prim.arrayMask & (1 << 11)) != 0) { Color4 c = model.colorArray[0][prim.colorIndices[0][i]]; gl.glColor4f(c.r, c.g, c.b, c.a); }
 
-                            if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE0, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 14)) != 0) { Vector2 t = model.texcoordArray[1][prim.texcoordIndices[1][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE1, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 15)) != 0) { Vector2 t = model.texcoordArray[2][prim.texcoordIndices[2][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE2, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 16)) != 0) { Vector2 t = model.texcoordArray[3][prim.texcoordIndices[3][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE3, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 17)) != 0) { Vector2 t = model.texcoordArray[4][prim.texcoordIndices[4][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE4, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 18)) != 0) { Vector2 t = model.texcoordArray[5][prim.texcoordIndices[5][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE5, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 19)) != 0) { Vector2 t = model.texcoordArray[6][prim.texcoordIndices[6][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE6, t.x, t.y); }
-                            if ((prim.arrayMask & (1 << 20)) != 0) { Vector2 t = model.texcoordArray[7][prim.texcoordIndices[7][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE7, t.x, t.y); }
+                            if (hasShaders)
+                            {
+                                if ((prim.arrayMask & (1 << 12)) != 0) { Color4 c = model.colorArray[1][prim.colorIndices[1][i]]; gl.glSecondaryColor3f(c.r, c.g, c.b); }
+
+                                if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE0, t.x, t.y); }
+                                if ((prim.arrayMask & (1 << 14)) != 0) { Vector2 t = model.texcoordArray[1][prim.texcoordIndices[1][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE1, t.x, t.y); }
+                                if ((prim.arrayMask & (1 << 15)) != 0) { Vector2 t = model.texcoordArray[2][prim.texcoordIndices[2][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE2, t.x, t.y); }
+                                if ((prim.arrayMask & (1 << 16)) != 0) { Vector2 t = model.texcoordArray[3][prim.texcoordIndices[3][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE3, t.x, t.y); }
+                                if ((prim.arrayMask & (1 << 17)) != 0) { Vector2 t = model.texcoordArray[4][prim.texcoordIndices[4][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE4, t.x, t.y); }
+                                if ((prim.arrayMask & (1 << 18)) != 0) { Vector2 t = model.texcoordArray[5][prim.texcoordIndices[5][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE5, t.x, t.y); }
+                                if ((prim.arrayMask & (1 << 19)) != 0) { Vector2 t = model.texcoordArray[6][prim.texcoordIndices[6][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE6, t.x, t.y); }
+                                if ((prim.arrayMask & (1 << 20)) != 0) { Vector2 t = model.texcoordArray[7][prim.texcoordIndices[7][i]]; gl.glMultiTexCoord2f(GL2.GL_TEXTURE7, t.x, t.y); }
+                            }
+                            else
+                            {
+                                if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glTexCoord2f(t.x, t.y); }
+                            }
+                            //if ((prim.ArrayMask & (1 << 0)) != 0) gl.glColor4(debug[prim.PosMatrixIndices[i]]);
+
+                            if ((prim.arrayMask & (1 << 10)) != 0) { Vector3 n = model.normalArray[prim.normalIndices[i]]; gl.glNormal3f(n.x, n.y, n.z); }
+
+                            Vector3 pos = new Vector3(model.positionArray[prim.positionIndices[i]]);
+                            if ((prim.arrayMask & 1) != 0) Vector3.transform(pos, mtxtable[prim.posMatrixIndices[i]], pos);
+                            else Vector3.transform(pos, mtxtable[0], pos);
+                            gl.glVertex3f(pos.x, pos.y, pos.z);
                         }
-                        else
+                    }
+                    else
+                    {
+                        for (int i = 0; i < prim.numIndices; i++)
                         {
-                            if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glTexCoord2f(t.x, t.y); }
+                            Vector3 pos = new Vector3(model.positionArray[prim.positionIndices[i]]);
+                            if ((prim.arrayMask & 1) != 0) Vector3.transform(pos, mtxtable[prim.posMatrixIndices[i]], pos);
+                            else Vector3.transform(pos, mtxtable[0], pos);
+                            gl.glVertex3f(pos.x, pos.y, pos.z);
                         }
-                        //if ((prim.ArrayMask & (1 << 0)) != 0) gl.glColor4(debug[prim.PosMatrixIndices[i]]);
-
-                        if ((prim.arrayMask & (1 << 10)) != 0) { Vector3 n = model.normalArray[prim.normalIndices[i]]; gl.glNormal3f(n.x, n.y, n.z); }
-
-                        Vector3 pos = new Vector3(model.positionArray[prim.positionIndices[i]]);
-                        if ((prim.arrayMask & 1) != 0) Vector3.transform(pos, mtxtable[prim.posMatrixIndices[i]], pos);
-                        else Vector3.transform(pos, mtxtable[0], pos);
-                        gl.glVertex3f(pos.x, pos.y, pos.z);
                     }
 
                     gl.glEnd();

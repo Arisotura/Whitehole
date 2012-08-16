@@ -19,6 +19,7 @@
 package whitehole;
 
 import java.io.*;
+import java.nio.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -66,14 +67,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         setTitle(galaxyName + " - " + Whitehole.fullName);
         setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
 
-        GLCanvas glc = new GLCanvas();
-        glc.addGLEventListener(renderer = new GalaxyRenderer(this));
-        glc.addMouseListener(renderer);
-        glc.addMouseMotionListener(renderer);
-        glc.addMouseWheelListener(renderer);
+        glCanvas = new GLCanvas();
+        glCanvas.addGLEventListener(renderer = new GalaxyRenderer(this));
+        glCanvas.addMouseListener(renderer);
+        glCanvas.addMouseMotionListener(renderer);
+        glCanvas.addMouseWheelListener(renderer);
         
         //pnlGLPanel.setLayout(new BorderLayout());
-        pnlGLPanel.add(glc, BorderLayout.CENTER);
+        pnlGLPanel.add(glCanvas, BorderLayout.CENTER);
         //pnlGLPanel.doLayout();
         //pnlGLPanel.add(glc);
         pnlGLPanel.validate();
@@ -375,6 +376,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         int selid = lbZoneList.getSelectedIndex();
         lbStatusLabel.setText("Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + galaxyArc.zoneList.get(selid));
+        
+        glCanvas.repaint();
     }//GEN-LAST:event_lbZoneListValueChanged
 
     
@@ -392,17 +395,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             GL2 gl = glad.getGL().getGL2();
             
             lastMouseMove = new Point(-1, -1);
+            pickingFrameBuffer = IntBuffer.allocate(9);
             
             renderinfo = new GLRenderer.RenderInfo();
             renderinfo.drawable = glad;
             renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;
-            
-            /*try { 
-                String objname = "IceMountainPlanet";
-                RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/"+objname+".arc"));
-                testmodel = new Bmd(arc.openFile("/"+objname+"/"+objname+".bdl")); 
-            } catch (IOException ex) {}
-            testrenderer = new BmdRenderer(renderinfo, testmodel);*/
             
             camDistance = 1f;
             camRotation = new Vector2(0f, 0f);
@@ -439,11 +436,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 case TRANSLUCENT: mode = 2; break;
             }
             
-           // objDisplayLists[mode] = gl.glGenLists(1);
-            //gl.glNewList(objDisplayLists[mode], GL2.GL_COMPILE);
-            
-            //for (LevelObject obj : globalObjList.values())
-            //    obj.render(renderinfo);
             for (String zone : galaxyArc.zoneList)
                 prerenderZone(gl, zone);
             
@@ -461,8 +453,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 gl.glEndList();
                 zoneDisplayLists.get(s)[mode] = dl;
             }
-            
-            //gl.glEndList();
         }
         
         private void prerenderZone(GL2 gl, String zone)
@@ -487,7 +477,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 gl.glNewList(dl, GL2.GL_COMPILE);
                 
                 for (LevelObject obj : zonearc.objects.get(layer))
+                {
+                    if (mode == 0) 
+                    {
+                        // TODO set picking render conditions here
+                        // set color to the object's uniqueID (ARGB)
+                        gl.glColor4ub((byte)(obj.uniqueID >> 16), (byte)(obj.uniqueID >> 8), (byte)obj.uniqueID, (byte)(obj.uniqueID >> 24));
+                    }
                     obj.render(renderinfo);
+                }
 
                 gl.glEndList();
                 objDisplayLists.get(key)[mode] = dl;
@@ -580,8 +578,43 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             GL2 gl = glad.getGL().getGL2();
             
+            // Rendering pass 1 -- fakecolor rendering
+            // the results are used to determine which object is pointed at
+            
+            if (pickingFrameBuffer == null) return;
+            
+            gl.glClearColor(1f, 1f, 1f, 1f);
+            gl.glClearDepth(1f);
+            gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
+            
+            gl.glMatrixMode(GL2.GL_MODELVIEW);
+            gl.glLoadMatrixf(modelViewMatrix.m, 0);
+            
+            gl.glUseProgram(0);
+            gl.glDisable(GL2.GL_ALPHA_TEST);
+            gl.glDisable(GL2.GL_BLEND);
+            gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
+            gl.glDisable(GL2.GL_LIGHTING);
+            gl.glDisable(GL2.GL_DITHER);
+            gl.glDisable(GL2.GL_LINE_SMOOTH);
+            gl.glDisable(GL2.GL_POLYGON_SMOOTH);
+            
+            for (int i = 0; i < 8; i++)
+            {
+                gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
+                gl.glDisable(GL2.GL_TEXTURE_2D);
+            }
+            
+            gl.glCallList(zoneDisplayLists.get(curScenarioID)[0]);
+            
             gl.glDepthMask(true);
             
+            gl.glFlush();
+            gl.glReadPixels(lastMouseMove.x - 1, glad.getHeight() - lastMouseMove.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_BYTE, pickingFrameBuffer);
+            
+            // Rendering pass 2 -- standard rendering
+            // (what the user will see)
+
             gl.glClearColor(0f, 0f, 0.125f, 1f);
             gl.glClearDepth(1f);
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
@@ -597,6 +630,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             gl.glCallList(zoneDisplayLists.get(curScenarioID)[2]);
             
+            gl.glDepthMask(true);
             gl.glUseProgram(0);
             gl.glDisable(GL2.GL_TEXTURE_2D);
             
@@ -613,8 +647,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glEnd();
             
             glad.swapBuffers();
+            
+            // debug
+            jLabel2.setText(String.format("under cursor: %1$08X", pickingFrameBuffer.get(4)));
         }
-
         @Override
         public void reshape(GLAutoDrawable glad, int x, int y, int width, int height)
         {
@@ -696,7 +732,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         @Override
         public void mouseMoved(MouseEvent e)
         {
-            //
+            if (lastMouseMove == null) return; // lame hack but how else can we avoid that
+            
+            lastMouseMove = e.getPoint();
         }
 
         @Override
@@ -762,6 +800,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         private int mouseButton;
         private Point lastMouseMove;
+        private IntBuffer pickingFrameBuffer;
     }
     
     public String galaxyName;
@@ -774,6 +813,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     public int maxUniqueID;
     public HashMap<Integer, LevelObject> globalObjList;
+    
+    private GLCanvas glCanvas;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddObject;
