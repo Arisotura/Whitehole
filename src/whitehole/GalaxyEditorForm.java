@@ -26,6 +26,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.*;
+import javax.swing.tree.*;
 import whitehole.vectors.*;
 import whitehole.rendering.*;
 import whitehole.smg.*;
@@ -67,7 +68,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         setTitle(galaxyName + " - " + Whitehole.fullName);
         setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
 
-        glCanvas = new GLCanvas();
+        glCanvas = new GLCanvas(null, null, RendererCache.refContext, null);
         glCanvas.addGLEventListener(renderer = new GalaxyRenderer(this));
         glCanvas.addMouseListener(renderer);
         glCanvas.addMouseMotionListener(renderer);
@@ -163,7 +164,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jSplitPane1.setDividerLocation(200);
         jSplitPane1.setLastDividerLocation(200);
 
-        pnlGLPanel.setMinimumSize(new java.awt.Dimension(10, 10));
         pnlGLPanel.setLayout(new java.awt.BorderLayout());
 
         jToolBar2.setFloatable(false);
@@ -292,6 +292,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
         tvObjectList.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+        tvObjectList.setShowsRootHandles(true);
         jScrollPane3.setViewportView(tvObjectList);
 
         jPanel3.add(jScrollPane3, java.awt.BorderLayout.CENTER);
@@ -373,6 +374,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             return;
         }
+        
+        DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+        //objlist.insertNodeInto(new DefaultMutableTreeNode("loltest"), (DefaultMutableTreeNode)objlist.getRoot(), 1);
+        ((DefaultMutableTreeNode)objlist.getRoot()).add(new DefaultMutableTreeNode("Objects"));
 
         int selid = lbZoneList.getSelectedIndex();
         lbStatusLabel.setText("Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + galaxyArc.zoneList.get(selid));
@@ -393,6 +398,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         public void init(GLAutoDrawable glad)
         {
             GL2 gl = glad.getGL().getGL2();
+            
+            RendererCache.setRefContext(glad.getContext());
             
             lastMouseMove = new Point(-1, -1);
             pickingFrameBuffer = IntBuffer.allocate(9);
@@ -571,12 +578,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             for (LevelObject obj : globalObjList.values())
                 obj.closeRenderer(renderinfo);
+            
+            RendererCache.clearRefContext();
         }
         
         @Override
         public void display(GLAutoDrawable glad)
         {
             GL2 gl = glad.getGL().getGL2();
+            //glad.getContext().makeCurrent();
+            //if (GLContext.getCurrent() != glad.getContext())
+            //    System.out.println("CONTEXT SHITTING ITSELF!!!!");
             
             // Rendering pass 1 -- fakecolor rendering
             // the results are used to determine which object is pointed at
@@ -649,7 +661,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             gl.glDepthMask(true);
             gl.glUseProgram(0);
-            gl.glDisable(GL2.GL_TEXTURE_2D);
+            for (int i = 0; i < 8; i++)
+            {
+                gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
+                gl.glDisable(GL2.GL_TEXTURE_2D);
+            }
             
             gl.glBegin(GL2.GL_LINES);
             gl.glColor4f(1f, 0f, 0f, 1f);
@@ -666,7 +682,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             glad.swapBuffers();
             
             // debug
-            jLabel2.setText(String.format("under cursor: %1$08X", pickingFrameBuffer.get(4)));
+            int objid = pickingFrameBuffer.get(4);
+            if (objid != 0xFFFFFFFF)
+            {
+                LevelObject obj = globalObjList.get(objid);
+                jLabel2.setText(String.format("under cursor: %1$08X | zone %2$s %3$s/%4$s/%5$s | %6$s (%7$s)", 
+                        objid, obj.zone, obj.directory, obj.layer, obj.file, obj.name, obj.dbInfo.name));
+            }
         }
         @Override
         public void reshape(GLAutoDrawable glad, int x, int y, int width, int height)

@@ -24,8 +24,9 @@ import whitehole.rendering.*;
 
 public class LevelObject 
 {
-    public LevelObject(String filepath, Bcsv.Entry entry)
+    public LevelObject(String zone, String filepath, Bcsv.Entry entry)
     {
+        this.zone = zone;
         String[] stuff = filepath.split("/");
         directory = stuff[0];
         layer = stuff[1];
@@ -81,7 +82,7 @@ public class LevelObject
     }
     
     
-    public String directory, layer, file;
+    public String zone, directory, layer, file;
     public String name;
     public Bcsv.Entry data;
     public ObjectDB.Object dbInfo;

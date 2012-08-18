@@ -956,7 +956,7 @@ public class Bmd
                                     {
                                         for (int x = 0; x < 8; x += 2)
                                         {
-                                            byte b = file.readByte();
+                                            int b = file.readByte() & 0xFF;
 
                                             int outp = (((by + y) * width) + (bx + x));
                                             image[outp++] = (byte)((b & 0xF0) | (b >>> 4));
@@ -1003,7 +1003,7 @@ public class Bmd
                                     {
                                         for (int x = 0; x < 8; x++)
                                         {
-                                            byte b = file.readByte();
+                                            int b = file.readByte() & 0xFF;
 
                                             int outp = (((by + y) * width) + (bx + x)) * 2;
                                             image[outp++] = (byte)((b << 4) | (b & 0x0F));
@@ -1052,7 +1052,7 @@ public class Bmd
                                     {
                                         for (int x = 0; x < 4; x++)
                                         {
-                                            short col = file.readShort();
+                                            int col = file.readShort() & 0xFFFF;
 
                                             int outp = (((by + y) * width) + (bx + x)) * 4;
                                             image[outp++] = (byte)(((col & 0x001F) << 3) | ((col & 0x001F) >>> 2));

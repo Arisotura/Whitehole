@@ -89,7 +89,7 @@ public class ZoneArchive
         {
             Bcsv bcsv = new Bcsv(arc.openFile("/Stage/Jmp/" + filepath));
             for (Bcsv.Entry entry : bcsv.entries)
-                objects.get(layer).add(new LevelObject(filepath, entry));
+                objects.get(layer).add(new LevelObject(zoneName, filepath, entry));
             bcsv.close();
         }
         catch (IOException ex)

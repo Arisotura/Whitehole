@@ -20,6 +20,7 @@ package whitehole.rendering;
 
 import java.util.*;
 import java.io.*;
+import javax.media.opengl.GLContext;
 import whitehole.*;
 import whitehole.fileio.*;
 import whitehole.smg.*;
@@ -30,6 +31,8 @@ public class RendererCache
     public static void initialize()
     {
         cache = new HashMap<>();
+        refContext = null;
+        contextCount = 0;
     }
     
     public static GLRenderer getObjectRenderer(GLRenderer.RenderInfo info, LevelObject obj)
@@ -89,6 +92,18 @@ public class RendererCache
         cache.remove(key);
     }
     
+    public static void setRefContext(GLContext ctx)
+    {
+        if (refContext == null) refContext = ctx;
+        contextCount++;
+    }
+    
+    public static void clearRefContext()
+    {
+        contextCount--;
+        if (contextCount < 1) refContext = null;
+    }
+    
     
     public static class CacheEntry
     {
@@ -98,4 +113,6 @@ public class RendererCache
     }
     
     public static HashMap<String, CacheEntry> cache;
+    public static GLContext refContext;
+    public static int contextCount;
 }
