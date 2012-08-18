@@ -38,10 +38,10 @@ public class RendererCache
     public static GLRenderer getObjectRenderer(GLRenderer.RenderInfo info, LevelObject obj)
     {
         String modelname = obj.name;
-        // substitution: change model name
+        modelname = ObjectModelSubstitutor.substituteModelName(obj, modelname);
         
         String key = "object_" + obj.name;
-        // substitution: add to key (for example if Obj_args matter in rendering)
+        key = ObjectModelSubstitutor.substituteObjectKey(obj, key);
         
         if (cache.containsKey(key))
         {
@@ -52,51 +52,34 @@ public class RendererCache
         
         CacheEntry entry = new CacheEntry();
         entry.refCount = 1;
+        
         entry.container = null;
-        entry.renderer = null;
+        entry.renderer = ObjectModelSubstitutor.substituteRenderer(obj, info);
         
-        // substitution: different renderer for this model
-        // TODO do this more nicely
-        if (modelname.equals("HeavenlyBeachPlanet"))
-        {
-            try
-            {
-                entry.container = null;
-                entry.renderer = new ObjRenderer_HeavenlyBeachPlanet(info);
-            }
-            catch (IOException ex)
-            {
-                try { if (entry.container != null) entry.container.close(); } catch (IOException ex2) {}
-                entry.container = null;
-                entry.renderer = null;
-            }
-        }
-        
+        // if no renderer substitution happened, load the default renderer
         if (entry.renderer == null)
         {
             try
             {
                 entry.container = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/"+modelname+".arc"));
-                entry.renderer = new BmdRenderer(info, new Bmd(entry.container.openFile("/"+modelname+"/"+modelname+".bdl")));
+                
+                // try .bdl extension first, then .bmd
+                if (entry.container.fileExists("/"+modelname+"/"+modelname+".bdl"))
+                    entry.renderer = new BmdRenderer(info, new Bmd(entry.container.openFile("/"+modelname+"/"+modelname+".bdl")));
+                else if (entry.container.fileExists("/"+modelname+"/"+modelname+".bmd"))
+                    entry.renderer = new BmdRenderer(info, new Bmd(entry.container.openFile("/"+modelname+"/"+modelname+".bmd")));
+                else
+                    throw new IOException("No suitable model file found");
             }
             catch (IOException ex)
             {
-                try
-                {
-                    if (entry.container != null) entry.container.close();
-                    entry.container = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/"+modelname+".arc"));
-                    entry.renderer = new BmdRenderer(info, new Bmd(entry.container.openFile("/"+modelname+"/"+modelname+".bmd")));
-                }
-                catch (IOException ex2)
-                {
-                    try { if (entry.container != null) entry.container.close(); } catch (IOException ex3) {}
-                    entry.container = null;
-                    entry.renderer = null;
-                }
+                try { if (entry.container != null) entry.container.close(); } catch (IOException ex3) {}
+                entry.container = null;
+                entry.renderer = null;
             }
         }
         
-        // failsafe default
+        // if everything else failed, load the failsafe colorcube renderer
         if (entry.renderer == null)
         {
             entry.container = null;

@@ -22,7 +22,7 @@ import javax.media.opengl.GL2;
 import whitehole.*;
 import whitehole.rendering.*;
 
-public class LevelObject 
+public class LevelObject
 {
     public LevelObject(String zone, String filepath, Bcsv.Entry entry)
     {
@@ -39,6 +39,13 @@ public class LevelObject
         renderer = null;
         
         uniqueID = -1;
+    }
+    
+    
+    @Override
+    public String toString()
+    {
+        return name;
     }
     
     

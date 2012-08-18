@@ -1065,6 +1065,43 @@ public class Bmd
                             }
                         }
                         break;
+                        
+                    case 6: // RGB565
+                        {
+                            image = new byte[width * height * 4];
+
+                            for (int by = 0; by < height; by += 4)
+                            {
+                                for (int bx = 0; bx < width; bx += 4)
+                                {
+                                    for (int y = 0; y < 4; y++)
+                                    {
+                                        for (int x = 0; x < 4; x++)
+                                        {
+                                            byte a = file.readByte();
+                                            byte r = file.readByte();
+
+                                            int outp = (((by + y) * width) + (bx + x)) * 4;
+                                            image[outp  ] = a;
+                                            image[outp+1] = r;
+                                        }
+                                    }
+                                    for (int y = 0; y < 4; y++)
+                                    {
+                                        for (int x = 0; x < 4; x++)
+                                        {
+                                            byte g = file.readByte();
+                                            byte b = file.readByte();
+
+                                            int outp = (((by + y) * width) + (bx + x)) * 4;
+                                            image[outp+2] = g;
+                                            image[outp+3] = b;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
 
                     case 14: // DXT1
                         {

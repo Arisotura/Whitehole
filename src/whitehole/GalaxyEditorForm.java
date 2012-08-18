@@ -378,12 +378,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
         DefaultMutableTreeNode objnode = new DefaultMutableTreeNode("Objects");
-        ((DefaultMutableTreeNode)objlist.getRoot()).add(objnode);
+        objlist.setRoot(objnode);
         
         int selid = lbZoneList.getSelectedIndex();
         for (LevelObject obj : zoneArcs.get(galaxyArc.zoneList.get(selid)).objects.get("common"))
         {
-            objnode.add(new DefaultMutableTreeNode(obj.dbInfo.name));
+            DefaultMutableTreeNode tn = new DefaultMutableTreeNode(obj);
+            objnode.add(tn);
         }
 
         lbStatusLabel.setText("Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + galaxyArc.zoneList.get(selid));
