@@ -361,9 +361,8 @@ public class BmdRenderer extends GLRenderer
             // TODO: better error reporting/logging?
         }
     }
-
-
-    public BmdRenderer(RenderInfo info, Bmd model) throws GLException
+    
+    protected void construct(RenderInfo info, Bmd model) throws GLException
     {
         GL2 gl = info.drawable.getGL().getGL2();
         this.model = model;
@@ -400,6 +399,14 @@ public class BmdRenderer extends GLRenderer
                 }
             }
         }
+    }
+
+    
+    public BmdRenderer() {}
+
+    public BmdRenderer(RenderInfo info, Bmd model) throws GLException
+    {
+        construct(info, model);
     }
 
     @Override

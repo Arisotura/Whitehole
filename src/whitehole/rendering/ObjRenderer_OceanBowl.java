@@ -1,0 +1,55 @@
+/*
+    Copyright 2012 Mega-Mario
+
+    This file is part of Whitehole.
+
+    Whitehole is free software: you can redistribute it and/or modify it under
+    the terms of the GNU General Public License as published by the Free
+    Software Foundation, either version 3 of the License, or (at your option)
+    any later version.
+
+    Whitehole is distributed in the hope that it will be useful, but WITHOUT ANY 
+    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along 
+    with Whitehole. If not, see http://www.gnu.org/licenses/.
+*/
+
+package whitehole.rendering;
+
+import java.io.IOException;
+import javax.media.opengl.*;
+import whitehole.Whitehole;
+import whitehole.fileio.RarcFilesystem;
+import whitehole.smg.Bmd;
+
+public class ObjRenderer_OceanBowl extends BmdRenderer
+{
+    public ObjRenderer_OceanBowl(RenderInfo info) throws IOException
+    {
+        myRarc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/WaterBowlObject.arc"));
+        construct(info, new Bmd(myRarc.openFile("/waterbowlobject/waterbowlobject.bmd")));
+    }
+    
+    @Override
+    public void close(RenderInfo info) throws GLException
+    {
+        super.close(info);
+        try { myRarc.close(); } catch (IOException ex) {}
+    }
+    
+    
+    @Override
+    public void render(RenderInfo info) throws GLException
+    {
+        float factor = 15f;
+        
+        GL2 gl = info.drawable.getGL().getGL2();
+        gl.glScalef(1f/factor, 1f/factor, 1f/factor);
+        super.render(info);
+    }
+    
+    
+    private RarcFilesystem myRarc;
+}

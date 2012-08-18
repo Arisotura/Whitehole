@@ -83,7 +83,7 @@ public class RendererCache
         if (entry.renderer == null)
         {
             entry.container = null;
-            entry.renderer = new ColorCubeRenderer(200f, new Color4(1f, 1f, 1f, 1f), new Color4(0f, 0f, 1f, 1f), true);
+            entry.renderer = new ColorCubeRenderer(100f, new Color4(1f, 1f, 1f, 1f), new Color4(0f, 0f, 1f, 1f), true);
         }
         
         cache.put(key, entry);

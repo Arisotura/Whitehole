@@ -40,6 +40,7 @@ public class ObjectModelSubstitutor
             switch (obj.name)
             {
                 case "HeavenlyBeachPlanet": return new ObjRenderer_HeavenlyBeachPlanet(info);
+                //case "OceanBowl": return new ObjRenderer_OceanBowl(info); // too glitchy.
             }
         }
         catch (IOException ex) {}
