@@ -38,9 +38,11 @@ public class RendererCache
     public static GLRenderer getObjectRenderer(GLRenderer.RenderInfo info, LevelObject obj)
     {
         String modelname = obj.name;
-        // TODO substitutions for objects and all
+        // substitution: change model name
         
-        String key = "object_" + modelname;
+        String key = "object_" + obj.name;
+        // substitution: add to key (for example if Obj_args matter in rendering)
+        
         if (cache.containsKey(key))
         {
             CacheEntry entry = cache.get(key);
@@ -51,26 +53,54 @@ public class RendererCache
         CacheEntry entry = new CacheEntry();
         entry.refCount = 1;
         entry.container = null;
+        entry.renderer = null;
         
-        try
-        {
-            entry.container = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/"+modelname+".arc"));
-            entry.renderer = new BmdRenderer(info, new Bmd(entry.container.openFile("/"+modelname+"/"+modelname+".bdl")));
-        }
-        catch (IOException ex)
+        // substitution: different renderer for this model
+        // TODO do this more nicely
+        if (modelname.equals("HeavenlyBeachPlanet"))
         {
             try
             {
-                if (entry.container != null) entry.container.close();
-                entry.container = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/"+modelname+".arc"));
-                entry.renderer = new BmdRenderer(info, new Bmd(entry.container.openFile("/"+modelname+"/"+modelname+".bmd")));
-            }
-            catch (IOException ex2)
-            {
-                try { if (entry.container != null) entry.container.close(); } catch (IOException ex3) {}
                 entry.container = null;
-                entry.renderer = new ColorCubeRenderer(200f, new Color4(1f, 1f, 1f, 1f), new Color4(0f, 0f, 1f, 1f), true);
+                entry.renderer = new ObjRenderer_HeavenlyBeachPlanet(info);
             }
+            catch (IOException ex)
+            {
+                try { if (entry.container != null) entry.container.close(); } catch (IOException ex2) {}
+                entry.container = null;
+                entry.renderer = null;
+            }
+        }
+        
+        if (entry.renderer == null)
+        {
+            try
+            {
+                entry.container = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/"+modelname+".arc"));
+                entry.renderer = new BmdRenderer(info, new Bmd(entry.container.openFile("/"+modelname+"/"+modelname+".bdl")));
+            }
+            catch (IOException ex)
+            {
+                try
+                {
+                    if (entry.container != null) entry.container.close();
+                    entry.container = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/"+modelname+".arc"));
+                    entry.renderer = new BmdRenderer(info, new Bmd(entry.container.openFile("/"+modelname+"/"+modelname+".bmd")));
+                }
+                catch (IOException ex2)
+                {
+                    try { if (entry.container != null) entry.container.close(); } catch (IOException ex3) {}
+                    entry.container = null;
+                    entry.renderer = null;
+                }
+            }
+        }
+        
+        // failsafe default
+        if (entry.renderer == null)
+        {
+            entry.container = null;
+            entry.renderer = new ColorCubeRenderer(200f, new Color4(1f, 1f, 1f, 1f), new Color4(0f, 0f, 1f, 1f), true);
         }
         
         cache.put(key, entry);

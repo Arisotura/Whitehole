@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.table.*;
-import whitehole.Whitehole;
 import whitehole.fileio.*;
 import whitehole.smg.Bcsv;
 
@@ -202,7 +201,15 @@ public class BcsvEditorForm extends javax.swing.JFrame
             Vector<Object> row = new Vector<>(bcsv.fields.size());
             for (Bcsv.Field field : bcsv.fields.values())
             {
-                row.add(entry.get(field.nameHash));
+                Object val = entry.get(field.nameHash);
+                /*if (val.getClass() == Integer.class)
+                {
+                    long _val = (long)(int)val;
+                    _val &= 0xFFFFFFFFL;
+                    row.add(_val);
+                }
+                else*/
+                    row.add(val);
             }
             table.addRow(row);
         }

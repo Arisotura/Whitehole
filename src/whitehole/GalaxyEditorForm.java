@@ -60,7 +60,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         catch (IOException ex)
         {
-            JOptionPane.showMessageDialog(this, "Failed to open the galaxy: "+ex.getMessage(), Whitehole.name, JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Failed to open the galaxy: "+ex.getMessage(), Whitehole.name, JOptionPane.ERROR_MESSAGE);
             dispose();
             return;
         }
@@ -164,6 +164,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jSplitPane1.setDividerLocation(200);
         jSplitPane1.setLastDividerLocation(200);
 
+        pnlGLPanel.setMinimumSize(new java.awt.Dimension(10, 30));
         pnlGLPanel.setLayout(new java.awt.BorderLayout());
 
         jToolBar2.setFloatable(false);
@@ -376,10 +377,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         
         DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
-        //objlist.insertNodeInto(new DefaultMutableTreeNode("loltest"), (DefaultMutableTreeNode)objlist.getRoot(), 1);
-        ((DefaultMutableTreeNode)objlist.getRoot()).add(new DefaultMutableTreeNode("Objects"));
-
+        DefaultMutableTreeNode objnode = new DefaultMutableTreeNode("Objects");
+        ((DefaultMutableTreeNode)objlist.getRoot()).add(objnode);
+        
         int selid = lbZoneList.getSelectedIndex();
+        for (LevelObject obj : zoneArcs.get(galaxyArc.zoneList.get(selid)).objects.get("common"))
+        {
+            objnode.add(new DefaultMutableTreeNode(obj.dbInfo.name));
+        }
+
         lbStatusLabel.setText("Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + galaxyArc.zoneList.get(selid));
         
         glCanvas.repaint();
