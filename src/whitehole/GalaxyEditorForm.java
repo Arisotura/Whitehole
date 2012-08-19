@@ -409,7 +409,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             RendererCache.setRefContext(glad.getContext());
             
             lastMouseMove = new Point(-1, -1);
+            lastMouseClick = new Point(-1, -1);
             pickingFrameBuffer = IntBuffer.allocate(9);
+            
+            isDragging = false;
+            selectedVal = 0xFFFFFFFF;
+            selectedObj = null;
             
             renderinfo = new GLRenderer.RenderInfo();
             renderinfo.drawable = glad;
@@ -435,10 +440,45 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE; renderAllObjects(gl);
             renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT; renderAllObjects(gl);
             
+            selectDisplayList = gl.glGenLists(1);
+            
             //gl.glClearColor(0f, 1f, 0f, 1f);
             gl.glFrontFace(GL2.GL_CW);
         }
         
+        
+        private void renderSelectHilite(GL2 gl)
+        {
+            if (selectedObj == null)
+                return;
+            
+            gl.glNewList(selectDisplayList, GL2.GL_COMPILE);
+            
+            /*gl.glUseProgram(0);
+            for (int i = 0; i < 8; i++)
+            {
+                gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
+                gl.glDisable(GL2.GL_TEXTURE_2D);
+            }
+            
+            gl.glDisable(GL2.GL_BLEND);
+            gl.glDisable(GL2.GL_ALPHA_TEST);
+            
+            gl.glDepthMask(false);
+            gl.glDepthFunc(GL2.GL_LEQUAL);
+            
+            gl.glEnable(GL2.GL_POLYGON_OFFSET_FILL);
+            gl.glPolygonOffset(-1f, -1f);
+            
+            renderinfo.drawable = glCanvas;
+            renderinfo.renderMode = GLRenderer.RenderMode.PICKING;
+            gl.glColor4f(1f, 1f, 0.75f, 1f);
+            selectedObj.render(renderinfo);
+            
+            gl.glDisable(GL2.GL_POLYGON_OFFSET_FILL);*/
+            
+            gl.glEndList();
+        }
         
         private void renderAllObjects(GL2 gl)
         {
@@ -631,12 +671,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glFlush();
             gl.glReadPixels(lastMouseMove.x - 1, glad.getHeight() - lastMouseMove.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_BYTE, pickingFrameBuffer);
             
-            /*if (lightRepaint)
-            {
-                lightRepaint = false;
-                return;
-            }*/
-            
             // Rendering pass 2 -- standard rendering
             // (what the user will see)
 
@@ -651,7 +685,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             if (Settings.fastDrag)
             {
-                if (mouseButton != MouseEvent.NOBUTTON) 
+                if (isDragging) 
                 {
                     gl.glPolygonMode(GL2.GL_FRONT, GL2.GL_LINE);
                     gl.glPolygonMode(GL2.GL_BACK, GL2.GL_POINT);
@@ -665,6 +699,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glCallList(zoneDisplayLists.get(curScenarioID)[1]);
             
             gl.glCallList(zoneDisplayLists.get(curScenarioID)[2]);
+            
+            if (selectedObj != null)
+                gl.glCallList(selectDisplayList);
             
             gl.glDepthMask(true);
             gl.glUseProgram(0);
@@ -687,15 +724,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glEnd();
             
             glad.swapBuffers();
-            
-            // debug
-            int objid = pickingFrameBuffer.get(4);
-            if (objid != 0xFFFFFFFF)
-            {
-                LevelObject obj = globalObjList.get(objid);
-                jLabel2.setText(String.format("under cursor: %1$08X | zone %2$s %3$s/%4$s/%5$s | %6$s (%7$s)", 
-                        objid, obj.zone, obj.directory, obj.layer, obj.file, obj.name, obj.dbInfo.name));
-            }
         }
         @Override
         public void reshape(GLAutoDrawable glad, int x, int y, int width, int height)
@@ -750,6 +778,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             float xdelta = e.getX() - lastMouseMove.x;
             float ydelta = e.getY() - lastMouseMove.y;
             
+            if (!isDragging && Math.abs(xdelta) >= 3f && Math.abs(ydelta) >= 3f)
+                isDragging = true;
+            
+            if (!isDragging)
+                return;
+            
             lastMouseMove = e.getPoint();
             
             if (mouseButton == MouseEvent.BUTTON3)
@@ -781,15 +815,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             if (lastMouseMove == null) return; // lame hack but how else can we avoid that
             
             lastMouseMove = e.getPoint();
-            lightRepaint = true;
-            
-            e.getComponent().repaint();
         }
 
         @Override
         public void mouseClicked(MouseEvent e)
         {
-            //throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override
@@ -799,6 +829,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             mouseButton = e.getButton();
             lastMouseMove = e.getPoint();
+            
+            isDragging = false;
             
             e.getComponent().repaint();
         }
@@ -810,6 +842,39 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             mouseButton = MouseEvent.NOBUTTON;
             lastMouseMove = e.getPoint();
+            lastMouseClick = e.getPoint();
+            
+            if (isDragging)
+            {
+                isDragging = false;
+                if (Settings.fastDrag) e.getComponent().repaint();
+                return;
+            }
+            
+            int objid = pickingFrameBuffer.get(4);
+            if (    objid != pickingFrameBuffer.get(1) ||
+                    objid != pickingFrameBuffer.get(3) ||
+                    objid != pickingFrameBuffer.get(5) ||
+                    objid != pickingFrameBuffer.get(7))
+                return;
+            
+            if (!globalObjList.containsKey(objid))
+                return;
+            
+            if (objid == selectedVal || objid == 0xFFFFFFFF)
+            {
+                selectedVal = 0xFFFFFFFF;
+                selectedObj = null;
+                System.out.println("DESELECTED");
+            }
+            else
+            {
+                selectedVal = objid;
+                selectedObj = globalObjList.get(objid);
+                System.out.println("SELECTED "+selectedObj.name);
+            }
+            
+            renderSelectHilite(glCanvas.getGL().getGL2());
             
             e.getComponent().repaint();
         }
@@ -844,6 +909,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         private GLRenderer.RenderInfo renderinfo;
         private HashMap<String, int[]> objDisplayLists;
         private HashMap<Integer, int[]> zoneDisplayLists;
+        private int selectDisplayList;
         
         private Matrix4 modelViewMatrix;
         private float camDistance;
@@ -852,9 +918,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         private Boolean upsideDown;
         
         private int mouseButton;
-        private Point lastMouseMove;
+        private Point lastMouseMove, lastMouseClick;
+        private Boolean isDragging;
         private IntBuffer pickingFrameBuffer;
-        private Boolean lightRepaint;
+        
+        private int selectedVal;
+        private LevelObject selectedObj;
     }
     
     public String galaxyName;
