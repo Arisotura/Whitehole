@@ -440,7 +440,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE; renderAllObjects(gl);
             renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT; renderAllObjects(gl);
             
-            selectDisplayList = gl.glGenLists(1);
+            rerenderZones = new Stack<>();
             
             //gl.glClearColor(0f, 1f, 0f, 1f);
             gl.glFrontFace(GL2.GL_CW);
@@ -449,35 +449,35 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         private void renderSelectHilite(GL2 gl)
         {
-            if (selectedObj == null)
-                return;
-            
-            gl.glNewList(selectDisplayList, GL2.GL_COMPILE);
-            
-            /*gl.glUseProgram(0);
+            //gl.glPushAttrib(GL2.GL_ALL_ATTRIB_BITS);
+
+            gl.glUseProgram(0);
             for (int i = 0; i < 8; i++)
             {
                 gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
                 gl.glDisable(GL2.GL_TEXTURE_2D);
             }
             
-            gl.glDisable(GL2.GL_BLEND);
+            gl.glEnable(GL2.GL_BLEND);
+            gl.glBlendEquation(GL2.GL_FUNC_ADD);
+            gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
+            gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
             gl.glDisable(GL2.GL_ALPHA_TEST);
             
             gl.glDepthMask(false);
-            gl.glDepthFunc(GL2.GL_LEQUAL);
-            
+
             gl.glEnable(GL2.GL_POLYGON_OFFSET_FILL);
             gl.glPolygonOffset(-1f, -1f);
             
             renderinfo.drawable = glCanvas;
+            GLRenderer.RenderMode oldmode = renderinfo.renderMode;
             renderinfo.renderMode = GLRenderer.RenderMode.PICKING;
-            gl.glColor4f(1f, 1f, 0.75f, 1f);
+            gl.glColor4f(1f, 1f, 0.75f, 0.3f);
             selectedObj.render(renderinfo);
             
-            gl.glDisable(GL2.GL_POLYGON_OFFSET_FILL);*/
-            
-            gl.glEndList();
+            gl.glDisable(GL2.GL_POLYGON_OFFSET_FILL);
+            renderinfo.renderMode = oldmode;
+            //gl.glPopAttrib();
         }
         
         private void renderAllObjects(GL2 gl)
@@ -525,24 +525,58 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             {
                 String key = zone + "/" + layer.toLowerCase();
                 if (!objDisplayLists.containsKey(key))
-                    objDisplayLists.put(key, new int[3]);
+                    objDisplayLists.put(key, new int[] {0,0,0});
                 
-                int dl = gl.glGenLists(1);
+                int dl = objDisplayLists.get(key)[mode];
+                if (dl == 0) 
+                { 
+                    dl = gl.glGenLists(1); 
+                    objDisplayLists.get(key)[mode] = dl;
+                }
+                
                 gl.glNewList(dl, GL2.GL_COMPILE);
                 
                 for (LevelObject obj : zonearc.objects.get(layer))
                 {
                     if (mode == 0) 
                     {
-                        // TODO set picking render conditions here
+                        if (selectedObj != null && obj.uniqueID == selectedObj.uniqueID)
+                            continue;
+                        
                         // set color to the object's uniqueID (ARGB)
-                        gl.glColor4ub((byte)(obj.uniqueID >> 16), (byte)(obj.uniqueID >> 8), (byte)obj.uniqueID, (byte)(obj.uniqueID >> 24));
+                        gl.glColor4ub(
+                                (byte)(obj.uniqueID >>> 16), 
+                                (byte)(obj.uniqueID >>> 8), 
+                                (byte)obj.uniqueID, 
+                                (byte)(obj.uniqueID >>> 24));
                     }
                     obj.render(renderinfo);
                 }
+                
+                if (selectedObj != null && selectedObj.zone.equals(zone))
+                {
+                    if (mode == 0)
+                    {
+                        gl.glDepthMask(true);
+                        gl.glDepthFunc(GL2.GL_ALWAYS);
+                        
+                        gl.glColor4ub(
+                                (byte)(selectedObj.uniqueID >>> 16), 
+                                (byte)(selectedObj.uniqueID >>> 8), 
+                                (byte)selectedObj.uniqueID, 
+                                (byte)(selectedObj.uniqueID >>> 24));
+                        
+                        selectedObj.render(renderinfo);
+                        
+                        gl.glDepthFunc(GL2.GL_LEQUAL);
+                    }
+                    else if (mode == 2)
+                    {
+                        renderSelectHilite(gl);
+                    }
+                }
 
                 gl.glEndList();
-                objDisplayLists.get(key)[mode] = dl;
             }
         }
         
@@ -633,9 +667,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         public void display(GLAutoDrawable glad)
         {
             GL2 gl = glad.getGL().getGL2();
-            //glad.getContext().makeCurrent();
-            //if (GLContext.getCurrent() != glad.getContext())
-            //    System.out.println("CONTEXT SHITTING ITSELF!!!!");
+            renderinfo.drawable = glad;
+            
+            while (!rerenderZones.empty())
+            {
+                String zone = rerenderZones.pop();
+                renderinfo.renderMode = GLRenderer.RenderMode.PICKING;      prerenderZone(gl, zone);
+                renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;       prerenderZone(gl, zone);
+                renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;  prerenderZone(gl, zone);
+            }
             
             // Rendering pass 1 -- fakecolor rendering
             // the results are used to determine which object is pointed at
@@ -694,14 +734,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
             }
             
-            renderinfo.drawable = glad;
-            
             gl.glCallList(zoneDisplayLists.get(curScenarioID)[1]);
             
             gl.glCallList(zoneDisplayLists.get(curScenarioID)[2]);
-            
-            if (selectedObj != null)
-                gl.glCallList(selectDisplayList);
             
             gl.glDepthMask(true);
             gl.glUseProgram(0);
@@ -710,6 +745,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
                 gl.glDisable(GL2.GL_TEXTURE_2D);
             }
+            gl.glDisable(GL2.GL_BLEND);
+            gl.glDisable(GL2.GL_ALPHA_TEST);
             
             gl.glBegin(GL2.GL_LINES);
             gl.glColor4f(1f, 0f, 0f, 1f);
@@ -861,6 +898,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             if (!globalObjList.containsKey(objid))
                 return;
             
+            if (selectedObj != null)
+                rerenderZones.push(selectedObj.zone);
+            
             if (objid == selectedVal || objid == 0xFFFFFFFF)
             {
                 selectedVal = 0xFFFFFFFF;
@@ -872,9 +912,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 selectedVal = objid;
                 selectedObj = globalObjList.get(objid);
                 System.out.println("SELECTED "+selectedObj.name);
+                
+                rerenderZones.push(selectedObj.zone);
             }
             
-            renderSelectHilite(glCanvas.getGL().getGL2());
+            //renderSelectHilite(glCanvas.getGL().getGL2());
             
             e.getComponent().repaint();
         }
@@ -909,7 +951,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         private GLRenderer.RenderInfo renderinfo;
         private HashMap<String, int[]> objDisplayLists;
         private HashMap<Integer, int[]> zoneDisplayLists;
-        private int selectDisplayList;
+        private Stack<String> rerenderZones;
         
         private Matrix4 modelViewMatrix;
         private float camDistance;

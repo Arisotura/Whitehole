@@ -39,6 +39,8 @@ public class GLRenderer
             displayLists = null;
         }
     }
+    
+    public void releaseStorage() {}
 
     public Boolean gottaRender(RenderInfo info) throws GLException { return false; }
     public void render(RenderInfo info) throws GLException {}

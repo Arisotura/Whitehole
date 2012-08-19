@@ -54,6 +54,7 @@ public class LevelObject
         if (renderer != null) return;
         renderer = RendererCache.getObjectRenderer(info, this);
         renderer.compileDisplayLists(info);
+        renderer.releaseStorage();
     }
     
     public void closeRenderer(GLRenderer.RenderInfo info)

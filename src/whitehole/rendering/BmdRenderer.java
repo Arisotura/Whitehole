@@ -438,8 +438,23 @@ public class BmdRenderer extends GLRenderer
         for (int tex : textures)
             gl.glDeleteTextures(1, new int[] { tex }, 0);
 
-        try { model.close(); }
-        catch (IOException ex) { }
+        if (model != null)
+        {
+            try { model.close(); }
+            catch (IOException ex) { }
+        }
+    }
+    
+    @Override
+    public void releaseStorage()
+    {
+        if (model != null)
+        {
+            try { model.close(); }
+            catch (IOException ex) { }
+            
+            model = null;
+        }
     }
 
     @Override
