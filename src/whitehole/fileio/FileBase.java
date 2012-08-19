@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -29,7 +29,7 @@ public interface FileBase
     public void releaseStorage();
     
     // Affects the byte ordering of the Read/Write methods
-    public void setBigEndian(Boolean bigendian);
+    public void setBigEndian(boolean bigendian);
     
     public long getLength() throws IOException;
     public void setLength(long length) throws IOException;

@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 

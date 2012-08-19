@@ -95,8 +95,27 @@
               <SubComponents>
                 <Component class="javax.swing.JLabel" name="jLabel2">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="toolbar placeholder :D"/>
+                    <Property name="text" type="java.lang.String" value="Selected: "/>
                   </Properties>
+                </Component>
+                <Component class="javax.swing.JLabel" name="lbSelected">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="none"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JButton" name="btnDeselect">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="(deselect)"/>
+                    <Property name="enabled" type="boolean" value="false"/>
+                    <Property name="focusable" type="boolean" value="false"/>
+                    <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="verticalTextPosition" type="int" value="3"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnDeselectActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JToolBar$Separator" name="jSeparator2">
                 </Component>
               </SubComponents>
             </Container>

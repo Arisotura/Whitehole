@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -291,7 +291,7 @@ public class Bcsv
             put(Bcsv.fieldNameToHash(key), val);
         }
 
-        public Boolean containsKey(String key)
+        public boolean containsKey(String key)
         {
             return this.containsKey(Bcsv.fieldNameToHash(key));
         }

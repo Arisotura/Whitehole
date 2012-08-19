@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -42,7 +42,7 @@ public class GLRenderer
     
     public void releaseStorage() {}
 
-    public Boolean gottaRender(RenderInfo info) throws GLException { return false; }
+    public boolean gottaRender(RenderInfo info) throws GLException { return false; }
     public void render(RenderInfo info) throws GLException {}
     
     public void compileDisplayLists(RenderInfo info) throws GLException

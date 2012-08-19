@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -122,7 +122,7 @@ public class RarcFilesystem implements FilesystemBase
 
 
     @Override
-    public Boolean directoryExists(String directory)
+    public boolean directoryExists(String directory)
     {
         for (DirEntry de : dirEntries.values())
         {
@@ -160,7 +160,7 @@ public class RarcFilesystem implements FilesystemBase
 
 
     @Override
-    public Boolean fileExists(String filename)
+    public boolean fileExists(String filename)
     {
         for (FileEntry fe : fileEntries.values())
         {

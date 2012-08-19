@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -51,7 +51,7 @@ public class ObjRenderer_HeavenlyBeachPlanet extends GLRenderer
     
     
     @Override
-    public Boolean gottaRender(RenderInfo info) throws GLException
+    public boolean gottaRender(RenderInfo info) throws GLException
     {
         return rend1.gottaRender(info) || rend2.gottaRender(info);
     }

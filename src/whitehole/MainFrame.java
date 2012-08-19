@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -257,7 +257,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void GalaxyListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_GalaxyListValueChanged
     {//GEN-HEADEREND:event_GalaxyListValueChanged
-        Boolean hasSelection = GalaxyList.getSelectedIndex() >= 0;
+        boolean hasSelection = GalaxyList.getSelectedIndex() >= 0;
         btnOpenGalaxy.setEnabled(hasSelection);
     }//GEN-LAST:event_GalaxyListValueChanged
 

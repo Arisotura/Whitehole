@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -53,7 +53,7 @@ public class ExternalFile implements FileBase
     
 
     @Override
-    public void setBigEndian(Boolean bigendian)
+    public void setBigEndian(boolean bigendian)
     {
         bigEndian = bigendian;
     }
@@ -293,5 +293,5 @@ public class ExternalFile implements FileBase
     
     
     protected RandomAccessFile file;
-    private Boolean bigEndian;
+    private boolean bigEndian;
 }

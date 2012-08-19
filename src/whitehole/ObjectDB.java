@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -122,7 +122,7 @@ public class ObjectDB
     }
     
     
-    public static Boolean fallback;
+    public static boolean fallback;
     public static long timestamp;
     public static LinkedHashMap<Integer, String> categories;
     public static LinkedHashMap<String, Object> objects;

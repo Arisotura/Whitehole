@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -26,9 +26,9 @@ public interface FilesystemBase
     public void close() throws IOException;
     
     public List<String> getDirectories(String directory);
-    public Boolean directoryExists(String directory);
+    public boolean directoryExists(String directory);
     
     public List<String> getFiles(String directory);
-    public Boolean fileExists(String directory);
+    public boolean fileExists(String directory);
     public FileBase openFile(String filename) throws FileNotFoundException;
 }

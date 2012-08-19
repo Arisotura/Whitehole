@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -54,7 +54,7 @@ public class MemoryFile implements FileBase
     
     
     @Override
-    public void setBigEndian(Boolean bigendian)
+    public void setBigEndian(boolean bigendian)
     {
         bigEndian = bigendian;
     }
@@ -293,7 +293,7 @@ public class MemoryFile implements FileBase
     
     protected byte[] buffer;
     private int curPosition;
-    private Boolean bigEndian;
+    private boolean bigEndian;
     protected int logicalSize;
     
     

@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -57,7 +57,7 @@ public class ExternalFilesystem implements FilesystemBase
     }
 
     @Override
-    public Boolean directoryExists(String directory)
+    public boolean directoryExists(String directory)
     {
         directory = directory.substring(1);
         
@@ -84,7 +84,7 @@ public class ExternalFilesystem implements FilesystemBase
     }
 
     @Override
-    public Boolean fileExists(String filename)
+    public boolean fileExists(String filename)
     { 
         filename = filename.substring(1);
         

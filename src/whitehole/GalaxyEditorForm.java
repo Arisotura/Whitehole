@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -113,6 +113,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         pnlGLPanel = new javax.swing.JPanel();
         jToolBar2 = new javax.swing.JToolBar();
         jLabel2 = new javax.swing.JLabel();
+        lbSelected = new javax.swing.JLabel();
+        btnDeselect = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
         lbStatusLabel = new javax.swing.JLabel();
         tpLeftPanel = new javax.swing.JTabbedPane();
         jSplitPane3 = new javax.swing.JSplitPane();
@@ -170,8 +173,24 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jToolBar2.setFloatable(false);
         jToolBar2.setRollover(true);
 
-        jLabel2.setText("toolbar placeholder :D");
+        jLabel2.setText("Selected: ");
         jToolBar2.add(jLabel2);
+
+        lbSelected.setText("none");
+        jToolBar2.add(lbSelected);
+
+        btnDeselect.setText("(deselect)");
+        btnDeselect.setEnabled(false);
+        btnDeselect.setFocusable(false);
+        btnDeselect.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnDeselect.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnDeselect.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeselectActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(btnDeselect);
+        jToolBar2.add(jSeparator2);
 
         pnlGLPanel.add(jToolBar2, java.awt.BorderLayout.NORTH);
 
@@ -392,6 +411,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         glCanvas.repaint();
     }//GEN-LAST:event_lbZoneListValueChanged
 
+    private void btnDeselectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnDeselectActionPerformed
+    {//GEN-HEADEREND:event_btnDeselectActionPerformed
+        renderer.selectedVal = 0xFFFFFFFF;
+        renderer.selectedObj = null;
+        renderer.selectionChanged();
+    }//GEN-LAST:event_btnDeselectActionPerformed
+
     
     public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener
     {
@@ -444,6 +470,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             //gl.glClearColor(0f, 1f, 0f, 1f);
             gl.glFrontFace(GL2.GL_CW);
+            
+            inited = true;
         }
         
         
@@ -666,6 +694,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         @Override
         public void display(GLAutoDrawable glad)
         {
+            if (!inited) return;
             GL2 gl = glad.getGL().getGL2();
             renderinfo.drawable = glad;
             
@@ -679,8 +708,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             // Rendering pass 1 -- fakecolor rendering
             // the results are used to determine which object is pointed at
-            
-            if (pickingFrameBuffer == null) return;
             
             gl.glClearColor(1f, 1f, 1f, 1f);
             gl.glClearDepth(1f);
@@ -765,6 +792,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         @Override
         public void reshape(GLAutoDrawable glad, int x, int y, int width, int height)
         {
+            if (!inited) return;
             GL2 gl = glad.getGL().getGL2();
             
             //gl.setSwapInterval(1);
@@ -810,12 +838,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         @Override
         public void mouseDragged(MouseEvent e)
         {
-            if (lastMouseMove == null) return; // lame hack but how else can we avoid that
+            if (!inited) return;
             
             float xdelta = e.getX() - lastMouseMove.x;
             float ydelta = e.getY() - lastMouseMove.y;
             
-            if (!isDragging && Math.abs(xdelta) >= 3f && Math.abs(ydelta) >= 3f)
+            if (!isDragging && (Math.abs(xdelta) >= 3f || Math.abs(ydelta) >= 3f))
                 isDragging = true;
             
             if (!isDragging)
@@ -849,7 +877,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         @Override
         public void mouseMoved(MouseEvent e)
         {
-            if (lastMouseMove == null) return; // lame hack but how else can we avoid that
+            if (!inited) return;
             
             lastMouseMove = e.getPoint();
         }
@@ -862,6 +890,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         @Override
         public void mousePressed(MouseEvent e)
         {
+            if (!inited) return;
             if (mouseButton != MouseEvent.NOBUTTON) return;
             
             mouseButton = e.getButton();
@@ -875,6 +904,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         @Override
         public void mouseReleased(MouseEvent e)
         {
+            if (!inited) return;
             if (e.getButton() != mouseButton) return;
             
             mouseButton = MouseEvent.NOBUTTON;
@@ -905,18 +935,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             {
                 selectedVal = 0xFFFFFFFF;
                 selectedObj = null;
-                System.out.println("DESELECTED");
             }
             else
             {
                 selectedVal = objid;
                 selectedObj = globalObjList.get(objid);
-                System.out.println("SELECTED "+selectedObj.name);
                 
-                rerenderZones.push(selectedObj.zone);
+                if (rerenderZones.empty() || !selectedObj.zone.equals(rerenderZones.peek()))
+                    rerenderZones.push(selectedObj.zone);
             }
             
-            //renderSelectHilite(glCanvas.getGL().getGL2());
+            selectionChanged();
             
             e.getComponent().repaint();
         }
@@ -936,6 +965,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         @Override
         public void mouseWheelMoved(MouseWheelEvent e)
         {
+            if (!inited) return;
+            
             float delta = (float)(e.getPreciseWheelRotation() * 0.1f);
             camTarget.x += delta * (float)Math.cos(camRotation.x) * (float)Math.cos(camRotation.y);
             camTarget.y += delta * (float)Math.sin(camRotation.y);
@@ -946,7 +977,24 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         
         
+        public void selectionChanged()
+        {
+            if (selectedObj != null)
+            {
+                String layer = selectedObj.layer.equals("common") ? "Common" : "Layer"+selectedObj.layer.substring(5).toUpperCase();
+                lbSelected.setText(String.format("%1$s (%2$s, %3$s)", selectedObj.name, selectedObj.zone, layer));
+                btnDeselect.setEnabled(true);
+            }
+            else
+            {
+                lbSelected.setText("none");
+                btnDeselect.setEnabled(false);
+            }
+        }
+        
+        
         public GalaxyEditorForm parent;
+        private boolean inited;
         
         private GLRenderer.RenderInfo renderinfo;
         private HashMap<String, int[]> objDisplayLists;
@@ -957,11 +1005,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         private float camDistance;
         private Vector2 camRotation;
         private Vector3 camPosition, camTarget;
-        private Boolean upsideDown;
+        private boolean upsideDown;
         
         private int mouseButton;
         private Point lastMouseMove, lastMouseClick;
-        private Boolean isDragging;
+        private boolean isDragging;
         private IntBuffer pickingFrameBuffer;
         
         private int selectedVal;
@@ -988,6 +1036,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JButton btnDeleteObject;
     private javax.swing.JButton btnDeleteScenario;
     private javax.swing.JButton btnDeleteZone;
+    private javax.swing.JButton btnDeselect;
     private javax.swing.JButton btnEditScenario;
     private javax.swing.JButton btnSave;
     private javax.swing.JLabel jLabel2;
@@ -1001,6 +1050,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane3;
     private javax.swing.JSplitPane jSplitPane4;
@@ -1010,6 +1060,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JToolBar jToolBar4;
     private javax.swing.JToolBar jToolBar5;
     private javax.swing.JList lbScenarioList;
+    private javax.swing.JLabel lbSelected;
     private javax.swing.JLabel lbStatusLabel;
     private javax.swing.JList lbZoneList;
     private javax.swing.JPanel pnlGLPanel;

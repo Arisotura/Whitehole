@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -39,7 +39,7 @@ public class Settings
     }
     
     
-    public static Boolean objectDBUpdate;
-    public static Boolean useShaders;
-    public static Boolean fastDrag;
+    public static boolean objectDBUpdate;
+    public static boolean useShaders;
+    public static boolean fastDrag;
 }

@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -35,7 +35,7 @@ public class GameArchive
     }
     
     
-    public Boolean galaxyExists(String name)
+    public boolean galaxyExists(String name)
     {
         return filesystem.fileExists(String.format("/StageData/%1$s/%1$sScenario.arc", name));
     }

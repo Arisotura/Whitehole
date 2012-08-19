@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -31,7 +31,7 @@ public class Whitehole
     public static final String name = "Whitehole";
     public static final String version = "v1.0 beta";
     public static String fullName = name + " " + version;
-    public static Boolean isBeta = version.contains("beta");
+    public static boolean isBeta = version.contains("beta");
     
     public static final String websiteURL = "http://kuribo64.cjb.net/";
     

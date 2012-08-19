@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -1232,7 +1232,7 @@ public class Bmd
 
     public class MatrixType
     {
-        public Boolean isWeighted;
+        public boolean isWeighted;
         public short index;
     }
 
@@ -1250,9 +1250,9 @@ public class Bmd
     {
         public class ZModeInfo
         {
-            public Boolean enableZTest;
+            public boolean enableZTest;
             public byte func;
-            public Boolean enableZWrite;
+            public boolean enableZWrite;
         }
 
         public class TevOrderInfo

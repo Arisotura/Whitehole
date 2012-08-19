@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -458,7 +458,7 @@ public class BmdRenderer extends GLRenderer
     }
 
     @Override
-    public Boolean gottaRender(RenderInfo info) throws GLException
+    public boolean gottaRender(RenderInfo info) throws GLException
     {
         for (Bmd.Material mat : model.materials)
         {
@@ -763,6 +763,6 @@ public class BmdRenderer extends GLRenderer
 
     private Bmd model;
     private int[] textures;
-    private Boolean hasShaders;
+    private boolean hasShaders;
     private Shader[] shaders;
 }

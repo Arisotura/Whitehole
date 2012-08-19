@@ -1,5 +1,5 @@
 /*
-    Copyright 2012 Mega-Mario
+    Copyright 2012 The Whitehole team
 
     This file is part of Whitehole.
 
@@ -23,7 +23,7 @@ import whitehole.vectors.*;
 
 public class ColorCubeRenderer extends GLRenderer
 {
-    public ColorCubeRenderer(float size, Color4 border, Color4 fill, Boolean axes)
+    public ColorCubeRenderer(float size, Color4 border, Color4 fill, boolean axes)
     {
         cubeSize = size;
         borderColor = border;
@@ -37,7 +37,7 @@ public class ColorCubeRenderer extends GLRenderer
     }
 
     @Override
-    public Boolean gottaRender(RenderInfo info) throws GLException
+    public boolean gottaRender(RenderInfo info) throws GLException
     {
         return info.renderMode != RenderMode.TRANSLUCENT;
     }
@@ -146,5 +146,5 @@ public class ColorCubeRenderer extends GLRenderer
 
     private float cubeSize;
     private Color4 borderColor, fillColor;
-    private Boolean showAxes;
+    private boolean showAxes;
 }
