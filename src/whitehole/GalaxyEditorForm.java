@@ -437,6 +437,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             lastMouseMove = new Point(-1, -1);
             lastMouseClick = new Point(-1, -1);
             pickingFrameBuffer = IntBuffer.allocate(9);
+            pickingDepthBuffer = FloatBuffer.allocate(1);
+            pickingDepth = 1f;
             
             isDragging = false;
             selectedVal = 0xFFFFFFFF;
@@ -455,11 +457,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             for (LevelObject obj : globalObjList.values())
                 obj.initRenderer(renderinfo);
             
-            System.out.println("MODELS IN CACHE:");
-            System.out.println(RendererCache.cache.size());
-            System.out.println("OBJECT COUNT:");
-            System.out.println(globalObjList.size());
-            
             objDisplayLists = new HashMap<>();
             zoneDisplayLists = new HashMap<>();
             renderinfo.renderMode = GLRenderer.RenderMode.PICKING; renderAllObjects(gl);
@@ -468,7 +465,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             rerenderZones = new Stack<>();
             
-            //gl.glClearColor(0f, 1f, 0f, 1f);
             gl.glFrontFace(GL2.GL_CW);
             
             inited = true;
@@ -477,8 +473,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         private void renderSelectHilite(GL2 gl)
         {
-            //gl.glPushAttrib(GL2.GL_ALL_ATTRIB_BITS);
-
             gl.glUseProgram(0);
             for (int i = 0; i < 8; i++)
             {
@@ -505,7 +499,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             gl.glDisable(GL2.GL_POLYGON_OFFSET_FILL);
             renderinfo.renderMode = oldmode;
-            //gl.glPopAttrib();
         }
         
         private void renderAllObjects(GL2 gl)
@@ -736,7 +729,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glDepthMask(true);
             
             gl.glFlush();
+            
             gl.glReadPixels(lastMouseMove.x - 1, glad.getHeight() - lastMouseMove.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_BYTE, pickingFrameBuffer);
+            gl.glReadPixels(lastMouseMove.x, glad.getHeight() - lastMouseMove.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
+            pickingDepth = -(zFar * zNear / (pickingDepthBuffer.get(0) * (zFar - zNear) - zFar));
             
             // Rendering pass 2 -- standard rendering
             // (what the user will see)
@@ -795,17 +791,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             if (!inited) return;
             GL2 gl = glad.getGL().getGL2();
             
-            //gl.setSwapInterval(1);
             gl.glViewport(x, y, width, height);
             
             float aspectRatio = (float)width / (float)height;
             gl.glMatrixMode(GL2.GL_PROJECTION);
             gl.glLoadIdentity();
-            float ymax = 0.01f * (float)Math.tan(0.5f * (float)((70f * Math.PI) / 180f));
+            float ymax = zNear * (float)Math.tan(0.5f * fov);
             gl.glFrustum(
                     -ymax * aspectRatio, ymax * aspectRatio,
                     -ymax, ymax,
-                    0.01f, 1000f);
+                    zNear, zFar);
+            
+            pixelFactorY = (2f * (float)Math.tan(fov / 2f)) / (float)glad.getHeight();
+            pixelFactorX = pixelFactorY * aspectRatio;
         }
         
         
@@ -860,8 +858,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
             else if (mouseButton == MouseEvent.BUTTON1)
             {
-                xdelta *= 0.005f;
-                ydelta *= 0.005f;
+                if (pickingFrameBuffer.get(4) == 0xFFFFFFFF)
+                {
+                    xdelta *= 0.005f;
+                    ydelta *= 0.005f;
+                }
+                else
+                {
+                   xdelta *= pixelFactorX * pickingDepth;
+                   ydelta *= pixelFactorY * pickingDepth;
+                }
 
                 camTarget.x -= xdelta * (float)Math.sin(camRotation.x);
                 camTarget.x -= ydelta * (float)Math.cos(camRotation.x) * (float)Math.sin(camRotation.y);
@@ -993,6 +999,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         
         
+        public final float fov = (float)((70f * Math.PI) / 180f);
+        public final float zNear = 0.01f;
+        public final float zFar = 1000f;
+        
         public GalaxyEditorForm parent;
         private boolean inited;
         
@@ -1006,11 +1016,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         private Vector2 camRotation;
         private Vector3 camPosition, camTarget;
         private boolean upsideDown;
+        private float pixelFactorX, pixelFactorY;
         
         private int mouseButton;
         private Point lastMouseMove, lastMouseClick;
         private boolean isDragging;
         private IntBuffer pickingFrameBuffer;
+        private FloatBuffer pickingDepthBuffer;
+        private float pickingDepth;
         
         private int selectedVal;
         private LevelObject selectedObj;

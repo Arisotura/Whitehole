@@ -20,23 +20,19 @@ package whitehole.rendering;
 
 import java.io.IOException;
 import javax.media.opengl.*;
-import whitehole.Whitehole;
-import whitehole.fileio.RarcFilesystem;
-import whitehole.smg.Bmd;
 
+// TODO turn this into general ScaledBmdRenderer/TransformedBmdRenderer?
 public class ObjRenderer_OceanBowl extends BmdRenderer
 {
     public ObjRenderer_OceanBowl(RenderInfo info) throws IOException
     {
-        myRarc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/WaterBowlObject.arc"));
-        construct(info, new Bmd(myRarc.openFile("/waterbowlobject/waterbowlobject.bmd")));
+        super(info, "WaterBowlObject");
     }
     
     @Override
     public void close(RenderInfo info) throws GLException
     {
         super.close(info);
-        try { myRarc.close(); } catch (IOException ex) {}
     }
     
     
@@ -49,7 +45,4 @@ public class ObjRenderer_OceanBowl extends BmdRenderer
         gl.glScalef(1f/factor, 1f/factor, 1f/factor);
         super.render(info);
     }
-    
-    
-    private RarcFilesystem myRarc;
 }

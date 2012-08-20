@@ -20,33 +20,20 @@ package whitehole.rendering;
 
 import java.io.IOException;
 import javax.media.opengl.GLException;
-import whitehole.Whitehole;
-import whitehole.smg.Bmd;
-import whitehole.fileio.RarcFilesystem;
 
 public class ObjRenderer_HeavenlyBeachPlanet extends GLRenderer
 {
     public ObjRenderer_HeavenlyBeachPlanet(RenderInfo info) throws IOException
     {
-        rarc1 = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/HeavenlyBeachPlanet.arc"));
-        rend1 = new BmdRenderer(info, new Bmd(rarc1.openFile("/heavenlybeachplanet/heavenlybeachplanet.bdl")));
-        
-        rarc2 = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/HeavenlyBeachPlanetWater.arc"));
-        rend2 = new BmdRenderer(info, new Bmd(rarc2.openFile("/heavenlybeachplanetwater/heavenlybeachplanetwater.bdl")));
+        rend1 = new BmdRenderer(info, "HeavenlyBeachPlanet");
+        rend2 = new BmdRenderer(info, "HeavenlyBeachPlanetWater");
     }
     
     @Override
     public void close(RenderInfo info) throws GLException
     {
-        try
-        {
-            rend1.close(info);
-            rarc1.close();
-
-            rend2.close(info);
-            rarc2.close();
-        }
-        catch (IOException ex) {}
+        rend1.close(info);
+        rend2.close(info);
     }
     
     
@@ -64,6 +51,5 @@ public class ObjRenderer_HeavenlyBeachPlanet extends GLRenderer
     }
     
     
-    private RarcFilesystem rarc1, rarc2;
     private BmdRenderer rend1, rend2;
 }

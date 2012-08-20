@@ -24,6 +24,7 @@ import java.nio.charset.*;
 import java.util.Locale;
 import javax.media.opengl.*;
 import whitehole.*;
+import whitehole.fileio.RarcFilesystem;
 import whitehole.smg.*;
 import whitehole.vectors.*;
 
@@ -316,7 +317,7 @@ public class BmdRenderer extends GLRenderer
                 else if (mat.alphaComp.func1 == 7) fullcompare = compare0;
             }
 
-            if (fullcompare == "") fullcompare = String.format(alphacombine[mat.alphaComp.mergeFunc], compare0, compare1);
+            if (fullcompare.equals("")) fullcompare = String.format(alphacombine[mat.alphaComp.mergeFunc], compare0, compare1);
 
             frag.append("    if (!(" + fullcompare + ")) discard;\n");
         }
@@ -361,11 +362,31 @@ public class BmdRenderer extends GLRenderer
             // TODO: better error reporting/logging?
         }
     }
-    
-    protected void construct(RenderInfo info, Bmd model) throws GLException
+
+
+    public BmdRenderer(RenderInfo info, String modelname) throws GLException
     {
         GL2 gl = info.drawable.getGL().getGL2();
-        this.model = model;
+        
+        container = null;
+        model = null;
+        
+        try
+        {
+            container = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/" + modelname + ".arc"));
+            if (container.fileExists("/" + modelname + "/" + modelname + ".bdl"))
+                model = new Bmd(container.openFile("/" + modelname + "/" + modelname + ".bdl"));
+            else if (container.fileExists("/" + modelname + "/" + modelname + ".bmd"))
+                model = new Bmd(container.openFile("/" + modelname + "/" + modelname + ".bmd"));
+            else
+                throw new IOException("No suitable model file inside RARC");
+        }
+        catch (IOException ex)
+        {
+            if (container != null) try { container.close(); } catch (IOException ex2) {}
+            
+            throw new GLException("Failed to load model "+modelname+": "+ex.getMessage());
+        }
 
         String extensions = gl.glGetString(GL2.GL_EXTENSIONS);
         hasShaders = extensions.contains("GL_ARB_shading_language_100") &&
@@ -401,14 +422,6 @@ public class BmdRenderer extends GLRenderer
         }
     }
 
-    
-    public BmdRenderer() {}
-
-    public BmdRenderer(RenderInfo info, Bmd model) throws GLException
-    {
-        construct(info, model);
-    }
-
     @Override
     public void close(RenderInfo info) throws GLException
     {
@@ -440,7 +453,7 @@ public class BmdRenderer extends GLRenderer
 
         if (model != null)
         {
-            try { model.close(); }
+            try { model.close(); container.close(); }
             catch (IOException ex) { }
         }
     }
@@ -450,10 +463,11 @@ public class BmdRenderer extends GLRenderer
     {
         if (model != null)
         {
-            try { model.close(); }
+            try { model.close(); container.close(); }
             catch (IOException ex) { }
             
             model = null;
+            container = null;
         }
     }
 
@@ -761,6 +775,7 @@ public class BmdRenderer extends GLRenderer
         public int program, vertexShader, fragmentShader;
     }
 
+    private RarcFilesystem container;
     private Bmd model;
     private int[] textures;
     private boolean hasShaders;

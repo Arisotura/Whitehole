@@ -19,10 +19,8 @@
 package whitehole.rendering;
 
 import java.util.*;
-import java.io.*;
 import javax.media.opengl.GLContext;
-import whitehole.*;
-import whitehole.fileio.*;
+import javax.media.opengl.GLException;
 import whitehole.smg.*;
 import whitehole.vectors.*;
 
@@ -53,7 +51,6 @@ public class RendererCache
         CacheEntry entry = new CacheEntry();
         entry.refCount = 1;
         
-        entry.container = null;
         entry.renderer = ObjectModelSubstitutor.substituteRenderer(obj, info);
         
         // if no renderer substitution happened, load the default renderer
@@ -61,30 +58,17 @@ public class RendererCache
         {
             try
             {
-                entry.container = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/"+modelname+".arc"));
-                
-                // try .bdl extension first, then .bmd
-                if (entry.container.fileExists("/"+modelname+"/"+modelname+".bdl"))
-                    entry.renderer = new BmdRenderer(info, new Bmd(entry.container.openFile("/"+modelname+"/"+modelname+".bdl")));
-                else if (entry.container.fileExists("/"+modelname+"/"+modelname+".bmd"))
-                    entry.renderer = new BmdRenderer(info, new Bmd(entry.container.openFile("/"+modelname+"/"+modelname+".bmd")));
-                else
-                    throw new IOException("No suitable model file found");
+                entry.renderer = new BmdRenderer(info, modelname);
             }
-            catch (IOException ex)
+            catch (GLException ex)
             {
-                try { if (entry.container != null) entry.container.close(); } catch (IOException ex3) {}
-                entry.container = null;
                 entry.renderer = null;
             }
         }
         
         // if everything else failed, load the failsafe colorcube renderer
         if (entry.renderer == null)
-        {
-            entry.container = null;
             entry.renderer = new ColorCubeRenderer(100f, new Color4(1f, 1f, 1f, 1f), new Color4(0f, 0f, 1f, 1f), true);
-        }
         
         cache.put(key, entry);
         return entry.renderer;
@@ -100,7 +84,6 @@ public class RendererCache
         if (entry.refCount > 0) return;
         
         entry.renderer.close(info);
-        try { if (entry.container != null) entry.container.close(); } catch (IOException ex) {}
         
         cache.remove(key);
     }
@@ -120,7 +103,6 @@ public class RendererCache
     
     public static class CacheEntry
     {
-        public FilesystemBase container;
         public GLRenderer renderer;
         public int refCount;
     }
