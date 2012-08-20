@@ -65,9 +65,14 @@ public class ColorCubeRenderer extends GLRenderer
             gl.glDisable(GL2.GL_BLEND);
             gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
             gl.glDisable(GL2.GL_ALPHA_TEST);
-            gl.glCullFace(GL2.GL_FRONT);
             try { gl.glUseProgram(0); } catch (GLException ex) { }
         }
+        
+        // we do this because the cube rendering was copypasted from SM64DSe
+        // however Wii models have a different vertex order
+        // and we're too lazy to change our cube rendering code
+        gl.glEnable(GL2.GL_CULL_FACE);
+        gl.glCullFace(GL2.GL_FRONT);
 
         gl.glBegin(GL2.GL_TRIANGLE_STRIP);
         gl.glVertex3f(-s, -s, -s);

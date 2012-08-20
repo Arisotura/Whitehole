@@ -77,6 +77,7 @@ public class RendererCache
     public static void closeObjectRenderer(GLRenderer.RenderInfo info, LevelObject obj)
     {
         String key = "object_" + obj.name;
+        key = ObjectModelSubstitutor.substituteObjectKey(obj, key);
         if (!cache.containsKey(key)) return;
         
         CacheEntry entry = cache.get(key);
