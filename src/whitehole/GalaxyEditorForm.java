@@ -479,7 +479,27 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
     @Override
     public void propPanelPropertyChanged(String propname, Object value)
     {
-        System.out.println("CHANGED PROPERTY: " + propname + " -> " + value.toString());
+        if (propname.equals("name"))
+        {
+            selectedObj.name = (String)value;
+            selectedObj.closeRenderer(renderinfo);
+            selectedObj.initRenderer(renderinfo);
+            
+            rerenderZones.push(selectedObj.zone);
+            glCanvas.repaint();
+        }
+        else if (propname.startsWith("pos_"))
+        {
+            switch (propname)
+            {
+                case "pos_x": selectedObj.position.x = (float)(double)value; break;
+                case "pos_y": selectedObj.position.y = (float)(double)value; break;
+                case "pos_z": selectedObj.position.z = (float)(double)value; break;
+            }
+            
+            rerenderZones.push(selectedObj.zone);
+            glCanvas.repaint();
+        }
     }
 
     
@@ -1066,9 +1086,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 pnlObjectSettings.addField("name", "Object", "objname", selectedObj.name);
                 
                 pnlObjectSettings.addCategory("obj_position", "Position");
-                pnlObjectSettings.addField("x_pos", "X position", "float", selectedObj.position.x);
-                pnlObjectSettings.addField("y_pos", "Y position", "float", selectedObj.position.y);
-                pnlObjectSettings.addField("z_pos", "Z position", "float", selectedObj.position.z);
+                pnlObjectSettings.addField("pos_x", "X position", "float", selectedObj.position.x);
+                pnlObjectSettings.addField("pos_y", "Y position", "float", selectedObj.position.y);
+                pnlObjectSettings.addField("pos_z", "Z position", "float", selectedObj.position.z);
                 
                 pnlObjectSettings.addTermination();
             }
