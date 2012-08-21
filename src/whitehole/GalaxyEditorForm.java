@@ -35,7 +35,7 @@ import whitehole.smg.*;
  *
  * @author lolol
  */
-public class GalaxyEditorForm extends javax.swing.JFrame
+public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPanelEventListener
 {
 
     /**
@@ -78,6 +78,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         pnlObjectSettings = new PropertyPanel();
         scpObjSettingsContainer.setViewportView(pnlObjectSettings);
+        pnlObjectSettings.setEventListener(this);
     }
     
     private void loadZone(String zone) throws IOException
@@ -474,6 +475,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     {//GEN-HEADEREND:event_btnSaveActionPerformed
         JOptionPane.showMessageDialog(this, "Saving doesn't work yet.", Whitehole.name, JOptionPane.ERROR_MESSAGE);
     }//GEN-LAST:event_btnSaveActionPerformed
+
+    @Override
+    public void propPanelPropertyChanged(String propname, Object value)
+    {
+        System.out.println("CHANGED PROPERTY: " + propname + " -> " + value.toString());
+    }
 
     
     public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener
@@ -1055,38 +1062,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 tvObjectList.setSelectionPath(lol);
                 tvObjectList.scrollPathToVisible(lol);
 
-                // insets: top left bottom right
-               /* pnlObjectSettings.add(new JLabel("loltest:"), 
-                        new GridBagConstraints(0, 0, 1, 1, 0.4f, 0f, GridBagConstraints.LINE_END, GridBagConstraints.NONE, new Insets(3,3,0,3), 0, 0));
-                pnlObjectSettings.add(new JTextField("1337"), 
-                        new GridBagConstraints(1, 0, 1, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(3,3,0,3), 0, 0));
-                
-                pnlObjectSettings.add(new JLabel("loltest:"), 
-                        new GridBagConstraints(0, 1, 1, 1, 0.4f, 0f, GridBagConstraints.LINE_END, GridBagConstraints.NONE, new Insets(3,3,0,3), 0, 0));
-                pnlObjectSettings.add(new JTextField("1337"), 
-                        new GridBagConstraints(1, 1, 1, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(3,3,0,3), 0, 0));
-                pnlObjectSettings.add(new JLabel("this is crap:"), 
-                        new GridBagConstraints(0, 2, 1, 1, 0.4f, 0f, GridBagConstraints.LINE_END, GridBagConstraints.NONE, new Insets(3,3,0,3), 0, 0));
-                pnlObjectSettings.add(new JTextField("1337"), 
-                        new GridBagConstraints(1, 2, 1, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(3,3,0,3), 0, 0));
-                pnlObjectSettings.add(new JLabel("foobar:"), 
-                        new GridBagConstraints(0, 3, 1, 1, 0.4f, 0f, GridBagConstraints.LINE_END, GridBagConstraints.NONE, new Insets(3,3,0,3), 0, 0));
-                pnlObjectSettings.add(new JTextField("1337"), 
-                        new GridBagConstraints(1, 3, 1, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(3,3,0,3), 0, 0));
-                pnlObjectSettings.add(new JLabel("WARP:"), 
-                        new GridBagConstraints(0, 4, 1, 1, 0.4f, 0f, GridBagConstraints.LINE_END, GridBagConstraints.NONE, new Insets(3,3,0,3), 0, 0));
-                pnlObjectSettings.add(new JTextField("1337"), 
-                        new GridBagConstraints(1, 4, 1, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(3,3,0,3), 0, 0));
-                
-                pnlObjectSettings.add(Box.createVerticalGlue(), 
-                        new GridBagConstraints(0, 5, 2, 1, 1f, 1f, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0,0,0,0), 0, 0));*/
                 pnlObjectSettings.addCategory("obj_general", "General settings");
                 pnlObjectSettings.addField("name", "Object", "objname", selectedObj.name);
                 
                 pnlObjectSettings.addCategory("obj_position", "Position");
                 pnlObjectSettings.addField("x_pos", "X position", "float", selectedObj.position.x);
                 pnlObjectSettings.addField("y_pos", "Y position", "float", selectedObj.position.y);
-                pnlObjectSettings.addField("y_pos", "Z position", "float", selectedObj.position.z);
+                pnlObjectSettings.addField("z_pos", "Z position", "float", selectedObj.position.z);
                 
                 pnlObjectSettings.addTermination();
             }

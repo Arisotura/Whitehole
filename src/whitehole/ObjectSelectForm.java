@@ -334,7 +334,8 @@ public class ObjectSelectForm extends javax.swing.JDialog
         @Override
         public String toString()
         {
-            return ObjectDB.objects.get(objectID).name;
+            ObjectDB.Object dbinfo = ObjectDB.objects.get(objectID);
+            return dbinfo.name + " (" + dbinfo.ID + ")";
         }
 
 
