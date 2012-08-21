@@ -21,6 +21,7 @@ package whitehole.smg;
 import javax.media.opengl.GL2;
 import whitehole.*;
 import whitehole.rendering.*;
+import whitehole.vectors.Vector3;
 
 public class LevelObject
 {
@@ -39,6 +40,10 @@ public class LevelObject
         renderer = null;
         
         uniqueID = -1;
+        
+        position = new Vector3((float)data.get("pos_x"), (float)data.get("pos_y"), (float)data.get("pos_z"));
+        rotation = new Vector3((float)data.get("dir_x"), (float)data.get("dir_y"), (float)data.get("dir_z"));
+        scale = new Vector3((float)data.get("scale_x"), (float)data.get("scale_y"), (float)data.get("scale_z"));
     }
     
     
@@ -70,11 +75,11 @@ public class LevelObject
         
         gl.glPushMatrix();
         
-        gl.glTranslatef((float)data.get("pos_x"), (float)data.get("pos_y"), (float)data.get("pos_z"));
-        gl.glRotatef((float)data.get("dir_z"), 0f, 0f, 1f);
-        gl.glRotatef((float)data.get("dir_y"), 0f, 1f, 0f);
-        gl.glRotatef((float)data.get("dir_x"), 1f, 0f, 0f);
-        gl.glScalef((float)data.get("scale_x"), (float)data.get("scale_y"), (float)data.get("scale_z"));
+        gl.glTranslatef(position.x, position.y, position.z);
+        gl.glRotatef(rotation.z, 0f, 0f, 1f);
+        gl.glRotatef(rotation.y, 0f, 1f, 0f);
+        gl.glRotatef(rotation.x, 1f, 0f, 0f);
+        gl.glScalef(scale.x, scale.y, scale.z);
         
         int dlid = -1;
         switch (info.renderMode)
@@ -97,4 +102,6 @@ public class LevelObject
     public GLRenderer renderer;
     
     public int uniqueID;
+    
+    public Vector3 position, rotation, scale;
 }

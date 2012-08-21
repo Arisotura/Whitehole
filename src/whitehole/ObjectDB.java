@@ -22,7 +22,6 @@ import java.io.*;
 import java.util.*;
 import org.jdom2.*;
 import org.jdom2.input.*;
-import org.jdom2.filter.*;
 
 public class ObjectDB 
 {
@@ -58,6 +57,8 @@ public class ObjectDB
                 
                 Element flags = objelem.getChild("flags");
                 entry.games = flags.getAttribute("games").getIntValue();
+                
+                entry.category = objelem.getChild("category").getAttribute("id").getIntValue();
                 
                 entry.preferredFile = objelem.getChild("preferredfile").getAttributeValue("name");
                 entry.notes = objelem.getChildText("notes");
@@ -113,6 +114,8 @@ public class ObjectDB
         
         // bit0=SMG1, bit1=SMG2
         public int games;
+        
+        public int category;
         
         public String preferredFile;
         public String notes;

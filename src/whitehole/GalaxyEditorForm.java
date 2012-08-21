@@ -30,7 +30,6 @@ import javax.swing.tree.*;
 import whitehole.vectors.*;
 import whitehole.rendering.*;
 import whitehole.smg.*;
-import whitehole.fileio.*;
 
 /**
  *
@@ -69,16 +68,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
 
         glCanvas = new GLCanvas(null, null, RendererCache.refContext, null);
-        glCanvas.addGLEventListener(renderer = new GalaxyRenderer(this));
+        glCanvas.addGLEventListener(renderer = new GalaxyRenderer());
         glCanvas.addMouseListener(renderer);
         glCanvas.addMouseMotionListener(renderer);
         glCanvas.addMouseWheelListener(renderer);
         
-        //pnlGLPanel.setLayout(new BorderLayout());
         pnlGLPanel.add(glCanvas, BorderLayout.CENTER);
-        //pnlGLPanel.doLayout();
-        //pnlGLPanel.add(glc);
         pnlGLPanel.validate();
+        
+        pnlObjectSettings = new PropertyPanel();
+        scpObjSettingsContainer.setViewportView(pnlObjectSettings);
     }
     
     private void loadZone(String zone) throws IOException
@@ -142,7 +141,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         btnDeleteObject = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         tvObjectList = new javax.swing.JTree();
-        pnlObjectSettings = new javax.swing.JPanel();
+        scpObjSettingsContainer = new javax.swing.JScrollPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(800, 600));
@@ -159,13 +158,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         btnSave.setFocusable(false);
         btnSave.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnSave.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
         jToolBar1.add(btnSave);
         jToolBar1.add(jSeparator1);
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.PAGE_START);
 
-        jSplitPane1.setDividerLocation(200);
-        jSplitPane1.setLastDividerLocation(200);
+        jSplitPane1.setDividerLocation(300);
+        jSplitPane1.setFocusable(false);
+        jSplitPane1.setLastDividerLocation(300);
 
         pnlGLPanel.setMinimumSize(new java.awt.Dimension(10, 30));
         pnlGLPanel.setLayout(new java.awt.BorderLayout());
@@ -284,6 +289,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         jSplitPane4.setDividerLocation(300);
         jSplitPane4.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jSplitPane4.setResizeWeight(0.5);
         jSplitPane4.setFocusCycleRoot(true);
         jSplitPane4.setLastDividerLocation(300);
 
@@ -313,14 +319,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
         tvObjectList.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
         tvObjectList.setShowsRootHandles(true);
+        tvObjectList.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+                tvObjectListValueChanged(evt);
+            }
+        });
         jScrollPane3.setViewportView(tvObjectList);
 
         jPanel3.add(jScrollPane3, java.awt.BorderLayout.CENTER);
 
         jSplitPane4.setTopComponent(jPanel3);
-
-        pnlObjectSettings.setLayout(new java.awt.GridLayout(1, 2));
-        jSplitPane4.setRightComponent(pnlObjectSettings);
+        jSplitPane4.setRightComponent(scpObjSettingsContainer);
 
         tpLeftPanel.addTab("Objects", jSplitPane4);
 
@@ -345,6 +354,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         //
     }//GEN-LAST:event_formWindowOpened
 
+    public void selectionChanged()
+    {
+        if (selectedObj != null)
+        {
+            String layer = selectedObj.layer.equals("common") ? "Common" : "Layer"+selectedObj.layer.substring(5).toUpperCase();
+            lbSelected.setText(String.format("%1$s (%2$s, %3$s)", selectedObj.dbInfo.name, selectedObj.zone, layer));
+            btnDeselect.setEnabled(true);
+        }
+        else
+        {
+            lbSelected.setText("none");
+            btnDeselect.setEnabled(false);
+        }
+    }
+    
     private void lbScenarioListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_lbScenarioListValueChanged
     {//GEN-HEADEREND:event_lbScenarioListValueChanged
         if (evt.getValueIsAdjusting())
@@ -395,15 +419,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             return;
         }
         
-        DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
-        DefaultMutableTreeNode objnode = new DefaultMutableTreeNode("Objects");
-        objlist.setRoot(objnode);
-        
         int selid = lbZoneList.getSelectedIndex();
-        for (LevelObject obj : zoneArcs.get(galaxyArc.zoneList.get(selid)).objects.get("common"))
+        
+        DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(galaxyArc.zoneList.get(selid));
+        objlist.setRoot(root);
+        
+        ObjListTreeNode objnode = new ObjListTreeNode();
+        objnode.setUserObject("Objects");
+        root.add(objnode);
+        
+        for (java.util.List<LevelObject> objs : zoneArcs.get(galaxyArc.zoneList.get(selid)).objects.values())
         {
-            DefaultMutableTreeNode tn = new DefaultMutableTreeNode(obj);
-            objnode.add(tn);
+            for (LevelObject obj : objs)
+            {
+                objnode.addObject(obj);
+            }
         }
 
         lbStatusLabel.setText("Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + galaxyArc.zoneList.get(selid));
@@ -413,18 +444,43 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
     private void btnDeselectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnDeselectActionPerformed
     {//GEN-HEADEREND:event_btnDeselectActionPerformed
-        renderer.selectedVal = 0xFFFFFFFF;
-        renderer.selectedObj = null;
-        renderer.selectionChanged();
+        rerenderZones.push(selectedObj.zone);
+        selectedVal = 0xFFFFFFFF;
+        selectedObj = null;
+        selectionChanged();
+        glCanvas.repaint();
     }//GEN-LAST:event_btnDeselectActionPerformed
+
+    private void tvObjectListValueChanged(javax.swing.event.TreeSelectionEvent evt)//GEN-FIRST:event_tvObjectListValueChanged
+    {//GEN-HEADEREND:event_tvObjectListValueChanged
+        if (tvObjectList.getSelectionPath() == null)
+            return;
+        
+        MutableTreeNode tn = (MutableTreeNode)tvObjectList.getSelectionPath().getLastPathComponent();
+        if (tn.getClass() != ObjTreeNode.class)
+            return;
+        
+        if (selectedObj != null && !selectedObj.zone.equals(((ObjTreeNode)tn).object.zone))
+            rerenderZones.push(selectedObj.zone);
+        
+        selectedObj = ((ObjTreeNode)tn).object;
+        selectedVal = selectedObj.uniqueID;
+        rerenderZones.push(selectedObj.zone);
+        selectionChanged();
+        glCanvas.repaint();
+    }//GEN-LAST:event_tvObjectListValueChanged
+
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnSaveActionPerformed
+    {//GEN-HEADEREND:event_btnSaveActionPerformed
+        JOptionPane.showMessageDialog(this, "Saving doesn't work yet.", Whitehole.name, JOptionPane.ERROR_MESSAGE);
+    }//GEN-LAST:event_btnSaveActionPerformed
 
     
     public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener
     {
-        public GalaxyRenderer(GalaxyEditorForm parent)
+        public GalaxyRenderer()
         {
             super();
-            this.parent = parent;
         }
         
         @Override
@@ -435,12 +491,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             RendererCache.setRefContext(glad.getContext());
             
             lastMouseMove = new Point(-1, -1);
-            lastMouseClick = new Point(-1, -1);
             pickingFrameBuffer = IntBuffer.allocate(9);
             pickingDepthBuffer = FloatBuffer.allocate(1);
             pickingDepth = 1f;
             
             isDragging = false;
+            underCursor = 0xFFFFFFFF;
             selectedVal = 0xFFFFFFFF;
             selectedObj = null;
             
@@ -557,6 +613,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 
                 gl.glNewList(dl, GL2.GL_COMPILE);
                 
+                if (mode == 0 && selectedObj != null && selectedObj.zone.equals(zone))
+                {
+                    gl.glStencilFunc(GL2.GL_ALWAYS, 1, 1);
+                    gl.glStencilOp(GL2.GL_REPLACE, GL2.GL_REPLACE, GL2.GL_REPLACE);
+                    
+                    gl.glColor4ub(
+                            (byte)(selectedObj.uniqueID >>> 16), 
+                            (byte)(selectedObj.uniqueID >>> 8), 
+                            (byte)selectedObj.uniqueID, 
+                            (byte)(selectedObj.uniqueID >>> 24));
+                    
+                    selectedObj.render(renderinfo);
+                }
+                
+                gl.glStencilFunc(GL2.GL_EQUAL, 0, 1);
+                gl.glStencilOp(GL2.GL_KEEP, GL2.GL_KEEP, GL2.GL_KEEP);
+                
                 for (LevelObject obj : zonearc.objects.get(layer))
                 {
                     if (mode == 0) 
@@ -574,27 +647,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     obj.render(renderinfo);
                 }
                 
-                if (selectedObj != null && selectedObj.zone.equals(zone))
+                if (mode == 2 && selectedObj != null && selectedObj.zone.equals(zone))
                 {
-                    if (mode == 0)
-                    {
-                        gl.glDepthMask(true);
-                        gl.glDepthFunc(GL2.GL_ALWAYS);
-                        
-                        gl.glColor4ub(
-                                (byte)(selectedObj.uniqueID >>> 16), 
-                                (byte)(selectedObj.uniqueID >>> 8), 
-                                (byte)selectedObj.uniqueID, 
-                                (byte)(selectedObj.uniqueID >>> 24));
-                        
-                        selectedObj.render(renderinfo);
-                        
-                        gl.glDepthFunc(GL2.GL_LEQUAL);
-                    }
-                    else if (mode == 2)
-                    {
-                        renderSelectHilite(gl);
-                    }
+                    renderSelectHilite(gl);
                 }
 
                 gl.glEndList();
@@ -704,7 +759,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             gl.glClearColor(1f, 1f, 1f, 1f);
             gl.glClearDepth(1f);
-            gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
+            gl.glClearStencil(0);
+            gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_STENCIL_BUFFER_BIT);
             
             gl.glMatrixMode(GL2.GL_MODELVIEW);
             gl.glLoadMatrixf(modelViewMatrix.m, 0);
@@ -724,22 +780,26 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 gl.glDisable(GL2.GL_TEXTURE_2D);
             }
             
+            gl.glEnable(GL2.GL_STENCIL_TEST);
+            
             gl.glCallList(zoneDisplayLists.get(curScenarioID)[0]);
             
             gl.glDepthMask(true);
+            gl.glDisable(GL2.GL_STENCIL_TEST);
             
             gl.glFlush();
             
             gl.glReadPixels(lastMouseMove.x - 1, glad.getHeight() - lastMouseMove.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_BYTE, pickingFrameBuffer);
             gl.glReadPixels(lastMouseMove.x, glad.getHeight() - lastMouseMove.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
             pickingDepth = -(zFar * zNear / (pickingDepthBuffer.get(0) * (zFar - zNear) - zFar));
-            
+           
             // Rendering pass 2 -- standard rendering
             // (what the user will see)
 
             gl.glClearColor(0f, 0f, 0.125f, 1f);
             gl.glClearDepth(1f);
-            gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
+            gl.glClearStencil(0);
+            gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_STENCIL_BUFFER_BIT);
             
             gl.glMatrixMode(GL2.GL_MODELVIEW);
             gl.glLoadMatrixf(modelViewMatrix.m, 0);
@@ -802,8 +862,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     -ymax, ymax,
                     zNear, zFar);
             
-            pixelFactorY = (2f * (float)Math.tan(fov / 2f)) / (float)glad.getHeight();
-            pixelFactorX = pixelFactorY * aspectRatio;
+            pixelFactorX = (2f * (float)Math.tan(fov * 0.5f) * aspectRatio) / (float)width;
+            pixelFactorY = (2f * (float)Math.tan(fov * 0.5f)) / (float)height;
         }
         
         
@@ -829,7 +889,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             Vector3.add(camPosition, camTarget, camPosition);
             
             modelViewMatrix = Matrix4.lookAt(camPosition, camTarget, up);
-            Matrix4.mult(Matrix4.scale(0.0001f), modelViewMatrix, modelViewMatrix);
+            Matrix4.mult(Matrix4.scale(1f / scaledown), modelViewMatrix, modelViewMatrix);
         }
         
 
@@ -842,41 +902,79 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             float ydelta = e.getY() - lastMouseMove.y;
             
             if (!isDragging && (Math.abs(xdelta) >= 3f || Math.abs(ydelta) >= 3f))
+            {
+                underCursor = pickingFrameBuffer.get(4);
                 isDragging = true;
+            }
             
             if (!isDragging)
                 return;
             
             lastMouseMove = e.getPoint();
             
-            if (mouseButton == MouseEvent.BUTTON3)
+            if (selectedObj != null && selectedVal == underCursor)
             {
-                if (upsideDown) xdelta = -xdelta;
-
-                camRotation.x -= xdelta * 0.002f;
-                camRotation.y -= ydelta * 0.002f;
+                if (mouseButton == MouseEvent.BUTTON1)
+                {
+                    float objz;
+                    if (pickingFrameBuffer.get(4) == underCursor)
+                    {
+                        objz = pickingDepth;
+                    }
+                    else
+                    {
+                        Vector3 between = new Vector3();
+                        Vector3.subtract(camPosition, selectedObj.position, between);
+                        objz = (((between.x * (float)Math.cos(camRotation.x)) + (between.z * (float)Math.sin(camRotation.x))) * (float)Math.cos(camRotation.y)) + 
+                                (between.y * (float)Math.sin(camRotation.y));
+                    }
+                    
+                    xdelta *= pixelFactorX * objz * scaledown;
+                    ydelta *= -pixelFactorY * objz * scaledown;
+                    
+                    float _xdelta = (xdelta * (float)Math.sin(camRotation.x)) - (ydelta * (float)Math.sin(camRotation.y) * (float)Math.cos(camRotation.x));
+                    float _ydelta = ydelta * (float)Math.cos(camRotation.y);
+                    float _zdelta = (xdelta * (float)Math.cos(camRotation.x)) + (ydelta * (float)Math.sin(camRotation.y) * (float)Math.sin(camRotation.x));
+                    
+                    selectedObj.position.x += _xdelta;
+                    selectedObj.position.y += _ydelta;
+                    selectedObj.position.z -= _zdelta;
+                }
+                
+                rerenderZones.push(selectedObj.zone);
             }
-            else if (mouseButton == MouseEvent.BUTTON1)
+            else
             {
-                if (pickingFrameBuffer.get(4) == 0xFFFFFFFF)
+                if (mouseButton == MouseEvent.BUTTON3)
                 {
-                    xdelta *= 0.005f;
-                    ydelta *= 0.005f;
+                    if (upsideDown) xdelta = -xdelta;
+
+                    camRotation.x -= xdelta * 0.002f;
+                    camRotation.y -= ydelta * 0.002f;
                 }
-                else
+                else if (mouseButton == MouseEvent.BUTTON1)
                 {
-                   xdelta *= pixelFactorX * pickingDepth;
-                   ydelta *= pixelFactorY * pickingDepth;
+                    if (pickingFrameBuffer.get(4) == 0xFFFFFFFF)
+                    {
+                        xdelta *= 0.005f;
+                        ydelta *= 0.005f;
+                    }
+                    else
+                    {
+                        xdelta *= pixelFactorX * pickingDepth;
+                        ydelta *= pixelFactorY * pickingDepth;
+                    }
+
+                    camTarget.x -= xdelta * (float)Math.sin(camRotation.x);
+                    camTarget.x -= ydelta * (float)Math.cos(camRotation.x) * (float)Math.sin(camRotation.y);
+                    camTarget.y += ydelta * (float)Math.cos(camRotation.y);
+                    camTarget.z += xdelta * (float)Math.cos(camRotation.x);
+                    camTarget.z -= ydelta * (float)Math.sin(camRotation.x) * (float)Math.sin(camRotation.y);
                 }
 
-                camTarget.x -= xdelta * (float)Math.sin(camRotation.x);
-                camTarget.x -= ydelta * (float)Math.cos(camRotation.x) * (float)Math.sin(camRotation.y);
-                camTarget.y += ydelta * (float)Math.cos(camRotation.y);
-                camTarget.z += xdelta * (float)Math.cos(camRotation.x);
-                camTarget.z -= ydelta * (float)Math.sin(camRotation.x) * (float)Math.sin(camRotation.y);
+                updateCamera();
             }
-
-            updateCamera();
+            
             e.getComponent().repaint();
         }
 
@@ -915,7 +1013,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             mouseButton = MouseEvent.NOBUTTON;
             lastMouseMove = e.getPoint();
-            lastMouseClick = e.getPoint();
             
             if (isDragging)
             {
@@ -931,7 +1028,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     objid != pickingFrameBuffer.get(7))
                 return;
             
-            if (!globalObjList.containsKey(objid))
+            if (objid != 0xFFFFFFFF && !globalObjList.containsKey(objid))
                 return;
             
             if (selectedObj != null)
@@ -941,6 +1038,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             {
                 selectedVal = 0xFFFFFFFF;
                 selectedObj = null;
+                
+                tvObjectList.setSelectionPath(null);
             }
             else
             {
@@ -949,6 +1048,47 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 
                 if (rerenderZones.empty() || !selectedObj.zone.equals(rerenderZones.peek()))
                     rerenderZones.push(selectedObj.zone);
+                
+                TreeNode objnode = ((DefaultMutableTreeNode)tvObjectList.getModel().getRoot()).getChildAt(0);
+                ObjTreeNode finalnode = (ObjTreeNode)((ObjListTreeNode)objnode).children.get(objid);
+                TreePath lol = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(finalnode));
+                tvObjectList.setSelectionPath(lol);
+                tvObjectList.scrollPathToVisible(lol);
+
+                // insets: top left bottom right
+               /* pnlObjectSettings.add(new JLabel("loltest:"), 
+                        new GridBagConstraints(0, 0, 1, 1, 0.4f, 0f, GridBagConstraints.LINE_END, GridBagConstraints.NONE, new Insets(3,3,0,3), 0, 0));
+                pnlObjectSettings.add(new JTextField("1337"), 
+                        new GridBagConstraints(1, 0, 1, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(3,3,0,3), 0, 0));
+                
+                pnlObjectSettings.add(new JLabel("loltest:"), 
+                        new GridBagConstraints(0, 1, 1, 1, 0.4f, 0f, GridBagConstraints.LINE_END, GridBagConstraints.NONE, new Insets(3,3,0,3), 0, 0));
+                pnlObjectSettings.add(new JTextField("1337"), 
+                        new GridBagConstraints(1, 1, 1, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(3,3,0,3), 0, 0));
+                pnlObjectSettings.add(new JLabel("this is crap:"), 
+                        new GridBagConstraints(0, 2, 1, 1, 0.4f, 0f, GridBagConstraints.LINE_END, GridBagConstraints.NONE, new Insets(3,3,0,3), 0, 0));
+                pnlObjectSettings.add(new JTextField("1337"), 
+                        new GridBagConstraints(1, 2, 1, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(3,3,0,3), 0, 0));
+                pnlObjectSettings.add(new JLabel("foobar:"), 
+                        new GridBagConstraints(0, 3, 1, 1, 0.4f, 0f, GridBagConstraints.LINE_END, GridBagConstraints.NONE, new Insets(3,3,0,3), 0, 0));
+                pnlObjectSettings.add(new JTextField("1337"), 
+                        new GridBagConstraints(1, 3, 1, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(3,3,0,3), 0, 0));
+                pnlObjectSettings.add(new JLabel("WARP:"), 
+                        new GridBagConstraints(0, 4, 1, 1, 0.4f, 0f, GridBagConstraints.LINE_END, GridBagConstraints.NONE, new Insets(3,3,0,3), 0, 0));
+                pnlObjectSettings.add(new JTextField("1337"), 
+                        new GridBagConstraints(1, 4, 1, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(3,3,0,3), 0, 0));
+                
+                pnlObjectSettings.add(Box.createVerticalGlue(), 
+                        new GridBagConstraints(0, 5, 2, 1, 1f, 1f, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0,0,0,0), 0, 0));*/
+                pnlObjectSettings.addCategory("obj_general", "General settings");
+                pnlObjectSettings.addField("name", "Object", "objname", selectedObj.name);
+                
+                pnlObjectSettings.addCategory("obj_position", "Position");
+                pnlObjectSettings.addField("x_pos", "X position", "float", selectedObj.position.x);
+                pnlObjectSettings.addField("y_pos", "Y position", "float", selectedObj.position.y);
+                pnlObjectSettings.addField("y_pos", "Z position", "float", selectedObj.position.z);
+                
+                pnlObjectSettings.addTermination();
             }
             
             selectionChanged();
@@ -983,50 +1123,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         
         
-        public void selectionChanged()
-        {
-            if (selectedObj != null)
-            {
-                String layer = selectedObj.layer.equals("common") ? "Common" : "Layer"+selectedObj.layer.substring(5).toUpperCase();
-                lbSelected.setText(String.format("%1$s (%2$s, %3$s)", selectedObj.name, selectedObj.zone, layer));
-                btnDeselect.setEnabled(true);
-            }
-            else
-            {
-                lbSelected.setText("none");
-                btnDeselect.setEnabled(false);
-            }
-        }
-        
-        
         public final float fov = (float)((70f * Math.PI) / 180f);
         public final float zNear = 0.01f;
         public final float zFar = 1000f;
-        
-        public GalaxyEditorForm parent;
-        private boolean inited;
-        
-        private GLRenderer.RenderInfo renderinfo;
-        private HashMap<String, int[]> objDisplayLists;
-        private HashMap<Integer, int[]> zoneDisplayLists;
-        private Stack<String> rerenderZones;
-        
-        private Matrix4 modelViewMatrix;
-        private float camDistance;
-        private Vector2 camRotation;
-        private Vector3 camPosition, camTarget;
-        private boolean upsideDown;
-        private float pixelFactorX, pixelFactorY;
-        
-        private int mouseButton;
-        private Point lastMouseMove, lastMouseClick;
-        private boolean isDragging;
-        private IntBuffer pickingFrameBuffer;
-        private FloatBuffer pickingDepthBuffer;
-        private float pickingDepth;
-        
-        private int selectedVal;
-        private LevelObject selectedObj;
+        public final float scaledown = 10000f;
     }
     
     public String galaxyName;
@@ -1041,6 +1141,32 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     public HashMap<Integer, LevelObject> globalObjList;
     
     private GLCanvas glCanvas;
+    private boolean inited;
+        
+    private GLRenderer.RenderInfo renderinfo;
+    private HashMap<String, int[]> objDisplayLists;
+    private HashMap<Integer, int[]> zoneDisplayLists;
+    private Stack<String> rerenderZones;
+
+    private Matrix4 modelViewMatrix;
+    private float camDistance;
+    private Vector2 camRotation;
+    private Vector3 camPosition, camTarget;
+    private boolean upsideDown;
+    private float pixelFactorX, pixelFactorY;
+
+    private int mouseButton;
+    private Point lastMouseMove;
+    private boolean isDragging;
+    private IntBuffer pickingFrameBuffer;
+    private FloatBuffer pickingDepthBuffer;
+    private float pickingDepth;
+
+    private int underCursor;
+    private int selectedVal;
+    private LevelObject selectedObj;
+    
+    private PropertyPanel pnlObjectSettings;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddObject;
@@ -1077,7 +1203,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JLabel lbStatusLabel;
     private javax.swing.JList lbZoneList;
     private javax.swing.JPanel pnlGLPanel;
-    private javax.swing.JPanel pnlObjectSettings;
+    private javax.swing.JScrollPane scpObjSettingsContainer;
     private javax.swing.JTabbedPane tpLeftPanel;
     private javax.swing.JTree tvObjectList;
     // End of variables declaration//GEN-END:variables
