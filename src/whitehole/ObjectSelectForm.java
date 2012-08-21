@@ -238,8 +238,6 @@ public class ObjectSelectForm extends javax.swing.JDialog
         }
         else
         {
-            ((DefaultTreeModel)tvObjectList.getModel()).setRoot(searchList);
-            
             searchList.removeAllChildren();
             for (ObjectDB.Object obj : ObjectDB.objects.values())
             {
@@ -252,9 +250,9 @@ public class ObjectSelectForm extends javax.swing.JDialog
             
             if (searchList.getChildCount() == 0)
                 searchList.add(new DefaultMutableTreeNode("(no results)"));
+            
+            ((DefaultTreeModel)tvObjectList.getModel()).setRoot(searchList);
         }
-        
-        tvObjectList.repaint();
     }//GEN-LAST:event_txtSearchKeyReleased
 
     
