@@ -176,7 +176,7 @@ public class ObjectSelectForm extends javax.swing.JDialog
             objList.add(catnode);
         }
         
-        if (!selectedObject.isEmpty())
+        if (!selectedObject.isEmpty() && ObjectDB.objects.containsKey(selectedObject))
         {
             TreePath path = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(tempnodelist.get(selectedObject)));
             tvObjectList.setSelectionPath(path);

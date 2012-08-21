@@ -151,12 +151,28 @@ public class PropertyPanel extends JPanel
                 {
                     public void actionPerformed(ActionEvent evt) 
                     {
-                        ObjectSelectForm loltest = new ObjectSelectForm(null, 1, "Kuribo");
-                        loltest.setVisible(true);
-                        System.out.println(loltest.selectedObject);
+                        // warning: black magic inside
+                        
+                        Component form = (Component)evt.getSource();
+                        do form = (Component)form.getParent();
+                        while (form.getClass() != GalaxyEditorForm.class);
+                        GalaxyEditorForm gform = (GalaxyEditorForm)form;
+                        
+                        PropertyPanel panel = (PropertyPanel)((Component)evt.getSource()).getParent();
+                        int index = 0;
+                        for (Component c : panel.getComponents())
+                        {
+                            if (c.equals(evt.getSource())) break;
+                            index++;
+                        }
+                        JTextField field = (JTextField)panel.getComponents()[index-1];
+                        
+                        ObjectSelectForm objsel = new ObjectSelectForm(gform, gform.zoneArcs.get(gform.galaxyName).gameMask, field.getText());
+                        objsel.setVisible(true);
+                        
+                        field.setText(objsel.selectedObject);
                     }
                 });
-                // todo hook it up somewhere
                 
                 add(extrabtn, new GridBagConstraints(2, curRow, 1, 1, 0f, 0f, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(1,1,0,1), 0, 0));
                 curIndex++;
