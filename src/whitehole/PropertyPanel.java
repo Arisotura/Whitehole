@@ -139,9 +139,7 @@ public class PropertyPanel extends JPanel
                     {
                         for (Field field : fields.values())
                         {
-                            if (!field.field.equals(evt.getSource()))
-                                continue;
-                            
+                            if (!field.field.equals(evt.getSource())) continue;
                             eventListener.propPanelPropertyChanged(field.name, ((JTextField)evt.getSource()).getText());
                             break;
                         }
@@ -163,9 +161,51 @@ public class PropertyPanel extends JPanel
                     {
                         for (Field field : fields.values())
                         {
-                            if (!field.field.equals(evt.getSource()))
-                                continue;
-                            
+                            if (!field.field.equals(evt.getSource())) continue;
+                            eventListener.propPanelPropertyChanged(field.name, ((JSpinner)evt.getSource()).getValue());
+                            break;
+                        }
+                    }
+                });
+                
+                add(field.field, new GridBagConstraints(1, curRow, 2, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(1,1,0,1), 0, 0));
+                curIndex++;
+                break;
+                
+                
+            case "int":
+                field.field = new JSpinner();
+                ((JSpinner)field.field).setModel(new SpinnerNumberModel((long)((int)val) & 0xFFFFFFFF, 0, 0xFFFFFFFF, 1)); // FIXME
+                field.field.setPreferredSize(new Dimension(10, field.field.getMinimumSize().height));
+                ((JSpinner)field.field).addChangeListener(new ChangeListener()
+                {
+                    public void stateChanged(ChangeEvent evt)
+                    {
+                        for (Field field : fields.values())
+                        {
+                            if (!field.field.equals(evt.getSource())) continue;
+                            eventListener.propPanelPropertyChanged(field.name, ((JSpinner)evt.getSource()).getValue());
+                            break;
+                        }
+                    }
+                });
+                
+                add(field.field, new GridBagConstraints(1, curRow, 2, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(1,1,0,1), 0, 0));
+                curIndex++;
+                break;
+                
+                
+            case "signedint":
+                field.field = new JSpinner();
+                ((JSpinner)field.field).setModel(new SpinnerNumberModel((int)val, -0x80000000, 0x7FFFFFFF, 1));
+                field.field.setPreferredSize(new Dimension(10, field.field.getMinimumSize().height));
+                ((JSpinner)field.field).addChangeListener(new ChangeListener()
+                {
+                    public void stateChanged(ChangeEvent evt)
+                    {
+                        for (Field field : fields.values())
+                        {
+                            if (!field.field.equals(evt.getSource())) continue;
                             eventListener.propPanelPropertyChanged(field.name, ((JSpinner)evt.getSource()).getValue());
                             break;
                         }
@@ -187,9 +227,7 @@ public class PropertyPanel extends JPanel
                     {
                         for (Field field : fields.values())
                         {
-                            if (!field.field.equals(evt.getSource()))
-                                continue;
-                            
+                            if (!field.field.equals(evt.getSource())) continue;
                             eventListener.propPanelPropertyChanged(field.name, ((JTextField)evt.getSource()).getText());
                             break;
                         }
@@ -227,9 +265,7 @@ public class PropertyPanel extends JPanel
                         field.setText(objsel.selectedObject);
                         for (Field f : fields.values())
                         {
-                            if (!f.field.equals(field))
-                                continue;
-                            
+                            if (!f.field.equals(field)) continue;
                             eventListener.propPanelPropertyChanged(f.name, objsel.selectedObject);
                             break;
                         }

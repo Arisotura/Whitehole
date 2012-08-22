@@ -357,17 +357,47 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
 
     public void selectionChanged()
     {
+        pnlObjectSettings.clear();
+        
         if (selectedObj != null)
         {
             String layer = selectedObj.layer.equals("common") ? "Common" : "Layer"+selectedObj.layer.substring(5).toUpperCase();
             lbSelected.setText(String.format("%1$s (%2$s, %3$s)", selectedObj.dbInfo.name, selectedObj.zone, layer));
             btnDeselect.setEnabled(true);
+            
+            pnlObjectSettings.addCategory("obj_general", "General settings");
+            pnlObjectSettings.addField("name", "Object", "objname", selectedObj.name);
+
+            pnlObjectSettings.addCategory("obj_position", "Position");
+            pnlObjectSettings.addField("pos_x", "X position", "float", selectedObj.position.x);
+            pnlObjectSettings.addField("pos_y", "Y position", "float", selectedObj.position.y);
+            pnlObjectSettings.addField("pos_z", "Z position", "float", selectedObj.position.z);
+            pnlObjectSettings.addField("dir_x", "X rotation", "float", selectedObj.rotation.x);
+            pnlObjectSettings.addField("dir_y", "Y rotation", "float", selectedObj.rotation.y);
+            pnlObjectSettings.addField("dir_z", "Z rotation", "float", selectedObj.rotation.z);
+            pnlObjectSettings.addField("scale_x", "X scale", "float", selectedObj.scale.x);
+            pnlObjectSettings.addField("scale_y", "Y scale", "float", selectedObj.scale.y);
+            pnlObjectSettings.addField("scale_z", "Z scale", "float", selectedObj.scale.z);
+            
+            pnlObjectSettings.addCategory("obj_args", "Object arguments");
+            pnlObjectSettings.addField("Obj_arg0", "Obj_arg0", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg0")));
+            pnlObjectSettings.addField("Obj_arg1", "Obj_arg1", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg1")));
+            pnlObjectSettings.addField("Obj_arg2", "Obj_arg2", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg2")));
+            pnlObjectSettings.addField("Obj_arg3", "Obj_arg3", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg3")));
+            pnlObjectSettings.addField("Obj_arg4", "Obj_arg4", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg4")));
+            pnlObjectSettings.addField("Obj_arg5", "Obj_arg5", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg5")));
+            pnlObjectSettings.addField("Obj_arg6", "Obj_arg6", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg6")));
+            pnlObjectSettings.addField("Obj_arg7", "Obj_arg7", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg7")));
+
+            pnlObjectSettings.addTermination();
         }
         else
         {
             lbSelected.setText("none");
             btnDeselect.setEnabled(false);
         }
+        
+        pnlObjectSettings.repaint();
     }
     
     private void lbScenarioListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_lbScenarioListValueChanged
@@ -473,7 +503,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnSaveActionPerformed
     {//GEN-HEADEREND:event_btnSaveActionPerformed
-        JOptionPane.showMessageDialog(this, "Saving doesn't work yet.", Whitehole.name, JOptionPane.ERROR_MESSAGE);
+        try
+        {
+            for (ZoneArchive zonearc : zoneArcs.values())
+                zonearc.save();
+            
+            lbStatusLabel.setText("Changes saved.");
+        }
+        catch (IOException ex)
+        {
+            lbStatusLabel.setText("Failed to save changes: "+ex.getMessage());
+            ex.printStackTrace();
+        }
     }//GEN-LAST:event_btnSaveActionPerformed
 
     @Override
@@ -486,23 +527,33 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             
             DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
             ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
-            ((DefaultTreeModel)tvObjectList.getModel()).nodeChanged(listnode.children.get(selectedObj.uniqueID));
+            objlist.nodeChanged(listnode.children.get(selectedObj.uniqueID));
             
             rerenderTasks.push("zone:"+selectedObj.zone);
             rerenderTasks.push("object:"+new Integer(selectedObj.uniqueID).toString());
             glCanvas.repaint();
         }
-        else if (propname.startsWith("pos_"))
+        else if (propname.startsWith("pos_") || propname.startsWith("dir_") || propname.startsWith("scale_"))
         {
             switch (propname)
             {
                 case "pos_x": selectedObj.position.x = (float)(double)value; break;
                 case "pos_y": selectedObj.position.y = (float)(double)value; break;
                 case "pos_z": selectedObj.position.z = (float)(double)value; break;
+                case "dir_x": selectedObj.rotation.x = (float)(double)value; break;
+                case "dir_y": selectedObj.rotation.y = (float)(double)value; break;
+                case "dir_z": selectedObj.rotation.z = (float)(double)value; break;
+                case "scale_x": selectedObj.scale.x = (float)(double)value; break;
+                case "scale_y": selectedObj.scale.y = (float)(double)value; break;
+                case "scale_z": selectedObj.scale.z = (float)(double)value; break;
             }
             
             rerenderTasks.push("zone:"+selectedObj.zone);
             glCanvas.repaint();
+        }
+        else
+        {
+            selectedObj.data.put(propname, (int)Long.parseLong((String)value, 16));
         }
     }
 
@@ -1104,18 +1155,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(finalnode));
                 tvObjectList.setSelectionPath(tp);
                 tvObjectList.scrollPathToVisible(tp);
-                
-                pnlObjectSettings.clear();
-
-                pnlObjectSettings.addCategory("obj_general", "General settings");
-                pnlObjectSettings.addField("name", "Object", "objname", selectedObj.name);
-                
-                pnlObjectSettings.addCategory("obj_position", "Position");
-                pnlObjectSettings.addField("pos_x", "X position", "float", selectedObj.position.x);
-                pnlObjectSettings.addField("pos_y", "Y position", "float", selectedObj.position.y);
-                pnlObjectSettings.addField("pos_z", "Z position", "float", selectedObj.position.z);
-                
-                pnlObjectSettings.addTermination();
             }
             
             selectionChanged();

@@ -46,6 +46,13 @@ public class LevelObject
         scale = new Vector3((float)data.get("scale_x"), (float)data.get("scale_y"), (float)data.get("scale_z"));
     }
     
+    public void save()
+    {
+        data.put("pos_x", position.x); data.put("pos_y", position.y); data.put("pos_z", position.z);
+        data.put("dir_x", rotation.x); data.put("dir_y", rotation.y); data.put("dir_z", rotation.z);
+        data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);
+    }
+    
     
     @Override
     public String toString()
@@ -54,7 +61,7 @@ public class LevelObject
     }
     
     
-    public void loadDBInfo()
+    public final void loadDBInfo()
     {
         if (ObjectDB.objects.containsKey(name))
             dbInfo = ObjectDB.objects.get(name);

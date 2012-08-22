@@ -32,8 +32,6 @@ public class ZoneArchive
         
         zoneName = name;
         
-        String zonefile = "lolz";
-        
         // try SMG2-style first, then SMG1
         if (filesystem.fileExists("/StageData/" + zoneName + "/" + zoneName + "Map.arc"))
         {
@@ -66,6 +64,16 @@ public class ZoneArchive
         zonearc.close();
     }
     
+    public void save() throws IOException
+    {
+        RarcFilesystem zonearc = new RarcFilesystem(filesystem.openFile(zonefile));
+        
+        saveObjects(zonearc, "MapParts", "MapPartsInfo");
+        saveObjects(zonearc, "Placement", "ObjInfo");
+        
+        zonearc.close();
+    }
+    
     public void close()
     {
     }
@@ -76,6 +84,13 @@ public class ZoneArchive
         List<String> layers = arc.getDirectories("/Stage/Jmp/" + dir);
         for (String layer : layers)
             addObjectsToList(arc, dir + "/" + layer + "/" + file);
+    }
+    
+    private void saveObjects(RarcFilesystem arc, String dir, String file)
+    {
+        List<String> layers = arc.getDirectories("/Stage/Jmp/" + dir);
+        for (String layer : layers)
+            saveObjectList(arc, dir + "/" + layer + "/" + file);
     }
     
     private void addObjectsToList(RarcFilesystem arc, String filepath)
@@ -90,6 +105,37 @@ public class ZoneArchive
             Bcsv bcsv = new Bcsv(arc.openFile("/Stage/Jmp/" + filepath));
             for (Bcsv.Entry entry : bcsv.entries)
                 objects.get(layer).add(new LevelObject(zoneName, filepath, entry));
+            bcsv.close();
+        }
+        catch (IOException ex)
+        {
+            // TODO better error handling, really
+            System.out.println(ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+    
+    private void saveObjectList(RarcFilesystem arc, String filepath)
+    {
+        String[] stuff = filepath.split("/");
+        String dir = stuff[0], file = stuff[2];
+        String layer = stuff[1].toLowerCase();
+        if (!objects.containsKey(layer))
+            return;
+        
+        try
+        {
+            Bcsv bcsv = new Bcsv(arc.openFile("/Stage/Jmp/" + filepath));
+            bcsv.entries.clear();
+            for (LevelObject obj : objects.get(layer))
+            {
+                if (!dir.equals(obj.directory) || !file.equals(obj.file))
+                    continue;
+                
+                obj.save();
+                bcsv.entries.add(obj.data);
+            }
+            bcsv.save();
             bcsv.close();
         }
         catch (IOException ex)
@@ -124,6 +170,7 @@ public class ZoneArchive
     public GalaxyArchive galaxy;
     public GameArchive game;
     public FilesystemBase filesystem;
+    public String zonefile;
     
     public String zoneName;
     
