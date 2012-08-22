@@ -445,7 +445,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
 
     private void btnDeselectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnDeselectActionPerformed
     {//GEN-HEADEREND:event_btnDeselectActionPerformed
-        rerenderZones.push(selectedObj.zone);
+        rerenderTasks.push("zone:"+selectedObj.zone);
         selectedVal = 0xFFFFFFFF;
         selectedObj = null;
         selectionChanged();
@@ -462,11 +462,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             return;
         
         if (selectedObj != null && !selectedObj.zone.equals(((ObjTreeNode)tn).object.zone))
-            rerenderZones.push(selectedObj.zone);
+            rerenderTasks.push("zone:"+selectedObj.zone);
         
         selectedObj = ((ObjTreeNode)tn).object;
         selectedVal = selectedObj.uniqueID;
-        rerenderZones.push(selectedObj.zone);
+        rerenderTasks.push("zone:"+selectedObj.zone);
         selectionChanged();
         glCanvas.repaint();
     }//GEN-LAST:event_tvObjectListValueChanged
@@ -482,10 +482,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         if (propname.equals("name"))
         {
             selectedObj.name = (String)value;
-            selectedObj.closeRenderer(renderinfo);
-            selectedObj.initRenderer(renderinfo);
+            selectedObj.loadDBInfo();
             
-            rerenderZones.push(selectedObj.zone);
+            DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+            ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
+            ((DefaultTreeModel)tvObjectList.getModel()).nodeChanged(listnode.children.get(selectedObj.uniqueID));
+            
+            rerenderTasks.push("zone:"+selectedObj.zone);
+            rerenderTasks.push("object:"+new Integer(selectedObj.uniqueID).toString());
             glCanvas.repaint();
         }
         else if (propname.startsWith("pos_"))
@@ -497,7 +501,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 case "pos_z": selectedObj.position.z = (float)(double)value; break;
             }
             
-            rerenderZones.push(selectedObj.zone);
+            rerenderTasks.push("zone:"+selectedObj.zone);
             glCanvas.repaint();
         }
     }
@@ -546,7 +550,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE; renderAllObjects(gl);
             renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT; renderAllObjects(gl);
             
-            rerenderZones = new Stack<>();
+            rerenderTasks = new Stack<>();
             
             gl.glFrontFace(GL2.GL_CW);
             
@@ -766,6 +770,31 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             RendererCache.clearRefContext();
         }
         
+        private void doRerenderTasks()
+        {
+            GL2 gl = renderinfo.drawable.getGL().getGL2();
+            
+            while (!rerenderTasks.empty())
+            {
+                String[] task = rerenderTasks.pop().split(":");
+                switch (task[0])
+                {
+                    case "zone":
+                        renderinfo.renderMode = GLRenderer.RenderMode.PICKING;      prerenderZone(gl, task[1]);
+                        renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;       prerenderZone(gl, task[1]);
+                        renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;  prerenderZone(gl, task[1]);
+                        break;
+                        
+                    case "object":
+                        int objid = Integer.parseInt(task[1]);
+                        LevelObject obj = globalObjList.get(objid);
+                        obj.closeRenderer(renderinfo);
+                        obj.initRenderer(renderinfo);
+                        break;
+                }
+            }
+        }
+        
         @Override
         public void display(GLAutoDrawable glad)
         {
@@ -773,13 +802,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             GL2 gl = glad.getGL().getGL2();
             renderinfo.drawable = glad;
             
-            while (!rerenderZones.empty())
-            {
-                String zone = rerenderZones.pop();
-                renderinfo.renderMode = GLRenderer.RenderMode.PICKING;      prerenderZone(gl, zone);
-                renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;       prerenderZone(gl, zone);
-                renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;  prerenderZone(gl, zone);
-            }
+            doRerenderTasks();
             
             // Rendering pass 1 -- fakecolor rendering
             // the results are used to determine which object is pointed at
@@ -968,7 +991,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                     selectedObj.position.z -= _zdelta;
                 }
                 
-                rerenderZones.push(selectedObj.zone);
+                rerenderTasks.push("zone:"+selectedObj.zone);
             }
             else
             {
@@ -1059,7 +1082,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 return;
             
             if (selectedObj != null)
-                rerenderZones.push(selectedObj.zone);
+                rerenderTasks.push("zone:"+selectedObj.zone);
             
             if (objid == selectedVal || objid == 0xFFFFFFFF)
             {
@@ -1073,14 +1096,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 selectedVal = objid;
                 selectedObj = globalObjList.get(objid);
                 
-                if (rerenderZones.empty() || !selectedObj.zone.equals(rerenderZones.peek()))
-                    rerenderZones.push(selectedObj.zone);
+                if (rerenderTasks.empty() || !selectedObj.zone.equals(rerenderTasks.peek()))
+                    rerenderTasks.push("zone:"+selectedObj.zone);
                 
                 TreeNode objnode = ((DefaultMutableTreeNode)tvObjectList.getModel().getRoot()).getChildAt(0);
                 ObjTreeNode finalnode = (ObjTreeNode)((ObjListTreeNode)objnode).children.get(objid);
-                TreePath lol = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(finalnode));
-                tvObjectList.setSelectionPath(lol);
-                tvObjectList.scrollPathToVisible(lol);
+                TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(finalnode));
+                tvObjectList.setSelectionPath(tp);
+                tvObjectList.scrollPathToVisible(tp);
+                
+                pnlObjectSettings.clear();
 
                 pnlObjectSettings.addCategory("obj_general", "General settings");
                 pnlObjectSettings.addField("name", "Object", "objname", selectedObj.name);
@@ -1148,7 +1173,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
     private GLRenderer.RenderInfo renderinfo;
     private HashMap<String, int[]> objDisplayLists;
     private HashMap<Integer, int[]> zoneDisplayLists;
-    private Stack<String> rerenderZones;
+    private Stack<String> rerenderTasks;
 
     private Matrix4 modelViewMatrix;
     private float camDistance;

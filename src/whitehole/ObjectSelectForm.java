@@ -110,6 +110,11 @@ public class ObjectSelectForm extends javax.swing.JDialog
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
         tvObjectList.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
         tvObjectList.setShowsRootHandles(true);
+        tvObjectList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tvObjectListMouseClicked(evt);
+            }
+        });
         tvObjectList.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
             public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
                 tvObjectListValueChanged(evt);
@@ -254,6 +259,22 @@ public class ObjectSelectForm extends javax.swing.JDialog
             ((DefaultTreeModel)tvObjectList.getModel()).setRoot(searchList);
         }
     }//GEN-LAST:event_txtSearchKeyReleased
+
+    private void tvObjectListMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_tvObjectListMouseClicked
+    {//GEN-HEADEREND:event_tvObjectListMouseClicked
+        if (tvObjectList.getSelectionPath() == null)
+            return;
+        
+        MutableTreeNode tn = (MutableTreeNode)tvObjectList.getSelectionPath().getLastPathComponent();
+        if (tn.getClass() != MyObjTreeNode.class)
+            return;
+        
+        if (evt.getClickCount() < 2)
+            return;
+        
+        selectedObject = ((MyObjTreeNode)tn).objectID;
+        dispose();
+    }//GEN-LAST:event_tvObjectListMouseClicked
 
     
     public class MyObjTreeNode implements MutableTreeNode

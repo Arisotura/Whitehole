@@ -36,7 +36,7 @@ public class LevelObject
         data = entry;
         
         name = (String)data.get("name");
-        dbInfo = ObjectDB.objects.get(name);
+        loadDBInfo();
         renderer = null;
         
         uniqueID = -1;
@@ -53,6 +53,20 @@ public class LevelObject
         return name;
     }
     
+    
+    public void loadDBInfo()
+    {
+        if (ObjectDB.objects.containsKey(name))
+            dbInfo = ObjectDB.objects.get(name);
+        else
+        {
+            dbInfo = new ObjectDB.Object();
+            dbInfo.ID = name;
+            dbInfo.name = "("+name+")";
+            dbInfo.category = 0;
+            dbInfo.games = 3;
+        }
+    }
     
     public void initRenderer(GLRenderer.RenderInfo info)
     {
