@@ -48,6 +48,7 @@ public class LevelObject
     
     public void save()
     {
+        data.put("name", name);
         data.put("pos_x", position.x); data.put("pos_y", position.y); data.put("pos_z", position.z);
         data.put("dir_x", rotation.x); data.put("dir_y", rotation.y); data.put("dir_z", rotation.z);
         data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);
