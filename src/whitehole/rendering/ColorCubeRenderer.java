@@ -35,6 +35,12 @@ public class ColorCubeRenderer extends GLRenderer
     public void close(RenderInfo info) throws GLException
     {
     }
+    
+    @Override
+    public boolean isScaled()
+    {
+        return false;
+    }
 
     @Override
     public boolean gottaRender(RenderInfo info) throws GLException

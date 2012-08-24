@@ -101,7 +101,8 @@ public class LevelObject
         gl.glRotatef(rotation.z, 0f, 0f, 1f);
         gl.glRotatef(rotation.y, 0f, 1f, 0f);
         gl.glRotatef(rotation.x, 1f, 0f, 0f);
-        gl.glScalef(scale.x, scale.y, scale.z);
+        if (renderer.isScaled())
+            gl.glScalef(scale.x, scale.y, scale.z);
         
         int dlid = -1;
         switch (info.renderMode)
