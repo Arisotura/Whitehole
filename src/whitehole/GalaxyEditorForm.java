@@ -1040,6 +1040,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                     selectedObj.position.x += _xdelta;
                     selectedObj.position.y += _ydelta;
                     selectedObj.position.z -= _zdelta;
+                    
+                    pnlObjectSettings.setFieldValue("pos_x", selectedObj.position.x);
+                    pnlObjectSettings.setFieldValue("pos_y", selectedObj.position.y);
+                    pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);
                 }
                 
                 rerenderTasks.push("zone:"+selectedObj.zone);
