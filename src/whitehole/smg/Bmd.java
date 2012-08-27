@@ -854,10 +854,10 @@ public class Bmd
             file.position(sectionstart + offsets[24] + (alphacomp_id * 8));
             mat.alphaComp = mat.new AlphaCompInfo();
             mat.alphaComp.func0 = file.readByte();
-            mat.alphaComp.ref0 = file.readByte();
+            mat.alphaComp.ref0 = (int)file.readByte() & 0xFF;
             mat.alphaComp.mergeFunc = file.readByte();
             mat.alphaComp.func1 = file.readByte();
-            mat.alphaComp.ref1 = file.readByte();
+            mat.alphaComp.ref1 = (int)file.readByte() & 0xFF;
 
             file.position(sectionstart + offsets[25] + (blendmode_id * 4));
             mat.blendMode = mat.new BlendModeInfo();
@@ -1304,9 +1304,9 @@ public class Bmd
 
         public class AlphaCompInfo
         {
-            public byte func0, ref0;
+            public byte func0, func1;
+            public int ref0, ref1;
             public byte mergeFunc;
-            public byte func1, ref1;
         }
 
         public class BlendModeInfo
