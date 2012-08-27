@@ -451,24 +451,34 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         }
         
         int selid = lbZoneList.getSelectedIndex();
+        curZone = galaxyArc.zoneList.get(selid);
+        curZoneArc = zoneArcs.get(curZone);
         
         DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(galaxyArc.zoneList.get(selid));
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(curZone);
         objlist.setRoot(root);
         
         ObjListTreeNode objnode = new ObjListTreeNode();
         objnode.setUserObject("Objects");
         root.add(objnode);
         
-        for (java.util.List<LevelObject> objs : zoneArcs.get(galaxyArc.zoneList.get(selid)).objects.values())
+        int layermask = (int)curScenario.get(curZone);
+        
+        for (java.util.List<LevelObject> objs : curZoneArc.objects.values())
         {
             for (LevelObject obj : objs)
             {
+                if (!obj.layer.equals("common"))
+                {
+                    int layernum = obj.layer.charAt(5) - 'a';
+                    if ((layermask & (1 << layernum)) == 0) continue;
+                }
+                
                 objnode.addObject(obj);
             }
         }
 
-        lbStatusLabel.setText("Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + galaxyArc.zoneList.get(selid));
+        lbStatusLabel.setText("Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + curZone);
         
         glCanvas.repaint();
     }//GEN-LAST:event_lbZoneListValueChanged
@@ -1206,6 +1216,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
     
     private int curScenarioID;
     private Bcsv.Entry curScenario;
+    private String curZone;
+    private ZoneArchive curZoneArc;
     
     public int maxUniqueID;
     public HashMap<Integer, LevelObject> globalObjList;
