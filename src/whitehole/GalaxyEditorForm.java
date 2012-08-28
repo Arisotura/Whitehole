@@ -1076,8 +1076,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                     }
                     else
                     {
-                        xdelta *= pixelFactorX * pickingDepth;
-                        ydelta *= pixelFactorY * pickingDepth;
+                        xdelta *= Math.min(0.005f, pixelFactorX * pickingDepth);
+                        ydelta *= Math.min(0.005f, pixelFactorY * pickingDepth);
                     }
 
                     camTarget.x -= xdelta * (float)Math.sin(camRotation.x);
