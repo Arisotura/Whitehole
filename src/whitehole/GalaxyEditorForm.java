@@ -1015,6 +1015,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             if (!isDragging && (Math.abs(xdelta) >= 3f || Math.abs(ydelta) >= 3f))
             {
                 underCursor = pickingFrameBuffer.get(4);
+                depthUnderCursor = pickingDepth;
                 isDragging = true;
             }
             
@@ -1028,7 +1029,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 if (mouseButton == MouseEvent.BUTTON1)
                 {
                     float objz;
-                    if (pickingFrameBuffer.get(4) == underCursor)
+                    /*if (pickingFrameBuffer.get(4) == underCursor)
                     {
                         objz = pickingDepth;
                     }
@@ -1038,7 +1039,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                         Vector3.subtract(camPosition, selectedObj.position, between);
                         objz = (((between.x * (float)Math.cos(camRotation.x)) + (between.z * (float)Math.sin(camRotation.x))) * (float)Math.cos(camRotation.y)) + 
                                 (between.y * (float)Math.sin(camRotation.y));
-                    }
+                    }*/
+                    objz = depthUnderCursor;
                     
                     xdelta *= pixelFactorX * objz * scaledown;
                     ydelta *= -pixelFactorY * objz * scaledown;
@@ -1063,21 +1065,33 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 if (mouseButton == MouseEvent.BUTTON3)
                 {
                     if (upsideDown) xdelta = -xdelta;
+                    
+                    xdelta *= 0.002f;
+                    ydelta *= 0.002f;
+                    
+                    /*if (underCursor != 0xFFFFFFFF)
+                    {
+                        float dist = camDistance - depthUnderCursor;
+                        if (dist > 0f)
+                        {
+                            camTarget.x -= 
+                        }
+                    }*/
 
-                    camRotation.x -= xdelta * 0.002f;
-                    camRotation.y -= ydelta * 0.002f;
+                    camRotation.x -= xdelta;
+                    camRotation.y -= ydelta;
                 }
                 else if (mouseButton == MouseEvent.BUTTON1)
                 {
-                    if (pickingFrameBuffer.get(4) == 0xFFFFFFFF)
+                    if (underCursor == 0xFFFFFFFF)
                     {
                         xdelta *= 0.005f;
                         ydelta *= 0.005f;
                     }
                     else
                     {
-                        xdelta *= Math.min(0.005f, pixelFactorX * pickingDepth);
-                        ydelta *= Math.min(0.005f, pixelFactorY * pickingDepth);
+                        xdelta *= Math.min(0.005f, pixelFactorX * depthUnderCursor);
+                        ydelta *= Math.min(0.005f, pixelFactorY * depthUnderCursor);
                     }
 
                     camTarget.x -= xdelta * (float)Math.sin(camRotation.x);
@@ -1245,6 +1259,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
     private float pickingDepth;
 
     private int underCursor;
+    private float depthUnderCursor;
     private int selectedVal;
     private LevelObject selectedObj;
     
