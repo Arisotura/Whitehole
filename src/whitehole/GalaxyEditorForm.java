@@ -23,6 +23,7 @@ import java.nio.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.util.Map.*;
 import javax.swing.*;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.*;
@@ -47,6 +48,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         
         maxUniqueID = 0;
         globalObjList = new HashMap<>();
+        subZoneData = new HashMap<>();
 
         galaxyName = galaxy;
         try
@@ -56,6 +58,45 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             zoneArcs = new HashMap<>(galaxyArc.zoneList.size());
             for (String zone : galaxyArc.zoneList)
                 loadZone(zone);
+            
+            ZoneArchive mainzone = zoneArcs.get(galaxyName);
+            for (int i = 0; i < galaxyArc.scenarioData.size(); i++)
+            {
+                for (Bcsv.Entry subzone : mainzone.subZones.get("common"))
+                {
+                    SubZoneData data = new SubZoneData();
+                    data.layer = "common";
+                    data.position = new Vector3((float)subzone.get("pos_x"), (float)subzone.get("pos_y"), (float)subzone.get("pos_z"));
+                    data.rotation = new Vector3((float)subzone.get("dir_x"), (float)subzone.get("dir_y"), (float)subzone.get("dir_z"));
+                    
+                    String key = String.format("%1$d/%2$s", i, (String)subzone.get("name"));
+                    if (subZoneData.containsKey(key)) throw new IOException("Duplicate zone " + key);
+                    subZoneData.put(key, data);
+                }
+                
+                int mainlayermask = (int)galaxyArc.scenarioData.get(i).get(galaxyName);
+                for (int l = 0; l < 32; l++)
+                {
+                    if ((mainlayermask & (1 << l)) == 0)
+                        continue;
+                    
+                    String layer = "layer" + ('a'+l);
+                    if (!mainzone.subZones.containsKey(layer))
+                        continue;
+                    
+                    for (Bcsv.Entry subzone : mainzone.subZones.get(layer))
+                    {
+                        SubZoneData data = new SubZoneData();
+                        data.layer = layer;
+                        data.position = new Vector3((float)subzone.get("pos_x"), (float)subzone.get("pos_y"), (float)subzone.get("pos_z"));
+                        data.rotation = new Vector3((float)subzone.get("dir_x"), (float)subzone.get("dir_y"), (float)subzone.get("dir_z"));
+
+                        String key = String.format("%1$d/%2$s", i, (String)subzone.get("name"));
+                        if (subZoneData.containsKey(key)) throw new IOException("Duplicate zone " + key);
+                        subZoneData.put(key, data);
+                    }
+                }
+            }
         }
         catch (IOException ex)
         {
@@ -705,30 +746,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 
                 gl.glNewList(dl, GL2.GL_COMPILE);
                 
-                if (mode == 0 && selectedObj != null && selectedObj.zone.equals(zone))
-                {
-                    gl.glStencilFunc(GL2.GL_ALWAYS, 1, 1);
-                    gl.glStencilOp(GL2.GL_REPLACE, GL2.GL_REPLACE, GL2.GL_REPLACE);
-                    
-                    gl.glColor4ub(
-                            (byte)(selectedObj.uniqueID >>> 16), 
-                            (byte)(selectedObj.uniqueID >>> 8), 
-                            (byte)selectedObj.uniqueID, 
-                            (byte)(selectedObj.uniqueID >>> 24));
-                    
-                    selectedObj.render(renderinfo);
-                }
-                
-                gl.glStencilFunc(GL2.GL_EQUAL, 0, 1);
-                gl.glStencilOp(GL2.GL_KEEP, GL2.GL_KEEP, GL2.GL_KEEP);
-                
                 for (LevelObject obj : zonearc.objects.get(layer))
                 {
                     if (mode == 0) 
                     {
-                        if (selectedObj != null && obj.uniqueID == selectedObj.uniqueID)
-                            continue;
-                        
                         // set color to the object's uniqueID (ARGB)
                         gl.glColor4ub(
                                 (byte)(obj.uniqueID >>> 16), 
@@ -891,12 +912,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 gl.glDisable(GL2.GL_TEXTURE_2D);
             }
             
-            gl.glEnable(GL2.GL_STENCIL_TEST);
-            
             gl.glCallList(zoneDisplayLists.get(curScenarioID)[0]);
             
             gl.glDepthMask(true);
-            gl.glDisable(GL2.GL_STENCIL_TEST);
             
             gl.glFlush();
             
@@ -1003,6 +1021,33 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             Matrix4.mult(Matrix4.scale(1f / scaledown), modelViewMatrix, modelViewMatrix);
         }
         
+        public void applySubzoneRotation(Vector3 delta)
+        {
+            String szkey = String.format("%1$d/%2$s", curScenarioID, selectedObj.zone);
+            if (subZoneData.containsKey(szkey))
+            {
+                SubZoneData szdata = subZoneData.get(szkey);
+
+                float xcos = (float)Math.cos(-(szdata.rotation.x * Math.PI) / 180f);
+                float xsin = (float)Math.sin(-(szdata.rotation.x * Math.PI) / 180f);
+                float ycos = (float)Math.cos(-(szdata.rotation.y * Math.PI) / 180f);
+                float ysin = (float)Math.sin(-(szdata.rotation.y * Math.PI) / 180f);
+                float zcos = (float)Math.cos(-(szdata.rotation.z * Math.PI) / 180f);
+                float zsin = (float)Math.sin(-(szdata.rotation.z * Math.PI) / 180f);
+
+                float x1 = (delta.x * zcos) - (delta.y * zsin);
+                float y1 = (delta.x * zsin) + (delta.y * zcos);
+                float x2 = (x1 * ycos) + (delta.z * ysin);
+                float z2 = -(x1 * ysin) + (delta.z * ycos);
+                float y3 = (y1 * xcos) - (z2 * xsin);
+                float z3 = (y1 * xsin) + (z2 * xcos);
+
+                delta.x = x2;
+                delta.y = y3;
+                delta.z = z3;
+            }
+        }
+        
 
         @Override
         public void mouseDragged(MouseEvent e)
@@ -1028,37 +1073,26 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             {
                 if (mouseButton == MouseEvent.BUTTON1)
                 {
-                    float objz;
-                    /*if (pickingFrameBuffer.get(4) == underCursor)
-                    {
-                        objz = pickingDepth;
-                    }
-                    else
-                    {
-                        Vector3 between = new Vector3();
-                        Vector3.subtract(camPosition, selectedObj.position, between);
-                        objz = (((between.x * (float)Math.cos(camRotation.x)) + (between.z * (float)Math.sin(camRotation.x))) * (float)Math.cos(camRotation.y)) + 
-                                (between.y * (float)Math.sin(camRotation.y));
-                    }*/
-                    objz = depthUnderCursor;
+                    float objz = depthUnderCursor;
                     
                     xdelta *= pixelFactorX * objz * scaledown;
                     ydelta *= -pixelFactorY * objz * scaledown;
                     
-                    float _xdelta = (xdelta * (float)Math.sin(camRotation.x)) - (ydelta * (float)Math.sin(camRotation.y) * (float)Math.cos(camRotation.x));
-                    float _ydelta = ydelta * (float)Math.cos(camRotation.y);
-                    float _zdelta = (xdelta * (float)Math.cos(camRotation.x)) + (ydelta * (float)Math.sin(camRotation.y) * (float)Math.sin(camRotation.x));
+                    Vector3 delta = new Vector3(
+                            (xdelta * (float)Math.sin(camRotation.x)) - (ydelta * (float)Math.sin(camRotation.y) * (float)Math.cos(camRotation.x)),
+                            ydelta * (float)Math.cos(camRotation.y),
+                            -(xdelta * (float)Math.cos(camRotation.x)) - (ydelta * (float)Math.sin(camRotation.y) * (float)Math.sin(camRotation.x)));
+                    applySubzoneRotation(delta);
                     
-                    selectedObj.position.x += _xdelta;
-                    selectedObj.position.y += _ydelta;
-                    selectedObj.position.z -= _zdelta;
+                    selectedObj.position.x += delta.x;
+                    selectedObj.position.y += delta.y;
+                    selectedObj.position.z += delta.z;
                     
                     pnlObjectSettings.setFieldValue("pos_x", selectedObj.position.x);
                     pnlObjectSettings.setFieldValue("pos_y", selectedObj.position.y);
                     pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);
+                    rerenderTasks.push("zone:"+selectedObj.zone);
                 }
-                
-                rerenderTasks.push("zone:"+selectedObj.zone);
             }
             else
             {
@@ -1193,13 +1227,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         @Override
         public void mouseEntered(MouseEvent e)
         {
-            //throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override
         public void mouseExited(MouseEvent e)
         {
-            //throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override
@@ -1207,12 +1239,49 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         {
             if (!inited) return;
             
-            float delta = (float)(e.getPreciseWheelRotation() * 0.1f);
-            camTarget.x += delta * (float)Math.cos(camRotation.x) * (float)Math.cos(camRotation.y);
-            camTarget.y += delta * (float)Math.sin(camRotation.y);
-            camTarget.z += delta * (float)Math.sin(camRotation.x) * (float)Math.cos(camRotation.y);
+            if (mouseButton == MouseEvent.BUTTON1 && selectedObj != null && selectedVal == underCursor)
+            {
+                float delta = (float)e.getPreciseWheelRotation();
+                delta = ((delta < 0f) ? -1f:1f) * (float)Math.pow(delta, 2f) * 0.05f * scaledown;
+                
+                Vector3 d1 = new Vector3(
+                        delta * (float)Math.cos(camRotation.x) * (float)Math.cos(camRotation.y),
+                        delta * (float)Math.sin(camRotation.y),
+                        delta * (float)Math.sin(camRotation.x) * (float)Math.cos(camRotation.y));
+                applySubzoneRotation(d1);
+
+                selectedObj.position.x += d1.x;
+                selectedObj.position.y += d1.y;
+                selectedObj.position.z += d1.z;
+
+                float xdist = delta * (lastMouseMove.x - (glCanvas.getWidth() / 2f)) * pixelFactorX;
+                float ydist = delta * (lastMouseMove.y - (glCanvas.getHeight() / 2f)) * pixelFactorY;
+                
+                Vector3 d2 = new Vector3(
+                        -(xdist * (float)Math.sin(camRotation.x)) - (ydist * (float)Math.sin(camRotation.y) * (float)Math.cos(camRotation.x)),
+                        ydist * (float)Math.cos(camRotation.y),
+                        (xdist * (float)Math.cos(camRotation.x)) - (ydist * (float)Math.sin(camRotation.y) * (float)Math.sin(camRotation.x)));
+                applySubzoneRotation(d2);
+
+                selectedObj.position.x += d2.x;
+                selectedObj.position.y += d2.y;
+                selectedObj.position.z += d2.z;
+
+                pnlObjectSettings.setFieldValue("pos_x", selectedObj.position.x);
+                pnlObjectSettings.setFieldValue("pos_y", selectedObj.position.y);
+                pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);
+                rerenderTasks.push("zone:"+selectedObj.zone);
+            }
+            else
+            {
+                float delta = (float)(e.getPreciseWheelRotation() * 0.1f);
+                camTarget.x += delta * (float)Math.cos(camRotation.x) * (float)Math.cos(camRotation.y);
+                camTarget.y += delta * (float)Math.sin(camRotation.y);
+                camTarget.z += delta * (float)Math.sin(camRotation.x) * (float)Math.cos(camRotation.y);
+
+                updateCamera();
+            }
             
-            updateCamera();
             e.getComponent().repaint();
         }
         
@@ -1235,6 +1304,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
     
     public int maxUniqueID;
     public HashMap<Integer, LevelObject> globalObjList;
+    
+    public class SubZoneData
+    {
+        String layer;
+        Vector3 position;
+        Vector3 rotation;
+    }
+    public HashMap<String, SubZoneData> subZoneData;
     
     private GLCanvas glCanvas;
     private boolean inited;
