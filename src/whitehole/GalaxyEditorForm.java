@@ -629,6 +629,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             pickingDepth = 1f;
             
             isDragging = false;
+            pickingCapture = false;
             underCursor = 0xFFFFFFFF;
             selectedVal = 0xFFFFFFFF;
             selectedObj = null;
@@ -1059,13 +1060,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             
             if (!isDragging && (Math.abs(xdelta) >= 3f || Math.abs(ydelta) >= 3f))
             {
-                underCursor = pickingFrameBuffer.get(4);
-                depthUnderCursor = pickingDepth;
+                pickingCapture = true;
                 isDragging = true;
             }
             
             if (!isDragging)
                 return;
+            
+            if (pickingCapture)
+            {
+                underCursor = pickingFrameBuffer.get(4);
+                depthUnderCursor = pickingDepth;
+                pickingCapture = false;
+            }
             
             lastMouseMove = e.getPoint();
             
@@ -1212,6 +1219,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 if (rerenderTasks.empty() || !selectedObj.zone.equals(rerenderTasks.peek()))
                     rerenderTasks.push("zone:"+selectedObj.zone);
                 
+                for (int z = 0; z < galaxyArc.zoneList.size(); z++)
+                {
+                    if (!galaxyArc.zoneList.get(z).equals(selectedObj.zone))
+                        continue;
+                    lbZoneList.setSelectedIndex(z);
+                    break;
+                }
+                tpLeftPanel.setSelectedIndex(1);
+                
                 TreeNode objnode = ((DefaultMutableTreeNode)tvObjectList.getModel().getRoot()).getChildAt(0);
                 ObjTreeNode finalnode = (ObjTreeNode)((ObjListTreeNode)objnode).children.get(objid);
                 TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(finalnode));
@@ -1244,28 +1260,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 float delta = (float)e.getPreciseWheelRotation();
                 delta = ((delta < 0f) ? -1f:1f) * (float)Math.pow(delta, 2f) * 0.05f * scaledown;
                 
-                Vector3 d1 = new Vector3(
+                Vector3 vdelta = new Vector3(
                         delta * (float)Math.cos(camRotation.x) * (float)Math.cos(camRotation.y),
                         delta * (float)Math.sin(camRotation.y),
                         delta * (float)Math.sin(camRotation.x) * (float)Math.cos(camRotation.y));
-                applySubzoneRotation(d1);
-
-                selectedObj.position.x += d1.x;
-                selectedObj.position.y += d1.y;
-                selectedObj.position.z += d1.z;
-
+                
                 float xdist = delta * (lastMouseMove.x - (glCanvas.getWidth() / 2f)) * pixelFactorX;
                 float ydist = delta * (lastMouseMove.y - (glCanvas.getHeight() / 2f)) * pixelFactorY;
+                vdelta.x += -(xdist * (float)Math.sin(camRotation.x)) - (ydist * (float)Math.sin(camRotation.y) * (float)Math.cos(camRotation.x));
+                vdelta.y += ydist * (float)Math.cos(camRotation.y);
+                vdelta.z += (xdist * (float)Math.cos(camRotation.x)) - (ydist * (float)Math.sin(camRotation.y) * (float)Math.sin(camRotation.x));
                 
-                Vector3 d2 = new Vector3(
-                        -(xdist * (float)Math.sin(camRotation.x)) - (ydist * (float)Math.sin(camRotation.y) * (float)Math.cos(camRotation.x)),
-                        ydist * (float)Math.cos(camRotation.y),
-                        (xdist * (float)Math.cos(camRotation.x)) - (ydist * (float)Math.sin(camRotation.y) * (float)Math.sin(camRotation.x)));
-                applySubzoneRotation(d2);
+                applySubzoneRotation(vdelta);
 
-                selectedObj.position.x += d2.x;
-                selectedObj.position.y += d2.y;
-                selectedObj.position.z += d2.z;
+                selectedObj.position.x += vdelta.x;
+                selectedObj.position.y += vdelta.y;
+                selectedObj.position.z += vdelta.z;
 
                 pnlObjectSettings.setFieldValue("pos_x", selectedObj.position.x);
                 pnlObjectSettings.setFieldValue("pos_y", selectedObj.position.y);
@@ -1282,6 +1292,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 updateCamera();
             }
             
+            pickingCapture = true;
             e.getComponent().repaint();
         }
         
@@ -1331,6 +1342,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
     private int mouseButton;
     private Point lastMouseMove;
     private boolean isDragging;
+    private boolean pickingCapture;
     private IntBuffer pickingFrameBuffer;
     private FloatBuffer pickingDepthBuffer;
     private float pickingDepth;
