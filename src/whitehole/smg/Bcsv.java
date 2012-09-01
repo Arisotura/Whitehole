@@ -322,7 +322,7 @@ public class Bcsv
     public static String hashToFieldName(int hash)
     {
         if (!hashTable.containsKey(hash))
-            return String.format("[%1$X8]", hash);
+            return String.format("[%1$08X]", hash);
 
         return hashTable.get(hash);
     }
