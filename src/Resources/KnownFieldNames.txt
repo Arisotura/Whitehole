@@ -5,10 +5,10 @@ Floor_code
 Wall_code
 Camera_through
 
-# zonelist.bcsv
+# ZoneList.bcsv
 ZoneName
 
-# scenariodata.bcsv
+# ScenarioData.bcsv
 ScenarioNo
 ScenarioName
 PowerStarId
@@ -18,11 +18,11 @@ LuigiModeTimer
 IsHidden
 # TODO: D6C80400
 
-# changescenelistinfo
+# ChangeSceneListInfo
 SceneNo
 MarioNo
 
-# commonpathpointinfo
+# CommonPathPointInfo
 point_arg0
 point_arg1
 point_arg2
@@ -31,6 +31,20 @@ point_arg4
 point_arg5
 point_arg6
 point_arg7
+
+# MapPartsInfo
+MoveConditionType
+RotateSpeed
+RotateAngle
+RotateAxis
+RotateAccelType
+RotateStopTime
+RotateType
+ShadowType
+SignMotionType
+# TODO: 4137EDFD
+FarClip
+# TODO: 4F11491C
 
 # names below extracted from Anarchy in the Galaxy
 # credit goes to Phantom Wings (or whoever found them if it isn't him)
