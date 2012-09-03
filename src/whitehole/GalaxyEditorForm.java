@@ -710,6 +710,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             if (!galaxyMode && parentForm != null)
                 parentForm.updateZone(galaxyName);
+            else
+            {
+                for (GalaxyEditorForm form : childZoneEditors.values())
+                    form.updateZone(form.galaxyName);
+            }
         }
         catch (IOException ex)
         {
