@@ -52,6 +52,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         galaxyMode = true;
         parentForm = null;
+        childZoneEditors = new HashMap<>();
         galaxyName = galaxy;
         try
         {
@@ -119,7 +120,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         tpLeftPanel.remove(1);
     }
     
-    public GalaxyEditorForm(GalaxyEditorForm gal_parent, String zone)
+    public GalaxyEditorForm(GalaxyEditorForm gal_parent, ZoneArchive zone)
     {
         initComponents();
         
@@ -130,10 +131,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
         galaxyMode = false;
         parentForm = gal_parent;
-        galaxyName = zone; // hax
+        childZoneEditors = null;
+        galaxyName = zone.zoneName; // hax
         try
         {
             zoneArcs = new HashMap<>(1);
+            zoneArcs.put(galaxyName, zone);
             loadZone(galaxyName);
         }
         catch (IOException ex)
@@ -156,7 +159,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             public void checkBoxStatusChanged(int index, boolean status)
             { layerSelectChange(index, status); }
         });
-        pnlLayersPanel.add(lbLayersList, BorderLayout.CENTER);
+        scpLayersList.setViewportView(lbLayersList);
+        pack();
         
         zoneModeLayerBitmask = 1;
         JCheckBox[] cblayers = new JCheckBox[curZoneArc.objects.keySet().size()];
@@ -166,7 +170,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         i++;
         for (int l = 0; l < 26; l++)
         {
-            String ls = "Layer" + ('A'+l);
+            String ls = String.format("Layer%1$c", 'A'+l);
             if (curZoneArc.objects.containsKey(ls.toLowerCase()))
             {
                 cblayers[i] = new JCheckBox(ls);
@@ -178,6 +182,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 i++;
             }
         }
+        lbLayersList.setListData(cblayers);
         
         populateObjectList(zoneModeLayerBitmask);
     }
@@ -209,10 +214,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private void loadZone(String zone) throws IOException
     {
         ZoneArchive arc;
-        if (galaxyMode) arc = galaxyArc.openZone(zone);
-        else arc = new ZoneArchive(Whitehole.game, zone);
+        if (galaxyMode) 
+        {
+            arc = galaxyArc.openZone(zone);
+            zoneArcs.put(zone, arc);
+        }
+        else 
+            arc = zoneArcs.get(zone);
         
-        zoneArcs.put(zone, arc);
         for (java.util.List<LevelObject> objlist : arc.objects.values())
         {
             for (LevelObject obj : objlist)
@@ -273,6 +282,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         pnlLayersPanel = new javax.swing.JPanel();
         jToolBar6 = new javax.swing.JToolBar();
         jLabel1 = new javax.swing.JLabel();
+        scpLayersList = new javax.swing.JScrollPane();
         jSplitPane4 = new javax.swing.JSplitPane();
         jPanel3 = new javax.swing.JPanel();
         jToolBar5 = new javax.swing.JToolBar();
@@ -288,6 +298,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowOpened(java.awt.event.WindowEvent evt) {
                 formWindowOpened(evt);
+            }
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
             }
         });
 
@@ -447,6 +460,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jToolBar6.add(jLabel1);
 
         pnlLayersPanel.add(jToolBar6, java.awt.BorderLayout.PAGE_START);
+        pnlLayersPanel.add(scpLayersList, java.awt.BorderLayout.CENTER);
 
         tpLeftPanel.addTab("Layers", pnlLayersPanel);
 
@@ -671,7 +685,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         else
             zoneModeLayerBitmask &= ~(1 << index);
         
-        rerenderTasks.push("zone:"+galaxyName);
+        rerenderTasks.push("allobjects:");
         glCanvas.repaint();
     }
     
@@ -705,9 +719,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
     private void btnEditZoneActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnEditZoneActionPerformed
     {//GEN-HEADEREND:event_btnEditZoneActionPerformed
-        GalaxyEditorForm form = new GalaxyEditorForm(this, curZone);
+        GalaxyEditorForm form = new GalaxyEditorForm(this, curZoneArc);
         form.setVisible(true);
+        childZoneEditors.put(curZone, form);
     }//GEN-LAST:event_btnEditZoneActionPerformed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
+    {//GEN-HEADEREND:event_formWindowClosing
+        // TODO save confirm!
+        
+        if (galaxyMode)
+        {
+            for (GalaxyEditorForm form : childZoneEditors.values())
+                form.dispose();
+        }
+    }//GEN-LAST:event_formWindowClosing
 
     public void propPanelPropertyChanged(String propname, Object value)
     {
@@ -859,16 +885,20 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 for (int s = 0; s < galaxyArc.scenarioData.size(); s++)
                 {
                     if (!zoneDisplayLists.containsKey(s))
-                        zoneDisplayLists.put(s, new int[3]);
+                        zoneDisplayLists.put(s, new int[] {0,0,0});
 
-                    int dl = gl.glGenLists(1);
+                    int dl = zoneDisplayLists.get(s)[mode];
+                    if (dl == 0)
+                    {
+                        dl = gl.glGenLists(1);
+                        zoneDisplayLists.get(s)[mode] = dl;
+                    }
                     gl.glNewList(dl, GL2.GL_COMPILE);
 
                     Bcsv.Entry scenario = galaxyArc.scenarioData.get(s);
                     renderZone(gl, scenario, galaxyName, (int)scenario.get(galaxyName), 0);
 
                     gl.glEndList();
-                    zoneDisplayLists.get(s)[mode] = dl;
                 }
             }
             else
@@ -876,15 +906,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 prerenderZone(gl, galaxyName);
                 
                 if (!zoneDisplayLists.containsKey(0))
-                    zoneDisplayLists.put(0, new int[3]);
+                    zoneDisplayLists.put(0, new int[] {0,0,0});
 
-                int dl = gl.glGenLists(1);
+                int dl = zoneDisplayLists.get(0)[mode];
+                if (dl == 0)
+                {
+                    dl = gl.glGenLists(1);
+                    zoneDisplayLists.get(0)[mode] = dl;
+                }
                 gl.glNewList(dl, GL2.GL_COMPILE);
-System.out.println("RenderZone "+galaxyName);
+
                 renderZone(gl, null, galaxyName, zoneModeLayerBitmask, 99);
 
                 gl.glEndList();
-                zoneDisplayLists.get(0)[mode] = dl;
             }
         }
         
@@ -1048,6 +1082,12 @@ System.out.println("RenderZone "+galaxyName);
                         LevelObject obj = globalObjList.get(objid);
                         obj.closeRenderer(renderinfo);
                         obj.initRenderer(renderinfo);
+                        break;
+                        
+                    case "allobjects":
+                        renderinfo.renderMode = GLRenderer.RenderMode.PICKING;      renderAllObjects(gl);
+                        renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;       renderAllObjects(gl);
+                        renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT;  renderAllObjects(gl);
                         break;
                 }
             }
@@ -1486,6 +1526,7 @@ System.out.println("RenderZone "+galaxyName);
     public boolean galaxyMode;
     public String galaxyName;
     public GalaxyEditorForm parentForm;
+    public HashMap<String, GalaxyEditorForm> childZoneEditors;
     public GalaxyArchive galaxyArc;
     private GalaxyRenderer renderer;
     public HashMap<String, ZoneArchive> zoneArcs;
@@ -1577,6 +1618,7 @@ System.out.println("RenderZone "+galaxyName);
     private javax.swing.JPanel pnlGLPanel;
     private javax.swing.JPanel pnlLayersPanel;
     private javax.swing.JSplitPane pnlScenarioZonePanel;
+    private javax.swing.JScrollPane scpLayersList;
     private javax.swing.JScrollPane scpObjSettingsContainer;
     private javax.swing.JTabbedPane tpLeftPanel;
     private javax.swing.JTree tvObjectList;

@@ -23,6 +23,7 @@ import java.awt.*;
 import java.util.prefs.Preferences;
 import javax.swing.*;
 import java.io.*;
+import java.util.HashMap;
 import whitehole.fileio.*;
 
 public class MainFrame extends javax.swing.JFrame {
@@ -32,6 +33,7 @@ public class MainFrame extends javax.swing.JFrame {
      */
     public MainFrame() {
         initComponents();
+        galaxyEditors = new HashMap<>();
     }
 
     /**
@@ -170,7 +172,12 @@ public class MainFrame extends javax.swing.JFrame {
         fc.setDialogTitle("Open a game archive");
         String lastdir = Preferences.userRoot().get("lastGameDir", null);
         if (lastdir != null) fc.setSelectedFile(new File(lastdir));
-        fc.showOpenDialog(this);
+        if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
+            return;
+        
+        for (GalaxyEditorForm form : galaxyEditors.values())
+            form.dispose();
+        galaxyEditors.clear();
         
         String seldir = fc.getSelectedFile().getPath();
         Preferences.userRoot().put("lastGameDir", seldir);
@@ -199,7 +206,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
     {//GEN-HEADEREND:event_formWindowOpened
-        btnBcsvEditor.setVisible(Whitehole.isBeta);
+        //btnBcsvEditor.setVisible(Whitehole.isBeta);
         
         this.setTitle(Whitehole.fullName);
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
@@ -244,15 +251,29 @@ public class MainFrame extends javax.swing.JFrame {
         new BcsvEditorForm().setVisible(true);
     }//GEN-LAST:event_btnBcsvEditorActionPerformed
 
+    private void openGalaxy()
+    {
+        String gal = (String)GalaxyList.getSelectedValue();
+        if (galaxyEditors.containsKey(gal))
+        {
+            galaxyEditors.get(gal).toFront();
+            return;
+        }
+        
+        GalaxyEditorForm form = new GalaxyEditorForm(gal);
+        form.setVisible(true);
+        galaxyEditors.put(gal, form);
+    }
+    
     private void GalaxyListMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_GalaxyListMouseClicked
     {//GEN-HEADEREND:event_GalaxyListMouseClicked
         if (evt.getClickCount() < 2) return;
-        new GalaxyEditorForm((String)GalaxyList.getSelectedValue()).setVisible(true);
+        openGalaxy();
     }//GEN-LAST:event_GalaxyListMouseClicked
 
     private void btnOpenGalaxyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnOpenGalaxyActionPerformed
     {//GEN-HEADEREND:event_btnOpenGalaxyActionPerformed
-        new GalaxyEditorForm((String)GalaxyList.getSelectedValue()).setVisible(true);
+        openGalaxy();
     }//GEN-LAST:event_btnOpenGalaxyActionPerformed
 
     private void GalaxyListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_GalaxyListValueChanged
@@ -266,6 +287,8 @@ public class MainFrame extends javax.swing.JFrame {
         new SettingsForm(this, true).setVisible(true);
     }//GEN-LAST:event_btnSettingsActionPerformed
 
+    private HashMap<String, GalaxyEditorForm> galaxyEditors;
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JList GalaxyList;
     private javax.swing.JButton btnAbout;

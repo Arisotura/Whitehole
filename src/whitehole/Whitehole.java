@@ -29,9 +29,9 @@ public class Whitehole
 {
     
     public static final String name = "Whitehole";
-    public static final String version = "v1.0 beta";
+    public static final String version = "v0.9 RC";
     public static String fullName = name + " " + version;
-    public static boolean isBeta = version.contains("beta");
+    //public static boolean isBeta = version.contains("beta");
     
     public static final String websiteURL = "http://kuribo64.cjb.net/";
     

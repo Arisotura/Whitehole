@@ -94,5 +94,5 @@ public class CheckBoxList extends JList
    }
    
    
-   public EventListener eventListener;
+   private EventListener eventListener;
 }
