@@ -548,7 +548,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             layerlist.add("Common");
             for (int l = 0; l < 26; l++)
             {
-                String ls = "Layer" + ('A'+l);
+                String ls = String.format("Layer%1$c", 'A'+l);
                 if (curZoneArc.objects.containsKey(ls.toLowerCase()))
                     layerlist.add(ls);
             }
@@ -570,15 +570,69 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             pnlObjectSettings.addField("scale_y", "Y scale", "float", null, selectedObj.scale.y);
             pnlObjectSettings.addField("scale_z", "Z scale", "float", null, selectedObj.scale.z);
             
+            // TODO nice object args (ObjectDB integration)
+            
             pnlObjectSettings.addCategory("obj_args", "Object arguments");
             pnlObjectSettings.addField("Obj_arg0", "Obj_arg0", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg0")));
             pnlObjectSettings.addField("Obj_arg1", "Obj_arg1", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg1")));
             pnlObjectSettings.addField("Obj_arg2", "Obj_arg2", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg2")));
             pnlObjectSettings.addField("Obj_arg3", "Obj_arg3", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg3")));
-            pnlObjectSettings.addField("Obj_arg4", "Obj_arg4", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg4")));
-            pnlObjectSettings.addField("Obj_arg5", "Obj_arg5", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg5")));
-            pnlObjectSettings.addField("Obj_arg6", "Obj_arg6", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg6")));
-            pnlObjectSettings.addField("Obj_arg7", "Obj_arg7", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg7")));
+            if (selectedObj.file.equalsIgnoreCase("objinfo"))
+            {
+                pnlObjectSettings.addField("Obj_arg4", "Obj_arg4", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg4")));
+                pnlObjectSettings.addField("Obj_arg5", "Obj_arg5", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg5")));
+                pnlObjectSettings.addField("Obj_arg6", "Obj_arg6", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg6")));
+                pnlObjectSettings.addField("Obj_arg7", "Obj_arg7", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg7")));
+                
+                pnlObjectSettings.addCategory("obj_objinfo", "Object settings");
+                pnlObjectSettings.addField("MessageId", "Message ID", "int", null, selectedObj.data.get("MessageId"));
+                if (curZoneArc.gameMask == 2)
+                    pnlObjectSettings.addField("GeneratorID", "Generator ID", "int", null, selectedObj.data.get("GeneratorID"));
+            }
+            else if (selectedObj.file.equalsIgnoreCase("mappartsinfo"))
+            {
+                pnlObjectSettings.addCategory("obj_mappartsinfo", "Map part settings");
+                pnlObjectSettings.addField("MoveConditionType", "Move condition", "int", null, selectedObj.data.get("MoveConditionType"));
+                pnlObjectSettings.addField("RotateSpeed", "Rotate speed", "int", null, selectedObj.data.get("RotateSpeed"));
+                pnlObjectSettings.addField("RotateAngle", "Rotate angle", "int", null, selectedObj.data.get("RotateAngle"));
+                pnlObjectSettings.addField("RotateAxis", "Rotate axis", "int", null, selectedObj.data.get("RotateAxis"));
+                pnlObjectSettings.addField("RotateAccelType", "Rotate accel type", "int", null, selectedObj.data.get("RotateAccelType"));
+                pnlObjectSettings.addField("RotateStopTime", "Rotate stop time", "int", null, selectedObj.data.get("RotateStopTime"));
+                pnlObjectSettings.addField("RotateType", "Rotate type", "int", null, selectedObj.data.get("RotateType"));
+                pnlObjectSettings.addField("ShadowType", "Shadow type", "int", null, selectedObj.data.get("ShadowType"));
+                pnlObjectSettings.addField("SignMotionType", "Rotate axis", "int", null, selectedObj.data.get("SignMotionType"));
+                pnlObjectSettings.addField("[4137EDFD]", "[4137EDFD]", "int", null, selectedObj.data.get(0x4137EDFD));
+                pnlObjectSettings.addField("FarClip", "Clip distance", "int", null, selectedObj.data.get("FarClip"));
+                if (curZoneArc.gameMask == 2)
+                    pnlObjectSettings.addField("ParentId", "Parent ID", "int", null, selectedObj.data.get("ParentId"));
+            }
+            
+            pnlObjectSettings.addCategory("obj_misc", "Misc. settings");
+            pnlObjectSettings.addField("l_id", "l_id", "int", null, selectedObj.data.get("l_id"));
+            pnlObjectSettings.addField("CameraSetId", "CameraSetId", "int", null, selectedObj.data.get("CameraSetId"));
+            pnlObjectSettings.addField("SW_APPEAR", "SW_APPEAR", "int", null, selectedObj.data.get("SW_APPEAR"));
+            pnlObjectSettings.addField("SW_DEAD", "SW_DEAD", "int", null, selectedObj.data.get("SW_DEAD"));
+            pnlObjectSettings.addField("SW_A", "SW_A", "int", null, selectedObj.data.get("SW_A"));
+            pnlObjectSettings.addField("SW_B", "SW_B", "int", null, selectedObj.data.get("SW_B"));
+            if (curZoneArc.gameMask == 2)
+            {
+                pnlObjectSettings.addField("SW_AWAKE", "SW_AWAKE", "int", null, selectedObj.data.get("SW_AWAKE"));
+                pnlObjectSettings.addField("SW_PARAM", "SW_PARAM", "int", null, selectedObj.data.get("SW_PARAM"));
+                pnlObjectSettings.addField("ParamScale", "ParamScale", "float", null, selectedObj.data.get("ParamScale"));
+            }
+            else
+                pnlObjectSettings.addField("[4F11491C]", "[4F11491C]", "int", null, selectedObj.data.get(0x4F11491C));
+            pnlObjectSettings.addField("CastId", "CastId", "int", null, selectedObj.data.get("CastId"));
+            pnlObjectSettings.addField("ViewGroupId", "ViewGroupId", "int", null, selectedObj.data.get("ViewGroupId"));
+            pnlObjectSettings.addField("ShapeModelNo", "ShapeModelNo", "int", null, selectedObj.data.get("ShapeModelNo"));
+            pnlObjectSettings.addField("CommonPath_ID", "CommonPath_ID", "int", null, selectedObj.data.get("CommonPath_ID"));
+            pnlObjectSettings.addField("ClippingGroupId", "ClippingGroupId", "int", null, selectedObj.data.get("ClippingGroupId"));
+            pnlObjectSettings.addField("GroupId", "GroupId", "int", null, selectedObj.data.get("GroupId"));
+            pnlObjectSettings.addField("DemoGroupId", "DemoGroupId", "int", null, selectedObj.data.get("DemoGroupId"));
+            if (curZoneArc.gameMask == 2 || selectedObj.file.equalsIgnoreCase("objinfo"))
+                pnlObjectSettings.addField("MapParts_ID", "MapParts_ID", "int", null, selectedObj.data.get("MapParts_ID"));
+            if (curZoneArc.gameMask == 2)
+                pnlObjectSettings.addField("Obj_ID", "Obj_ID", "int", null, selectedObj.data.get("Obj_ID"));
 
             pnlObjectSettings.addTermination();
         }
@@ -756,18 +810,26 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             lastzone = selectedObj.zone;
         }
         
-        TreeNode selnode = (TreeNode)evt.getPath().getLastPathComponent();
-        if (selnode.getClass() != ObjTreeNode.class)
+        if (evt.getNewLeadSelectionPath() == null)
         {
             selectedVal = 0xFFFFFFFF;
             selectedObj = null;
         }
         else
         {
-            selectedObj = ((ObjTreeNode)selnode).object;
-            selectedVal = selectedObj.uniqueID;
-            if (!lastzone.equals(selectedObj.zone))
-                rerenderTasks.push("zone:"+selectedObj.zone);
+            TreeNode selnode = (TreeNode)evt.getNewLeadSelectionPath().getLastPathComponent();
+            if (selnode.getClass() != ObjTreeNode.class)
+            {
+                selectedVal = 0xFFFFFFFF;
+                selectedObj = null;
+            }
+            else
+            {
+                selectedObj = ((ObjTreeNode)selnode).object;
+                selectedVal = selectedObj.uniqueID;
+                if (!lastzone.equals(selectedObj.zone))
+                    rerenderTasks.push("zone:"+selectedObj.zone);
+            }
         }
         
         selectionChanged();
@@ -817,9 +879,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             rerenderTasks.push("zone:"+selectedObj.zone);
             glCanvas.repaint();
         }
-        else
+        else if (propname.startsWith("Obj_arg"))
         {
             selectedObj.data.put(propname, (int)Long.parseLong((String)value, 16));
+        }
+        else if (propname.startsWith("["))
+        {
+            selectedObj.data.put((int)Long.parseLong(propname.substring(1, 9)), (int)value);
+        }
+        else
+        {
+            selectedObj.data.put(propname, (int)value);
         }
     }
 
@@ -1463,23 +1533,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             if (objid != 0xFFFFFFFF && !globalObjList.containsKey(objid))
                 return;
             
-            if (selectedObj != null)
-                rerenderTasks.push("zone:"+selectedObj.zone);
+            // no need to handle rerendering here: changing the treeview's selection
+            // will trigger it
             
             if (objid == selectedVal || objid == 0xFFFFFFFF)
             {
-                selectedVal = 0xFFFFFFFF;
-                selectedObj = null;
-                
                 tvObjectList.setSelectionPath(null);
             }
             else
             {
                 selectedVal = objid;
                 selectedObj = globalObjList.get(objid);
-                
-                if (rerenderTasks.empty() || !selectedObj.zone.equals(rerenderTasks.peek()))
-                    rerenderTasks.push("zone:"+selectedObj.zone);
                 
                 if (galaxyMode)
                 {
@@ -1499,8 +1563,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 tvObjectList.setSelectionPath(tp);
                 tvObjectList.scrollPathToVisible(tp);
             }
-            
-            selectionChanged();
             
             e.getComponent().repaint();
         }
