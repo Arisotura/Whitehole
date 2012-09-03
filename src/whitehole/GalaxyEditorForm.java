@@ -539,22 +539,20 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             lbSelected.setText(String.format("%1$s (%2$s, %3$s)", selectedObj.dbInfo.name, selectedObj.zone, layer));
             btnDeselect.setEnabled(true);
             
+            LinkedList layerlist = new LinkedList();
+            layerlist.add("Common");
+            for (int l = 0; l < 26; l++)
+            {
+                String ls = "Layer" + ('A'+l);
+                if (curZoneArc.objects.containsKey(ls.toLowerCase()))
+                    layerlist.add(ls);
+            }
+            
             pnlObjectSettings.addCategory("obj_general", "General settings");
             pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name);
             if (galaxyMode)
-            {
-                LinkedList layerlist = new LinkedList();
-                layerlist.add("Common");
-                for (int l = 0; l < 26; l++)
-                {
-                    String ls = "Layer" + ('A'+l);
-                    if (curZoneArc.objects.containsKey(ls.toLowerCase()))
-                        layerlist.add(ls);
-                }
-                
                 pnlObjectSettings.addField("zone", "Zone", "list", galaxyArc.zoneList, selectedObj.zone);
-                pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer);
-            }
+            pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer);
 
             pnlObjectSettings.addCategory("obj_position", "Position");
             pnlObjectSettings.addField("pos_x", "X position", "float", null, selectedObj.position.x);
@@ -680,10 +678,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     private void layerSelectChange(int index, boolean status)
     {
+        JCheckBox cbx = (JCheckBox)lbLayersList.getModel().getElementAt(index);
+        int layer = cbx.getText().equals("Common") ? 1 : (2 << (cbx.getText().charAt(5) - 'A'));
+        
         if (status)
-            zoneModeLayerBitmask |= (1 << index);
+            zoneModeLayerBitmask |= layer;
         else
-            zoneModeLayerBitmask &= ~(1 << index);
+            zoneModeLayerBitmask &= ~layer;
         
         rerenderTasks.push("allobjects:");
         glCanvas.repaint();
@@ -820,8 +821,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             camPosition = new Vector3(0f, 0f, 0f);
             updateCamera();
             
-            for (LevelObject obj : globalObjList.values())
-                obj.initRenderer(renderinfo);
+            if (parentForm == null)
+            {
+                for (LevelObject obj : globalObjList.values())
+                    obj.initRenderer(renderinfo);
+            }
             
             objDisplayLists = new HashMap<>();
             zoneDisplayLists = new HashMap<>();
@@ -1056,8 +1060,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 gl.glDeleteLists(dls[2], 1);
             }
             
-            for (LevelObject obj : globalObjList.values())
-                obj.closeRenderer(renderinfo);
+            if (parentForm == null)
+            {
+                for (LevelObject obj : globalObjList.values())
+                    obj.closeRenderer(renderinfo);
+            }
             
             RendererCache.clearRefContext();
         }
