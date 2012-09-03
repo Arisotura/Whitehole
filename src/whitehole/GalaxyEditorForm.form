@@ -465,6 +465,9 @@
                             </Property>
                             <Property name="showsRootHandles" type="boolean" value="true"/>
                           </Properties>
+                          <Events>
+                            <EventHandler event="valueChanged" listener="javax.swing.event.TreeSelectionListener" parameters="javax.swing.event.TreeSelectionEvent" handler="tvObjectListValueChanged"/>
+                          </Events>
                         </Component>
                       </SubComponents>
                     </Container>

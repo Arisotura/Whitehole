@@ -496,6 +496,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
         tvObjectList.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
         tvObjectList.setShowsRootHandles(true);
+        tvObjectList.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+                tvObjectListValueChanged(evt);
+            }
+        });
         jScrollPane3.setViewportView(tvObjectList);
 
         jPanel3.add(jScrollPane3, java.awt.BorderLayout.CENTER);
@@ -583,6 +588,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             btnDeselect.setEnabled(false);
         }
         
+        pnlObjectSettings.validate();
         pnlObjectSettings.repaint();
     }
     
@@ -740,6 +746,33 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 form.dispose();
         }
     }//GEN-LAST:event_formWindowClosing
+
+    private void tvObjectListValueChanged(javax.swing.event.TreeSelectionEvent evt)//GEN-FIRST:event_tvObjectListValueChanged
+    {//GEN-HEADEREND:event_tvObjectListValueChanged
+        String lastzone = "lolz";
+        if (selectedObj != null)
+        {
+            rerenderTasks.push("zone:"+selectedObj.zone);
+            lastzone = selectedObj.zone;
+        }
+        
+        TreeNode selnode = (TreeNode)evt.getPath().getLastPathComponent();
+        if (selnode.getClass() != ObjTreeNode.class)
+        {
+            selectedVal = 0xFFFFFFFF;
+            selectedObj = null;
+        }
+        else
+        {
+            selectedObj = ((ObjTreeNode)selnode).object;
+            selectedVal = selectedObj.uniqueID;
+            if (!lastzone.equals(selectedObj.zone))
+                rerenderTasks.push("zone:"+selectedObj.zone);
+        }
+        
+        selectionChanged();
+        glCanvas.repaint();
+    }//GEN-LAST:event_tvObjectListValueChanged
 
     public void propPanelPropertyChanged(String propname, Object value)
     {
