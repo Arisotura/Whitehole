@@ -36,7 +36,7 @@ import whitehole.smg.*;
  *
  * @author lolol
  */
-public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPanelEventListener
+public class GalaxyEditorForm extends javax.swing.JFrame
 {
 
     /**
@@ -50,6 +50,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         globalObjList = new HashMap<>();
         subZoneData = new HashMap<>();
 
+        galaxyMode = true;
+        parentForm = null;
         galaxyName = galaxy;
         try
         {
@@ -105,6 +107,83 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             return;
         }
         
+        initGUI();
+        
+        // hax
+        btnAddScenario.setVisible(false);
+        btnEditScenario.setVisible(false);
+        btnDeleteScenario.setVisible(false);
+        btnAddZone.setVisible(false);
+        btnDeleteZone.setVisible(false);
+        
+        tpLeftPanel.remove(1);
+    }
+    
+    public GalaxyEditorForm(GalaxyEditorForm gal_parent, String zone)
+    {
+        initComponents();
+        
+        maxUniqueID = 0;
+        globalObjList = new HashMap<>();
+        subZoneData = null;
+        galaxyArc = null;
+
+        galaxyMode = false;
+        parentForm = gal_parent;
+        galaxyName = zone; // hax
+        try
+        {
+            zoneArcs = new HashMap<>(1);
+            loadZone(galaxyName);
+        }
+        catch (IOException ex)
+        {
+            JOptionPane.showMessageDialog(null, "Failed to open the zone: "+ex.getMessage(), Whitehole.name, JOptionPane.ERROR_MESSAGE);
+            dispose();
+            return;
+        }
+        
+        curZone = galaxyName;
+        curZoneArc = zoneArcs.get(curZone);
+        
+        initGUI();
+        
+        tpLeftPanel.remove(0);
+        
+        lbLayersList = new CheckBoxList();
+        lbLayersList.setEventListener(new CheckBoxList.EventListener()
+        {
+            public void checkBoxStatusChanged(int index, boolean status)
+            { layerSelectChange(index, status); }
+        });
+        pnlLayersPanel.add(lbLayersList, BorderLayout.CENTER);
+        
+        zoneModeLayerBitmask = 1;
+        JCheckBox[] cblayers = new JCheckBox[curZoneArc.objects.keySet().size()];
+        int i = 0;
+        cblayers[i] = new JCheckBox("Common");
+        cblayers[i].setSelected(true);
+        i++;
+        for (int l = 0; l < 26; l++)
+        {
+            String ls = "Layer" + ('A'+l);
+            if (curZoneArc.objects.containsKey(ls.toLowerCase()))
+            {
+                cblayers[i] = new JCheckBox(ls);
+                if (i == 1) 
+                {
+                    cblayers[i].setSelected(true);
+                    zoneModeLayerBitmask |= (2 << l);
+                }
+                i++;
+            }
+        }
+        
+        populateObjectList(zoneModeLayerBitmask);
+    }
+    
+    private void initGUI()
+    {
         setTitle(galaxyName + " - " + Whitehole.fullName);
         setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
 
@@ -119,12 +198,20 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         
         pnlObjectSettings = new PropertyPanel();
         scpObjSettingsContainer.setViewportView(pnlObjectSettings);
-        pnlObjectSettings.setEventListener(this);
+        //pnlObjectSettings.setEventListener(this);
+        pnlObjectSettings.setEventListener(new PropertyPanel.EventListener() 
+        {
+            public void propertyChanged(String propname, Object value)
+            { propPanelPropertyChanged(propname, value); }
+        });
     }
     
     private void loadZone(String zone) throws IOException
     {
-        ZoneArchive arc = galaxyArc.openZone(zone);
+        ZoneArchive arc;
+        if (galaxyMode) arc = galaxyArc.openZone(zone);
+        else arc = new ZoneArchive(Whitehole.game, zone);
+        
         zoneArcs.put(zone, arc);
         for (java.util.List<LevelObject> objlist : arc.objects.values())
         {
@@ -136,6 +223,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 maxUniqueID++;
             }
         }
+    }
+    
+    
+    public void updateZone(String zone)
+    {
+        rerenderTasks.push("zone:"+zone);
+        glCanvas.repaint();
     }
 
     /**
@@ -159,7 +253,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         jSeparator2 = new javax.swing.JToolBar.Separator();
         lbStatusLabel = new javax.swing.JLabel();
         tpLeftPanel = new javax.swing.JTabbedPane();
-        jSplitPane3 = new javax.swing.JSplitPane();
+        pnlScenarioZonePanel = new javax.swing.JSplitPane();
         jPanel1 = new javax.swing.JPanel();
         jToolBar3 = new javax.swing.JToolBar();
         jLabel3 = new javax.swing.JLabel();
@@ -173,8 +267,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         jLabel4 = new javax.swing.JLabel();
         btnAddZone = new javax.swing.JButton();
         btnDeleteZone = new javax.swing.JButton();
+        btnEditZone = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         lbZoneList = new javax.swing.JList();
+        pnlLayersPanel = new javax.swing.JPanel();
+        jToolBar6 = new javax.swing.JToolBar();
+        jLabel1 = new javax.swing.JLabel();
         jSplitPane4 = new javax.swing.JSplitPane();
         jPanel3 = new javax.swing.JPanel();
         jToolBar5 = new javax.swing.JToolBar();
@@ -248,9 +346,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
 
         tpLeftPanel.setMinimumSize(new java.awt.Dimension(100, 5));
 
-        jSplitPane3.setDividerLocation(200);
-        jSplitPane3.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        jSplitPane3.setLastDividerLocation(200);
+        pnlScenarioZonePanel.setDividerLocation(200);
+        pnlScenarioZonePanel.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        pnlScenarioZonePanel.setLastDividerLocation(200);
 
         jPanel1.setPreferredSize(new java.awt.Dimension(201, 200));
         jPanel1.setLayout(new java.awt.BorderLayout());
@@ -291,7 +389,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
 
         jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
-        jSplitPane3.setTopComponent(jPanel1);
+        pnlScenarioZonePanel.setTopComponent(jPanel1);
 
         jPanel2.setLayout(new java.awt.BorderLayout());
 
@@ -313,6 +411,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         btnDeleteZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar4.add(btnDeleteZone);
 
+        btnEditZone.setText("Edit individually");
+        btnEditZone.setFocusable(false);
+        btnEditZone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnEditZone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnEditZone.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditZoneActionPerformed(evt);
+            }
+        });
+        jToolBar4.add(btnEditZone);
+
         jPanel2.add(jToolBar4, java.awt.BorderLayout.PAGE_START);
 
         lbZoneList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
@@ -325,9 +434,21 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
 
         jPanel2.add(jScrollPane2, java.awt.BorderLayout.CENTER);
 
-        jSplitPane3.setRightComponent(jPanel2);
+        pnlScenarioZonePanel.setRightComponent(jPanel2);
 
-        tpLeftPanel.addTab("Scenario/Zone", jSplitPane3);
+        tpLeftPanel.addTab("Scenario/Zone", pnlScenarioZonePanel);
+
+        pnlLayersPanel.setLayout(new java.awt.BorderLayout());
+
+        jToolBar6.setFloatable(false);
+        jToolBar6.setRollover(true);
+
+        jLabel1.setText("Layers:");
+        jToolBar6.add(jLabel1);
+
+        pnlLayersPanel.add(jToolBar6, java.awt.BorderLayout.PAGE_START);
+
+        tpLeftPanel.addTab("Layers", pnlLayersPanel);
 
         jSplitPane4.setDividerLocation(300);
         jSplitPane4.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
@@ -361,11 +482,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
         tvObjectList.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
         tvObjectList.setShowsRootHandles(true);
-        tvObjectList.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                tvObjectListValueChanged(evt);
-            }
-        });
         jScrollPane3.setViewportView(tvObjectList);
 
         jPanel3.add(jScrollPane3, java.awt.BorderLayout.CENTER);
@@ -384,14 +500,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
 
     private void formWindowOpened(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowOpened
     {//GEN-HEADEREND:event_formWindowOpened
-        DefaultListModel scenlist = new DefaultListModel();
-        lbScenarioList.setModel(scenlist);
-        for (Bcsv.Entry scen : galaxyArc.scenarioData)
+        if (galaxyMode)
         {
-            scenlist.addElement(String.format("[%1$d] %2$s", (int)scen.get("ScenarioNo"), (String)scen.get("ScenarioName")));
+            DefaultListModel scenlist = new DefaultListModel();
+            lbScenarioList.setModel(scenlist);
+            for (Bcsv.Entry scen : galaxyArc.scenarioData)
+            {
+                scenlist.addElement(String.format("[%1$d] %2$s", (int)scen.get("ScenarioNo"), (String)scen.get("ScenarioName")));
+            }
+
+            lbScenarioList.setSelectedIndex(0);
         }
-        
-        lbScenarioList.setSelectedIndex(0);
         
         //
     }//GEN-LAST:event_formWindowOpened
@@ -407,28 +526,42 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             btnDeselect.setEnabled(true);
             
             pnlObjectSettings.addCategory("obj_general", "General settings");
-            pnlObjectSettings.addField("name", "Object", "objname", selectedObj.name);
+            pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name);
+            if (galaxyMode)
+            {
+                LinkedList layerlist = new LinkedList();
+                layerlist.add("Common");
+                for (int l = 0; l < 26; l++)
+                {
+                    String ls = "Layer" + ('A'+l);
+                    if (curZoneArc.objects.containsKey(ls.toLowerCase()))
+                        layerlist.add(ls);
+                }
+                
+                pnlObjectSettings.addField("zone", "Zone", "list", galaxyArc.zoneList, selectedObj.zone);
+                pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer);
+            }
 
             pnlObjectSettings.addCategory("obj_position", "Position");
-            pnlObjectSettings.addField("pos_x", "X position", "float", selectedObj.position.x);
-            pnlObjectSettings.addField("pos_y", "Y position", "float", selectedObj.position.y);
-            pnlObjectSettings.addField("pos_z", "Z position", "float", selectedObj.position.z);
-            pnlObjectSettings.addField("dir_x", "X rotation", "float", selectedObj.rotation.x);
-            pnlObjectSettings.addField("dir_y", "Y rotation", "float", selectedObj.rotation.y);
-            pnlObjectSettings.addField("dir_z", "Z rotation", "float", selectedObj.rotation.z);
-            pnlObjectSettings.addField("scale_x", "X scale", "float", selectedObj.scale.x);
-            pnlObjectSettings.addField("scale_y", "Y scale", "float", selectedObj.scale.y);
-            pnlObjectSettings.addField("scale_z", "Z scale", "float", selectedObj.scale.z);
+            pnlObjectSettings.addField("pos_x", "X position", "float", null, selectedObj.position.x);
+            pnlObjectSettings.addField("pos_y", "Y position", "float", null, selectedObj.position.y);
+            pnlObjectSettings.addField("pos_z", "Z position", "float", null, selectedObj.position.z);
+            pnlObjectSettings.addField("dir_x", "X rotation", "float", null, selectedObj.rotation.x);
+            pnlObjectSettings.addField("dir_y", "Y rotation", "float", null, selectedObj.rotation.y);
+            pnlObjectSettings.addField("dir_z", "Z rotation", "float", null, selectedObj.rotation.z);
+            pnlObjectSettings.addField("scale_x", "X scale", "float", null, selectedObj.scale.x);
+            pnlObjectSettings.addField("scale_y", "Y scale", "float", null, selectedObj.scale.y);
+            pnlObjectSettings.addField("scale_z", "Z scale", "float", null, selectedObj.scale.z);
             
             pnlObjectSettings.addCategory("obj_args", "Object arguments");
-            pnlObjectSettings.addField("Obj_arg0", "Obj_arg0", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg0")));
-            pnlObjectSettings.addField("Obj_arg1", "Obj_arg1", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg1")));
-            pnlObjectSettings.addField("Obj_arg2", "Obj_arg2", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg2")));
-            pnlObjectSettings.addField("Obj_arg3", "Obj_arg3", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg3")));
-            pnlObjectSettings.addField("Obj_arg4", "Obj_arg4", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg4")));
-            pnlObjectSettings.addField("Obj_arg5", "Obj_arg5", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg5")));
-            pnlObjectSettings.addField("Obj_arg6", "Obj_arg6", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg6")));
-            pnlObjectSettings.addField("Obj_arg7", "Obj_arg7", "text", String.format("%1$08X",selectedObj.data.get("Obj_arg7")));
+            pnlObjectSettings.addField("Obj_arg0", "Obj_arg0", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg0")));
+            pnlObjectSettings.addField("Obj_arg1", "Obj_arg1", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg1")));
+            pnlObjectSettings.addField("Obj_arg2", "Obj_arg2", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg2")));
+            pnlObjectSettings.addField("Obj_arg3", "Obj_arg3", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg3")));
+            pnlObjectSettings.addField("Obj_arg4", "Obj_arg4", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg4")));
+            pnlObjectSettings.addField("Obj_arg5", "Obj_arg5", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg5")));
+            pnlObjectSettings.addField("Obj_arg6", "Obj_arg6", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg6")));
+            pnlObjectSettings.addField("Obj_arg7", "Obj_arg7", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg7")));
 
             pnlObjectSettings.addTermination();
         }
@@ -491,10 +624,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             return;
         }
         
+        btnEditZone.setEnabled(true);
+        
         int selid = lbZoneList.getSelectedIndex();
         curZone = galaxyArc.zoneList.get(selid);
         curZoneArc = zoneArcs.get(curZone);
         
+        int layermask = (int)curScenario.get(curZone);
+        populateObjectList(layermask << 1 | 1);
+
+        lbStatusLabel.setText("Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + curZone);
+        
+        glCanvas.repaint();
+    }//GEN-LAST:event_lbZoneListValueChanged
+
+    private void populateObjectList(int layermask)
+    {
         DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(curZone);
         objlist.setRoot(root);
@@ -503,8 +648,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         objnode.setUserObject("Objects");
         root.add(objnode);
         
-        int layermask = (int)curScenario.get(curZone);
-        
         for (java.util.List<LevelObject> objs : curZoneArc.objects.values())
         {
             for (LevelObject obj : objs)
@@ -512,18 +655,26 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 if (!obj.layer.equals("common"))
                 {
                     int layernum = obj.layer.charAt(5) - 'a';
-                    if ((layermask & (1 << layernum)) == 0) continue;
+                    if ((layermask & (2 << layernum)) == 0) continue;
                 }
+                else if ((layermask & 1) == 0) continue;
                 
                 objnode.addObject(obj);
             }
         }
-
-        lbStatusLabel.setText("Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + curZone);
+    }
+    
+    private void layerSelectChange(int index, boolean status)
+    {
+        if (status)
+            zoneModeLayerBitmask |= (1 << index);
+        else
+            zoneModeLayerBitmask &= ~(1 << index);
         
+        rerenderTasks.push("zone:"+galaxyName);
         glCanvas.repaint();
-    }//GEN-LAST:event_lbZoneListValueChanged
-
+    }
+    
     private void btnDeselectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnDeselectActionPerformed
     {//GEN-HEADEREND:event_btnDeselectActionPerformed
         rerenderTasks.push("zone:"+selectedObj.zone);
@@ -533,25 +684,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         glCanvas.repaint();
     }//GEN-LAST:event_btnDeselectActionPerformed
 
-    private void tvObjectListValueChanged(javax.swing.event.TreeSelectionEvent evt)//GEN-FIRST:event_tvObjectListValueChanged
-    {//GEN-HEADEREND:event_tvObjectListValueChanged
-        if (tvObjectList.getSelectionPath() == null)
-            return;
-        
-        MutableTreeNode tn = (MutableTreeNode)tvObjectList.getSelectionPath().getLastPathComponent();
-        if (tn.getClass() != ObjTreeNode.class)
-            return;
-        
-        if (selectedObj != null && !selectedObj.zone.equals(((ObjTreeNode)tn).object.zone))
-            rerenderTasks.push("zone:"+selectedObj.zone);
-        
-        selectedObj = ((ObjTreeNode)tn).object;
-        selectedVal = selectedObj.uniqueID;
-        rerenderTasks.push("zone:"+selectedObj.zone);
-        selectionChanged();
-        glCanvas.repaint();
-    }//GEN-LAST:event_tvObjectListValueChanged
-
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnSaveActionPerformed
     {//GEN-HEADEREND:event_btnSaveActionPerformed
         try
@@ -560,6 +692,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 zonearc.save();
             
             lbStatusLabel.setText("Changes saved.");
+            
+            if (!galaxyMode && parentForm != null)
+                parentForm.updateZone(galaxyName);
         }
         catch (IOException ex)
         {
@@ -568,7 +703,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         }
     }//GEN-LAST:event_btnSaveActionPerformed
 
-    @Override
+    private void btnEditZoneActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnEditZoneActionPerformed
+    {//GEN-HEADEREND:event_btnEditZoneActionPerformed
+        GalaxyEditorForm form = new GalaxyEditorForm(this, curZone);
+        form.setVisible(true);
+    }//GEN-LAST:event_btnEditZoneActionPerformed
+
     public void propPanelPropertyChanged(String propname, Object value)
     {
         if (propname.equals("name"))
@@ -583,6 +723,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
             rerenderTasks.push("zone:"+selectedObj.zone);
             rerenderTasks.push("object:"+new Integer(selectedObj.uniqueID).toString());
             glCanvas.repaint();
+        }
+        else if (propname.equals("zone"))
+        {
+            System.out.println("zone change: "+(String)value);
+            JOptionPane.showMessageDialog(this, "This doesn't work yet. Wait till Mega-Mario gets off his lazy ass.");
+        }
+        else if (propname.equals("layer"))
+        {
+            System.out.println("layer change: "+(String)value);
+            JOptionPane.showMessageDialog(this, "This doesn't work either.");
         }
         else if (propname.startsWith("pos_") || propname.startsWith("dir_") || propname.startsWith("scale_"))
         {
@@ -701,22 +851,40 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 case TRANSLUCENT: mode = 2; break;
             }
             
-            for (String zone : galaxyArc.zoneList)
-                prerenderZone(gl, zone);
-            
-            for (int s = 0; s < galaxyArc.scenarioData.size(); s++)
+            if (galaxyMode)
             {
-                if (!zoneDisplayLists.containsKey(s))
-                    zoneDisplayLists.put(s, new int[3]);
+                for (String zone : galaxyArc.zoneList)
+                    prerenderZone(gl, zone);
                 
+                for (int s = 0; s < galaxyArc.scenarioData.size(); s++)
+                {
+                    if (!zoneDisplayLists.containsKey(s))
+                        zoneDisplayLists.put(s, new int[3]);
+
+                    int dl = gl.glGenLists(1);
+                    gl.glNewList(dl, GL2.GL_COMPILE);
+
+                    Bcsv.Entry scenario = galaxyArc.scenarioData.get(s);
+                    renderZone(gl, scenario, galaxyName, (int)scenario.get(galaxyName), 0);
+
+                    gl.glEndList();
+                    zoneDisplayLists.get(s)[mode] = dl;
+                }
+            }
+            else
+            {
+                prerenderZone(gl, galaxyName);
+                
+                if (!zoneDisplayLists.containsKey(0))
+                    zoneDisplayLists.put(0, new int[3]);
+
                 int dl = gl.glGenLists(1);
                 gl.glNewList(dl, GL2.GL_COMPILE);
-                
-                Bcsv.Entry scenario = galaxyArc.scenarioData.get(s);
-                renderZone(gl, scenario, galaxyName, (int)scenario.get(galaxyName), 0);
-                
+System.out.println("RenderZone "+galaxyName);
+                renderZone(gl, null, galaxyName, zoneModeLayerBitmask, 99);
+
                 gl.glEndList();
-                zoneDisplayLists.get(s)[mode] = dl;
+                zoneDisplayLists.get(0)[mode] = dl;
             }
         }
         
@@ -781,7 +949,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 case TRANSLUCENT: mode = 2; break;
             }
             
-            gl.glCallList(objDisplayLists.get(zone + "/common")[mode]);
+            if (galaxyMode)
+                gl.glCallList(objDisplayLists.get(zone + "/common")[mode]);
+            else
+            {
+                if ((layermask & 1) != 0) gl.glCallList(objDisplayLists.get(zone + "/common")[mode]);
+                layermask >>= 1;
+            }
+            
             for (int l = 0; l < 32; l++)
             {
                 if ((layermask & (1 << l)) != 0)
@@ -1024,6 +1199,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         
         public void applySubzoneRotation(Vector3 delta)
         {
+            if (!galaxyMode) return;
+            
             String szkey = String.format("%1$d/%2$s", curScenarioID, selectedObj.zone);
             if (subZoneData.containsKey(szkey))
             {
@@ -1219,12 +1396,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
                 if (rerenderTasks.empty() || !selectedObj.zone.equals(rerenderTasks.peek()))
                     rerenderTasks.push("zone:"+selectedObj.zone);
                 
-                for (int z = 0; z < galaxyArc.zoneList.size(); z++)
+                if (galaxyMode)
                 {
-                    if (!galaxyArc.zoneList.get(z).equals(selectedObj.zone))
-                        continue;
-                    lbZoneList.setSelectedIndex(z);
-                    break;
+                    for (int z = 0; z < galaxyArc.zoneList.size(); z++)
+                    {
+                        if (!galaxyArc.zoneList.get(z).equals(selectedObj.zone))
+                            continue;
+                        lbZoneList.setSelectedIndex(z);
+                        break;
+                    }
                 }
                 tpLeftPanel.setSelectedIndex(1);
                 
@@ -1303,7 +1483,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
         public final float scaledown = 10000f;
     }
     
+    public boolean galaxyMode;
     public String galaxyName;
+    public GalaxyEditorForm parentForm;
     public GalaxyArchive galaxyArc;
     private GalaxyRenderer renderer;
     public HashMap<String, ZoneArchive> zoneArcs;
@@ -1331,6 +1513,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
     private HashMap<String, int[]> objDisplayLists;
     private HashMap<Integer, int[]> zoneDisplayLists;
     private Stack<String> rerenderTasks;
+    private int zoneModeLayerBitmask;
 
     private Matrix4 modelViewMatrix;
     private float camDistance;
@@ -1352,6 +1535,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
     private int selectedVal;
     private LevelObject selectedObj;
     
+    private CheckBoxList lbLayersList;
     private PropertyPanel pnlObjectSettings;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -1363,7 +1547,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
     private javax.swing.JButton btnDeleteZone;
     private javax.swing.JButton btnDeselect;
     private javax.swing.JButton btnEditScenario;
+    private javax.swing.JButton btnEditZone;
     private javax.swing.JButton btnSave;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -1377,18 +1563,20 @@ public class GalaxyEditorForm extends javax.swing.JFrame implements PropertyPane
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JSplitPane jSplitPane3;
     private javax.swing.JSplitPane jSplitPane4;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JToolBar jToolBar3;
     private javax.swing.JToolBar jToolBar4;
     private javax.swing.JToolBar jToolBar5;
+    private javax.swing.JToolBar jToolBar6;
     private javax.swing.JList lbScenarioList;
     private javax.swing.JLabel lbSelected;
     private javax.swing.JLabel lbStatusLabel;
     private javax.swing.JList lbZoneList;
     private javax.swing.JPanel pnlGLPanel;
+    private javax.swing.JPanel pnlLayersPanel;
+    private javax.swing.JSplitPane pnlScenarioZonePanel;
     private javax.swing.JScrollPane scpObjSettingsContainer;
     private javax.swing.JTabbedPane tpLeftPanel;
     private javax.swing.JTree tvObjectList;

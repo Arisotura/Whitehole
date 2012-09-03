@@ -52,16 +52,38 @@ public class ZoneArchive
             zonefile = "/StageData/" + zoneName + ".arc";
         }
         
-        objects = new HashMap<>();
-        subZones = new HashMap<>();
-        RarcFilesystem zonearc = new RarcFilesystem(filesystem.openFile(zonefile));
+        loadZone();
+    }
+    
+    public ZoneArchive(GameArchive game, String name) throws IOException
+    {
+        galaxy = null;
+        this.game = game;
+        filesystem = game.filesystem;
         
-        loadObjects(zonearc, "MapParts", "MapPartsInfo");
-        loadObjects(zonearc, "Placement", "ObjInfo");
+        zoneName = name;
         
-        loadSubZones(zonearc);
+        // try SMG2-style first, then SMG1
+        if (filesystem.fileExists("/StageData/" + zoneName + "/" + zoneName + "Map.arc"))
+        {
+            // SMG2-style zone
+            // * /StageData/<zoneName>/<zoneName>Design.arc -> ???
+            // * /StageData/<zoneName>/<zoneName>Map.arc -> holds map objects
+            // * /StageData/<zoneName>/<zoneName>Sound.arc -> seems to hold sound-related objects
+            
+            gameMask = 2;
+            zonefile = "/StageData/" + zoneName + "/" + zoneName + "Map.arc";
+        }
+        else
+        {
+            // SMG1-style zone
+            // * /StageData/<zoneName>.arc -> holds all map objects
+            
+            gameMask = 1;
+            zonefile = "/StageData/" + zoneName + ".arc";
+        }
         
-        zonearc.close();
+        loadZone();
     }
     
     public void save() throws IOException
@@ -78,6 +100,20 @@ public class ZoneArchive
     {
     }
     
+    
+    private void loadZone() throws IOException
+    {
+        objects = new HashMap<>();
+        subZones = new HashMap<>();
+        RarcFilesystem zonearc = new RarcFilesystem(filesystem.openFile(zonefile));
+        
+        loadObjects(zonearc, "MapParts", "MapPartsInfo");
+        loadObjects(zonearc, "Placement", "ObjInfo");
+        
+        loadSubZones(zonearc);
+        
+        zonearc.close();
+    }
     
     private void loadObjects(RarcFilesystem arc, String dir, String file)
     {

@@ -20,6 +20,7 @@ package whitehole;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import javax.swing.*;
 import javax.swing.event.*;
@@ -41,7 +42,7 @@ public class PropertyPanel extends JPanel
     }
     
     
-    public void setEventListener(PropertyPanelEventListener listener)
+    public void setEventListener(EventListener listener)
     {
         eventListener = listener;
     }
@@ -109,7 +110,7 @@ public class PropertyPanel extends JPanel
         curIndex++;
     }
     
-    public void addField(String name, String caption, String type, Object val)
+    public void addField(String name, String caption, String type, java.util.List choices, Object val)
     {
         if (curCategory == null)
             throw new NullPointerException("You must add a category before adding fields.");
@@ -143,7 +144,7 @@ public class PropertyPanel extends JPanel
                             if (!field.field.equals(evt.getSource())) continue;
                             String val = ((JTextField)evt.getSource()).getText();
                             if (!field.type.equals("text")) val = String.format("%1$d", Long.parseLong(val));
-                            eventListener.propPanelPropertyChanged(field.name, val);
+                            eventListener.propertyChanged(field.name, val);
                             break;
                         }
                     }
@@ -165,7 +166,29 @@ public class PropertyPanel extends JPanel
                         for (Field field : fields.values())
                         {
                             if (!field.field.equals(evt.getSource())) continue;
-                            eventListener.propPanelPropertyChanged(field.name, ((JSpinner)evt.getSource()).getValue());
+                            eventListener.propertyChanged(field.name, ((JSpinner)evt.getSource()).getValue());
+                            break;
+                        }
+                    }
+                });
+                
+                add(field.field, new GridBagConstraints(1, curRow, 2, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(1,1,0,1), 0, 0));
+                curIndex++;
+                break;
+                
+            case "list":
+                field.field = new JComboBox();
+                for (Object item : choices)
+                    ((JComboBox)field.field).addItem(item);
+                ((JComboBox)field.field).setSelectedItem(val);
+                ((JComboBox)field.field).addActionListener(new ActionListener()
+                {
+                    public void actionPerformed(ActionEvent evt)
+                    {
+                        for (Field field : fields.values())
+                        {
+                            if (!field.field.equals(evt.getSource())) continue;
+                            eventListener.propertyChanged(field.name, ((JComboBox)evt.getSource()).getSelectedItem());
                             break;
                         }
                     }
@@ -187,7 +210,7 @@ public class PropertyPanel extends JPanel
                         for (Field field : fields.values())
                         {
                             if (!field.field.equals(evt.getSource())) continue;
-                            eventListener.propPanelPropertyChanged(field.name, ((JTextField)evt.getSource()).getText());
+                            eventListener.propertyChanged(field.name, ((JTextField)evt.getSource()).getText());
                             break;
                         }
                     }
@@ -225,7 +248,7 @@ public class PropertyPanel extends JPanel
                         for (Field f : fields.values())
                         {
                             if (!f.field.equals(field)) continue;
-                            eventListener.propPanelPropertyChanged(f.name, objsel.selectedObject);
+                            eventListener.propertyChanged(f.name, objsel.selectedObject);
                             break;
                         }
                     }
@@ -286,6 +309,11 @@ public class PropertyPanel extends JPanel
         Component field;
     }
     
+    public interface EventListener 
+    {
+        public void propertyChanged(String propname, Object value);
+    }
+    
     
     public LinkedHashMap<String, Category> categories;
     public LinkedHashMap<String, Field> fields;
@@ -293,5 +321,5 @@ public class PropertyPanel extends JPanel
     private int curRow, curIndex;
     private Category curCategory;
     
-    private PropertyPanelEventListener eventListener;
+    private EventListener eventListener;
 }
