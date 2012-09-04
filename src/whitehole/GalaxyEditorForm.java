@@ -1635,13 +1635,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     public GalaxyEditorForm parentForm;
     public HashMap<String, GalaxyEditorForm> childZoneEditors;
     public GalaxyArchive galaxyArc;
-    private GalaxyRenderer renderer;
+    public GalaxyRenderer renderer;
     public HashMap<String, ZoneArchive> zoneArcs;
     
-    private int curScenarioID;
-    private Bcsv.Entry curScenario;
-    private String curZone;
-    private ZoneArchive curZoneArc;
+    public int curScenarioID;
+    public Bcsv.Entry curScenario;
+    public String curZone;
+    public ZoneArchive curZoneArc;
     
     public int maxUniqueID;
     public HashMap<Integer, LevelObject> globalObjList;

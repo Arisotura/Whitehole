@@ -21,11 +21,11 @@ package whitehole;
 import java.awt.Toolkit;
 import java.util.*;
 import java.util.Map.Entry;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.tree.*;
 
 public class ObjectSelectForm extends javax.swing.JDialog
 {
-
     /**
      * Creates new form ObjectSelectForm
      */
@@ -38,6 +38,39 @@ public class ObjectSelectForm extends javax.swing.JDialog
         
         this.game = game;
         this.selectedObject = selobj;
+        
+        if (selobj != null)
+        {
+            lblZone.setVisible(false);
+            cbxZone.setVisible(false);
+            lblLayer.setVisible(false);
+            cbxLayer.setVisible(false);
+            sepSelect.setVisible(false);
+            
+            selectedZone = "#lolz#";
+            selectedLayer = "#lolz#";
+        }
+        else
+        {
+            GalaxyEditorForm gal_parent = (GalaxyEditorForm)parent;
+            //if (!gal_parent.galaxyMode)
+            {
+                lblZone.setVisible(false);
+                cbxZone.setVisible(false);
+                lblLayer.setText("Add to layer: ");
+                
+                selectedZone = "#lolz#";
+            }
+            
+            DefaultComboBoxModel layerlist = (DefaultComboBoxModel)cbxZone.getModel();
+            layerlist.addElement("Common");
+            for (int l = 0; l < 26; l++)
+            {
+                String ls = String.format("Layer%1$c", 'A'+l);
+                if (gal_parent.curZoneArc.objects.containsKey(ls.toLowerCase()))
+                    layerlist.addElement(ls);
+            }
+        }
     }
 
     /**
@@ -52,8 +85,6 @@ public class ObjectSelectForm extends javax.swing.JDialog
         jSplitPane1 = new javax.swing.JSplitPane();
         jPanel1 = new javax.swing.JPanel();
         jToolBar1 = new javax.swing.JToolBar();
-        btnSelect = new javax.swing.JButton();
-        jSeparator1 = new javax.swing.JToolBar.Separator();
         jLabel1 = new javax.swing.JLabel();
         txtSearch = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -61,6 +92,13 @@ public class ObjectSelectForm extends javax.swing.JDialog
         jPanel2 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         epObjDescription = new javax.swing.JEditorPane();
+        jToolBar2 = new javax.swing.JToolBar();
+        lblZone = new javax.swing.JLabel();
+        cbxZone = new javax.swing.JComboBox();
+        lblLayer = new javax.swing.JLabel();
+        cbxLayer = new javax.swing.JComboBox();
+        sepSelect = new javax.swing.JToolBar.Separator();
+        btnSelect = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Select object");
@@ -80,19 +118,6 @@ public class ObjectSelectForm extends javax.swing.JDialog
 
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
-
-        btnSelect.setText("Select");
-        btnSelect.setEnabled(false);
-        btnSelect.setFocusable(false);
-        btnSelect.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnSelect.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnSelect.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSelectActionPerformed(evt);
-            }
-        });
-        jToolBar1.add(btnSelect);
-        jToolBar1.add(jSeparator1);
 
         jLabel1.setText("Search: ");
         jLabel1.setToolTipText("");
@@ -132,6 +157,34 @@ public class ObjectSelectForm extends javax.swing.JDialog
         jScrollPane3.setViewportView(epObjDescription);
 
         jPanel2.add(jScrollPane3, java.awt.BorderLayout.CENTER);
+
+        jToolBar2.setFloatable(false);
+        jToolBar2.setRollover(true);
+
+        lblZone.setText("Add to zone: ");
+        jToolBar2.add(lblZone);
+
+        jToolBar2.add(cbxZone);
+
+        lblLayer.setText(" Layer: ");
+        jToolBar2.add(lblLayer);
+
+        jToolBar2.add(cbxLayer);
+        jToolBar2.add(sepSelect);
+
+        btnSelect.setText("Select");
+        btnSelect.setEnabled(false);
+        btnSelect.setFocusable(false);
+        btnSelect.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnSelect.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnSelect.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSelectActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(btnSelect);
+
+        jPanel2.add(jToolBar2, java.awt.BorderLayout.PAGE_END);
 
         jSplitPane1.setRightComponent(jPanel2);
 
@@ -231,6 +284,8 @@ public class ObjectSelectForm extends javax.swing.JDialog
         }
         
         selectedObject = ((MyObjTreeNode)tn).objectID;
+        if (!selectedZone.equals("#lolz#")) selectedZone = (String)cbxZone.getSelectedItem();
+        if (!selectedLayer.equals("#lolz#")) selectedLayer = (String)cbxLayer.getSelectedItem();
         dispose();
     }//GEN-LAST:event_btnSelectActionPerformed
 
@@ -366,20 +421,25 @@ public class ObjectSelectForm extends javax.swing.JDialog
     
     
     private int game;
-    public String selectedObject;
+    public String selectedObject, selectedZone, selectedLayer;
     private DefaultMutableTreeNode objList, searchList;
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnSelect;
+    private javax.swing.JComboBox cbxLayer;
+    private javax.swing.JComboBox cbxZone;
     private javax.swing.JEditorPane epObjDescription;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JLabel lblLayer;
+    private javax.swing.JLabel lblZone;
+    private javax.swing.JToolBar.Separator sepSelect;
     private javax.swing.JTree tvObjectList;
     private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
