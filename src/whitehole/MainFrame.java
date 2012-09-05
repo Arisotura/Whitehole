@@ -256,8 +256,13 @@ public class MainFrame extends javax.swing.JFrame {
         String gal = (String)GalaxyList.getSelectedValue();
         if (galaxyEditors.containsKey(gal))
         {
-            galaxyEditors.get(gal).toFront();
-            return;
+            if (!galaxyEditors.get(gal).isVisible())
+                galaxyEditors.remove(gal);
+            else
+            {
+                galaxyEditors.get(gal).toFront();
+                return;
+            }
         }
         
         GalaxyEditorForm form = new GalaxyEditorForm(gal);

@@ -428,21 +428,27 @@
                             <Property name="text" type="java.lang.String" value="Objects:"/>
                           </Properties>
                         </Component>
-                        <Component class="javax.swing.JButton" name="btnAddObject">
+                        <Component class="javax.swing.JToggleButton" name="tgbAddObject">
                           <Properties>
                             <Property name="text" type="java.lang.String" value="Add"/>
                             <Property name="focusable" type="boolean" value="false"/>
                             <Property name="horizontalTextPosition" type="int" value="0"/>
                             <Property name="verticalTextPosition" type="int" value="3"/>
                           </Properties>
+                          <Events>
+                            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbAddObjectActionPerformed"/>
+                          </Events>
                         </Component>
-                        <Component class="javax.swing.JButton" name="btnDeleteObject">
+                        <Component class="javax.swing.JToggleButton" name="tgbDeleteObject">
                           <Properties>
                             <Property name="text" type="java.lang.String" value="Delete"/>
                             <Property name="focusable" type="boolean" value="false"/>
                             <Property name="horizontalTextPosition" type="int" value="0"/>
                             <Property name="verticalTextPosition" type="int" value="3"/>
                           </Properties>
+                          <Events>
+                            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbDeleteObjectActionPerformed"/>
+                          </Events>
                         </Component>
                       </SubComponents>
                     </Container>

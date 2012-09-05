@@ -287,8 +287,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jPanel3 = new javax.swing.JPanel();
         jToolBar5 = new javax.swing.JToolBar();
         jLabel5 = new javax.swing.JLabel();
-        btnAddObject = new javax.swing.JButton();
-        btnDeleteObject = new javax.swing.JButton();
+        tgbAddObject = new javax.swing.JToggleButton();
+        tgbDeleteObject = new javax.swing.JToggleButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         tvObjectList = new javax.swing.JTree();
         scpObjSettingsContainer = new javax.swing.JScrollPane();
@@ -479,17 +479,27 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jLabel5.setText("Objects:");
         jToolBar5.add(jLabel5);
 
-        btnAddObject.setText("Add");
-        btnAddObject.setFocusable(false);
-        btnAddObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnAddObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar5.add(btnAddObject);
+        tgbAddObject.setText("Add");
+        tgbAddObject.setFocusable(false);
+        tgbAddObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbAddObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbAddObject.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbAddObjectActionPerformed(evt);
+            }
+        });
+        jToolBar5.add(tgbAddObject);
 
-        btnDeleteObject.setText("Delete");
-        btnDeleteObject.setFocusable(false);
-        btnDeleteObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnDeleteObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar5.add(btnDeleteObject);
+        tgbDeleteObject.setText("Delete");
+        tgbDeleteObject.setFocusable(false);
+        tgbDeleteObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbDeleteObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbDeleteObject.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbDeleteObjectActionPerformed(evt);
+            }
+        });
+        jToolBar5.add(tgbDeleteObject);
 
         jPanel3.add(jToolBar5, java.awt.BorderLayout.PAGE_START);
 
@@ -685,6 +695,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         lbZoneList.setSelectedIndex(0);
     }//GEN-LAST:event_lbScenarioListValueChanged
 
+    private void setStatusText()
+    {
+        if (galaxyMode)
+            lbStatusLabel.setText("Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + curZone);
+        else
+            lbStatusLabel.setText("Editing zone " + curZone);
+    }
+    
     private void lbZoneListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_lbZoneListValueChanged
     {//GEN-HEADEREND:event_lbZoneListValueChanged
         if (evt.getValueIsAdjusting())
@@ -705,7 +723,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         int layermask = (int)curScenario.get(curZone);
         populateObjectList(layermask << 1 | 1);
 
-        lbStatusLabel.setText("Editing scenario " + lbScenarioList.getSelectedValue() + ", zone " + curZone);
+        setStatusText();
         
         glCanvas.repaint();
     }//GEN-LAST:event_lbZoneListValueChanged
@@ -785,6 +803,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
     private void btnEditZoneActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnEditZoneActionPerformed
     {//GEN-HEADEREND:event_btnEditZoneActionPerformed
+        if (childZoneEditors.containsKey(curZone))
+        {
+            if (!childZoneEditors.get(curZone).isVisible())
+                childZoneEditors.remove(curZone);
+            else
+            {
+                childZoneEditors.get(curZone).toFront();
+                return;
+            }
+        }
+        
         GalaxyEditorForm form = new GalaxyEditorForm(this, curZoneArc);
         form.setVisible(true);
         childZoneEditors.put(curZone, form);
@@ -835,6 +864,80 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         selectionChanged();
         glCanvas.repaint();
     }//GEN-LAST:event_tvObjectListValueChanged
+
+    
+    private void addObject(Point where)
+    {
+        System.out.println("add object @ " + where.toString());
+    }
+    
+    private void deleteObject(int uid)
+    {
+        LevelObject obj = globalObjList.get(uid);
+        zoneArcs.get(obj.zone).objects.get(obj.layer).remove(obj);
+        rerenderTasks.push("zone:"+obj.zone);
+        glCanvas.repaint();
+        
+        DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+        ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
+        MutableTreeNode thenode = (MutableTreeNode)listnode.children.get(selectedObj.uniqueID);
+        int theid = listnode.getIndex(thenode);
+        objlist.removeNodeFromParent(thenode);
+        objlist.nodesWereRemoved(listnode, new int[] { theid }, new Object[] { thenode });
+        
+        rerenderTasks.push("delobj:"+new Integer(uid).toString());
+    }
+    
+    
+    private void tgbDeleteObjectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbDeleteObjectActionPerformed
+    {//GEN-HEADEREND:event_tgbDeleteObjectActionPerformed
+        if (selectedObj != null)
+        {
+            if (tgbDeleteObject.isSelected())
+            {
+                deleteObject(selectedObj.uniqueID);
+                selectedVal = 0xFFFFFFFF;
+                selectedObj = null;
+                selectionChanged();
+            }
+            tgbDeleteObject.setSelected(false);
+        }
+        else
+        {
+            if (!tgbDeleteObject.isSelected())
+            {
+                deletingObjects = false;
+                setStatusText();
+            }
+            else
+            {
+                deletingObjects = true;
+                lbStatusLabel.setText("Click the object you want to delete. Hold Shift to delete multiple objects. Right-click to abort.");
+            }
+        }
+    }//GEN-LAST:event_tgbDeleteObjectActionPerformed
+
+    private void tgbAddObjectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbAddObjectActionPerformed
+    {//GEN-HEADEREND:event_tgbAddObjectActionPerformed
+        if (!tgbAddObject.isSelected())
+        {
+            objectBeingAdded = "";
+            setStatusText();
+            return;
+        }
+        
+        ObjectSelectForm form = new ObjectSelectForm(this, curZoneArc.gameMask, null);
+        form.setVisible(true);
+        if (form.selectedObject.isEmpty())
+        {
+            tgbAddObject.setSelected(false);
+            return;
+        }
+        
+        lbStatusLabel.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
+        objectBeingAdded = form.selectedObject;
+        addingOnLayer = form.selectedLayer;
+    }//GEN-LAST:event_tgbAddObjectActionPerformed
 
     public void propPanelPropertyChanged(String propname, Object value)
     {
@@ -918,6 +1021,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             underCursor = 0xFFFFFFFF;
             selectedVal = 0xFFFFFFFF;
             selectedObj = null;
+            objectBeingAdded = "";
+            addingOnLayer = "";
+            deletingObjects = false;
             
             renderinfo = new GLRenderer.RenderInfo();
             renderinfo.drawable = glad;
@@ -1193,10 +1299,29 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                         break;
                         
                     case "object":
-                        int objid = Integer.parseInt(task[1]);
-                        LevelObject obj = globalObjList.get(objid);
-                        obj.closeRenderer(renderinfo);
-                        obj.initRenderer(renderinfo);
+                        {
+                            int objid = Integer.parseInt(task[1]);
+                            LevelObject obj = globalObjList.get(objid);
+                            obj.closeRenderer(renderinfo);
+                            obj.initRenderer(renderinfo);
+                        }
+                        break;
+                        
+                    case "addobj":
+                        {
+                            int objid = Integer.parseInt(task[1]);
+                            LevelObject obj = globalObjList.get(objid);
+                            obj.initRenderer(renderinfo);
+                        }
+                        break;
+                        
+                    case "delobj":
+                        {
+                            int objid = Integer.parseInt(task[1]);
+                            LevelObject obj = globalObjList.get(objid);
+                            obj.closeRenderer(renderinfo);
+                            globalObjList.remove(obj.uniqueID);
+                        }
                         break;
                         
                     case "allobjects":
@@ -1515,6 +1640,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             mouseButton = MouseEvent.NOBUTTON;
             lastMouseMove = e.getPoint();
+            boolean shiftpressed = (e.getModifiers() & 1) != 0;
             
             if (isDragging)
             {
@@ -1536,32 +1662,70 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             // no need to handle rerendering here: changing the treeview's selection
             // will trigger it
             
-            if (objid == selectedVal || objid == 0xFFFFFFFF)
+            if (e.getButton() == MouseEvent.BUTTON3)
             {
-                tvObjectList.setSelectionPath(null);
+                if (!objectBeingAdded.isEmpty())
+                {
+                    objectBeingAdded = "";
+                    tgbAddObject.setSelected(false);
+                    setStatusText();
+                }
+                else if (deletingObjects)
+                {
+                    deletingObjects = false;
+                    tgbDeleteObject.setSelected(false);
+                    setStatusText();
+                }
             }
             else
             {
-                selectedVal = objid;
-                selectedObj = globalObjList.get(objid);
-                
-                if (galaxyMode)
+                if (objid == selectedVal || objid == 0xFFFFFFFF)
                 {
-                    for (int z = 0; z < galaxyArc.zoneList.size(); z++)
+                    tvObjectList.setSelectionPath(null);
+                }
+                else if (!objectBeingAdded.isEmpty())
+                {
+                    addObject(lastMouseMove);
+                    if (!shiftpressed)
                     {
-                        if (!galaxyArc.zoneList.get(z).equals(selectedObj.zone))
-                            continue;
-                        lbZoneList.setSelectedIndex(z);
-                        break;
+                        objectBeingAdded = "";
+                        tgbAddObject.setSelected(false);
+                        setStatusText();
                     }
                 }
-                tpLeftPanel.setSelectedIndex(1);
-                
-                TreeNode objnode = ((DefaultMutableTreeNode)tvObjectList.getModel().getRoot()).getChildAt(0);
-                ObjTreeNode finalnode = (ObjTreeNode)((ObjListTreeNode)objnode).children.get(objid);
-                TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(finalnode));
-                tvObjectList.setSelectionPath(tp);
-                tvObjectList.scrollPathToVisible(tp);
+                else if (deletingObjects)
+                {
+                    deleteObject(objid);
+                    if (!shiftpressed) 
+                    {
+                        deletingObjects = false;
+                        tgbDeleteObject.setSelected(false);
+                        setStatusText();
+                    }
+                }
+                else
+                {
+                    selectedVal = objid;
+                    selectedObj = globalObjList.get(objid);
+
+                    if (galaxyMode)
+                    {
+                        for (int z = 0; z < galaxyArc.zoneList.size(); z++)
+                        {
+                            if (!galaxyArc.zoneList.get(z).equals(selectedObj.zone))
+                                continue;
+                            lbZoneList.setSelectedIndex(z);
+                            break;
+                        }
+                    }
+                    tpLeftPanel.setSelectedIndex(1);
+
+                    TreeNode objnode = ((DefaultMutableTreeNode)tvObjectList.getModel().getRoot()).getChildAt(0);
+                    ObjTreeNode finalnode = (ObjTreeNode)((ObjListTreeNode)objnode).children.get(objid);
+                    TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(finalnode));
+                    tvObjectList.setSelectionPath(tp);
+                    tvObjectList.scrollPathToVisible(tp);
+                }
             }
             
             e.getComponent().repaint();
@@ -1682,15 +1846,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private float depthUnderCursor;
     private int selectedVal;
     private LevelObject selectedObj;
+    private String objectBeingAdded, addingOnLayer;
+    private boolean deletingObjects;
     
     private CheckBoxList lbLayersList;
     private PropertyPanel pnlObjectSettings;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAddObject;
     private javax.swing.JButton btnAddScenario;
     private javax.swing.JButton btnAddZone;
-    private javax.swing.JButton btnDeleteObject;
     private javax.swing.JButton btnDeleteScenario;
     private javax.swing.JButton btnDeleteZone;
     private javax.swing.JButton btnDeselect;
@@ -1727,6 +1891,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JSplitPane pnlScenarioZonePanel;
     private javax.swing.JScrollPane scpLayersList;
     private javax.swing.JScrollPane scpObjSettingsContainer;
+    private javax.swing.JToggleButton tgbAddObject;
+    private javax.swing.JToggleButton tgbDeleteObject;
     private javax.swing.JTabbedPane tpLeftPanel;
     private javax.swing.JTree tvObjectList;
     // End of variables declaration//GEN-END:variables

@@ -30,7 +30,7 @@ public class LevelObject
         this.zone = zone;
         String[] stuff = filepath.split("/");
         directory = stuff[0];
-        layer = stuff[1];
+        layer = stuff[1].toLowerCase();
         file = stuff[2];
         
         data = entry;

@@ -62,7 +62,7 @@ public class ObjectSelectForm extends javax.swing.JDialog
                 selectedZone = "#lolz#";
             }
             
-            DefaultComboBoxModel layerlist = (DefaultComboBoxModel)cbxZone.getModel();
+            DefaultComboBoxModel layerlist = (DefaultComboBoxModel)cbxLayer.getModel();
             layerlist.addElement("Common");
             for (int l = 0; l < 26; l++)
             {
@@ -70,6 +70,11 @@ public class ObjectSelectForm extends javax.swing.JDialog
                 if (gal_parent.curZoneArc.objects.containsKey(ls.toLowerCase()))
                     layerlist.addElement(ls);
             }
+            
+            selectedLayer = "Common";
+            cbxLayer.setSelectedItem(selectedLayer);
+            
+            selectedObject = "";
         }
     }
 
