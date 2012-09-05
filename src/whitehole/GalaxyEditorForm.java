@@ -1043,13 +1043,39 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         else if (propname.equals("zone"))
         {
-            System.out.println("zone change: "+(String)value);
-            JOptionPane.showMessageDialog(this, "This doesn't work yet. Wait till Mega-Mario gets off his lazy ass.");
+            String oldzone = selectedObj.zone;
+            String newzone = (String)value;
+            
+            selectedObj.zone = newzone;
+            zoneArcs.get(oldzone).objects.get(selectedObj.layer).remove(selectedObj);
+            if (zoneArcs.get(newzone).objects.containsKey(selectedObj.layer))
+                zoneArcs.get(newzone).objects.get(selectedObj.layer).add(selectedObj);
+            else
+            {
+                selectedObj.layer = "common";
+                zoneArcs.get(newzone).objects.get(selectedObj.layer).add(selectedObj);
+            }
+            
+            DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+            ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
+            objlist.nodeChanged(listnode.children.get(selectedObj.uniqueID));
+            
+            selectionChanged();
+            rerenderTasks.push("zone:"+oldzone);
+            rerenderTasks.push("zone:"+newzone);
+            glCanvas.repaint();
         }
         else if (propname.equals("layer"))
         {
-            System.out.println("layer change: "+(String)value);
-            JOptionPane.showMessageDialog(this, "This doesn't work either.");
+            String oldlayer = selectedObj.layer;
+            String newlayer = ((String)value).toLowerCase();
+            
+            selectedObj.layer = newlayer;
+            curZoneArc.objects.get(oldlayer).remove(selectedObj);
+            curZoneArc.objects.get(newlayer).add(selectedObj);
+            
+            rerenderTasks.push("zone:"+selectedObj.zone);
+            glCanvas.repaint();
         }
         else if (propname.startsWith("pos_") || propname.startsWith("dir_") || propname.startsWith("scale_"))
         {
@@ -1763,8 +1789,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 }
                 else
                 {
+                    String oldzone = "";
+                    if (selectedObj != null)
+                        oldzone = selectedObj.zone;
+                       
                     selectedVal = objid;
                     selectedObj = globalObjList.get(objid);
+                    
+                    if (!oldzone.isEmpty() && !oldzone.equals(selectedObj.zone))
+                        rerenderTasks.push("zone:"+oldzone);
 
                     if (galaxyMode)
                     {
