@@ -45,6 +45,7 @@ SignMotionType
 # TODO: 4137EDFD
 FarClip
 # TODO: 4F11491C
+ParentId
 
 # names below extracted from Anarchy in the Galaxy
 # credit goes to Phantom Wings (or whoever found them if it isn't him)

@@ -866,9 +866,96 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_tvObjectListValueChanged
 
     
+    public void applySubzoneRotation(Vector3 delta)
+    {
+        if (!galaxyMode) return;
+
+        String szkey = String.format("%1$d/%2$s", curScenarioID, curZone);
+        if (subZoneData.containsKey(szkey))
+        {
+            SubZoneData szdata = subZoneData.get(szkey);
+
+            float xcos = (float)Math.cos(-(szdata.rotation.x * Math.PI) / 180f);
+            float xsin = (float)Math.sin(-(szdata.rotation.x * Math.PI) / 180f);
+            float ycos = (float)Math.cos(-(szdata.rotation.y * Math.PI) / 180f);
+            float ysin = (float)Math.sin(-(szdata.rotation.y * Math.PI) / 180f);
+            float zcos = (float)Math.cos(-(szdata.rotation.z * Math.PI) / 180f);
+            float zsin = (float)Math.sin(-(szdata.rotation.z * Math.PI) / 180f);
+
+            float x1 = (delta.x * zcos) - (delta.y * zsin);
+            float y1 = (delta.x * zsin) + (delta.y * zcos);
+            float x2 = (x1 * ycos) + (delta.z * ysin);
+            float z2 = -(x1 * ysin) + (delta.z * ycos);
+            float y3 = (y1 * xcos) - (z2 * xsin);
+            float z3 = (y1 * xsin) + (z2 * xcos);
+
+            delta.x = x2;
+            delta.y = y3;
+            delta.z = z3;
+        }
+    }
+
+    private Vector3 get3DCoords(Point pt, float depth)
+    {
+        Vector3 ret = new Vector3(
+                camPosition.x * scaledown,
+                camPosition.y * scaledown,
+                camPosition.z * scaledown);
+        depth *= scaledown;
+
+        ret.x -= (depth * (float)Math.cos(camRotation.x) * (float)Math.cos(camRotation.y));
+        ret.y -= (depth * (float)Math.sin(camRotation.y));
+        ret.z -= (depth * (float)Math.sin(camRotation.x) * (float)Math.cos(camRotation.y));
+
+        float x = (pt.x - (glCanvas.getWidth() / 2f)) * pixelFactorX * depth;
+        float y = -(pt.y - (glCanvas.getHeight() / 2f)) * pixelFactorY * depth;
+
+        ret.x += (x * (float)Math.sin(camRotation.x)) - (y * (float)Math.sin(camRotation.y) * (float)Math.cos(camRotation.x));
+        ret.y += y * (float)Math.cos(camRotation.y);
+        ret.z += -(x * (float)Math.cos(camRotation.x)) - (y * (float)Math.sin(camRotation.y) * (float)Math.sin(camRotation.x));
+
+        return ret;
+    }
+    
     private void addObject(Point where)
     {
-        System.out.println("add object @ " + where.toString());
+        Vector3 pos = get3DCoords(where, Math.min(pickingDepth, 1f));
+        
+        if (galaxyMode)
+        {
+            String szkey = String.format("%1$d/%2$s", curScenarioID, curZone);
+            if (subZoneData.containsKey(szkey))
+            {
+                SubZoneData szdata = subZoneData.get(szkey);
+                Vector3.subtract(pos, szdata.position, pos);
+                applySubzoneRotation(pos);
+            }
+        }
+        
+        String filepath;
+        if (ObjectDB.objects.containsKey(objectBeingAdded))
+            filepath = ObjectDB.objects.get(objectBeingAdded).preferredFile.replace("<layer>", addingOnLayer);
+        else
+            filepath = "Placement/" + addingOnLayer + "/ObjInfo";
+        
+        LevelObject newobj = new LevelObject(curZone, filepath, curZoneArc.gameMask, objectBeingAdded, pos);
+        
+        int uid = 0;
+        while (globalObjList.containsKey(uid)) uid++;
+        if (uid > maxUniqueID) maxUniqueID = uid;
+        newobj.uniqueID = uid;
+        globalObjList.put(uid, newobj);
+        
+        curZoneArc.objects.get(addingOnLayer.toLowerCase()).add(newobj);
+        
+        DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+        ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
+        TreeNode newnode = listnode.addObject(newobj);
+        objlist.nodesWereInserted(listnode, new int[] { listnode.getIndex(newnode) });
+        
+        rerenderTasks.push("zone:"+curZone);
+        rerenderTasks.push("addobj:"+new Integer(uid).toString());
+        glCanvas.repaint();
     }
     
     private void deleteObject(int uid)
@@ -876,7 +963,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         LevelObject obj = globalObjList.get(uid);
         zoneArcs.get(obj.zone).objects.get(obj.layer).remove(obj);
         rerenderTasks.push("zone:"+obj.zone);
-        glCanvas.repaint();
         
         DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
         ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
@@ -886,6 +972,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         objlist.nodesWereRemoved(listnode, new int[] { theid }, new Object[] { thenode });
         
         rerenderTasks.push("delobj:"+new Integer(uid).toString());
+        glCanvas.repaint();
     }
     
     
@@ -1477,35 +1564,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             Matrix4.mult(Matrix4.scale(1f / scaledown), modelViewMatrix, modelViewMatrix);
         }
         
-        public void applySubzoneRotation(Vector3 delta)
-        {
-            if (!galaxyMode) return;
-            
-            String szkey = String.format("%1$d/%2$s", curScenarioID, selectedObj.zone);
-            if (subZoneData.containsKey(szkey))
-            {
-                SubZoneData szdata = subZoneData.get(szkey);
-
-                float xcos = (float)Math.cos(-(szdata.rotation.x * Math.PI) / 180f);
-                float xsin = (float)Math.sin(-(szdata.rotation.x * Math.PI) / 180f);
-                float ycos = (float)Math.cos(-(szdata.rotation.y * Math.PI) / 180f);
-                float ysin = (float)Math.sin(-(szdata.rotation.y * Math.PI) / 180f);
-                float zcos = (float)Math.cos(-(szdata.rotation.z * Math.PI) / 180f);
-                float zsin = (float)Math.sin(-(szdata.rotation.z * Math.PI) / 180f);
-
-                float x1 = (delta.x * zcos) - (delta.y * zsin);
-                float y1 = (delta.x * zsin) + (delta.y * zcos);
-                float x2 = (x1 * ycos) + (delta.z * ysin);
-                float z2 = -(x1 * ysin) + (delta.z * ycos);
-                float y3 = (y1 * xcos) - (z2 * xsin);
-                float z3 = (y1 * xsin) + (z2 * xcos);
-
-                delta.x = x2;
-                delta.y = y3;
-                delta.z = z3;
-            }
-        }
-        
 
         @Override
         public void mouseDragged(MouseEvent e)
@@ -1791,8 +1849,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         public final float fov = (float)((70f * Math.PI) / 180f);
         public final float zNear = 0.01f;
         public final float zFar = 1000f;
-        public final float scaledown = 10000f;
     }
+    
+    public final float scaledown = 10000f;
     
     public boolean galaxyMode;
     public String galaxyName;

@@ -265,7 +265,7 @@ public class Bcsv
     }
 
 
-    public class Field
+    public static class Field
     {
         public int nameHash;
         public int mask;
@@ -276,7 +276,7 @@ public class Bcsv
         public String name;
     }
 
-    public class Entry extends LinkedHashMap<Integer, Object>
+    public static class Entry extends LinkedHashMap<Integer, Object>
     {
         public Entry()
         { super(); }

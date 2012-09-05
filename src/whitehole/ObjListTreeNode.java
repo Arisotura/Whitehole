@@ -130,11 +130,12 @@ public class ObjListTreeNode implements MutableTreeNode
     }
     
     
-    public void addObject(LevelObject obj)
+    public TreeNode addObject(LevelObject obj)
     {
         ObjTreeNode tn = new ObjTreeNode(obj);
         children.put(obj.uniqueID, tn);
         tn.setParent(this);
+        return tn;
     }
     
     

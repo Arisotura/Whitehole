@@ -246,7 +246,7 @@ public class BcsvEditorForm extends javax.swing.JFrame
         
         for (int r = 0; r < tblBcsv.getRowCount(); r++)
         {
-            Bcsv.Entry entry = bcsv.new Entry();
+            Bcsv.Entry entry = new Bcsv.Entry();
             
             int c = 0;
             for (Bcsv.Field field : bcsv.fields.values())
