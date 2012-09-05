@@ -84,7 +84,7 @@ public class LevelObject
         }
         
         data.put("l_id", 0);
-        data.put("CameraSetId", 0);
+        data.put("CameraSetId", -1);
         data.put("SW_APPEAR", -1);
         data.put("SW_DEAD", -1);
         data.put("SW_A",  -1);
@@ -97,13 +97,13 @@ public class LevelObject
         }
         else
             data.put(0x4F11491C, -1);
-        data.put("CastId", 0);
-        data.put("ViewGroupId", 0);
-        data.put("ShapeModelNo", (short)0);
+        data.put("CastId", -1);
+        data.put("ViewGroupId", -1);
+        data.put("ShapeModelNo", (short)-1);
         data.put("CommonPath_ID", (short)-1);
-        data.put("ClippingGroupId", (short)0);
-        data.put("GroupId", (short)0);
-        data.put("DemoGroupId", (short)0);
+        data.put("ClippingGroupId", (short)-1);
+        data.put("GroupId", (short)-1);
+        data.put("DemoGroupId", (short)-1);
         if (game == 2 || file.equalsIgnoreCase("objinfo"))
             data.put("MapParts_ID", (short)-1);
         if (game == 2)
