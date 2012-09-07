@@ -47,6 +47,9 @@ FarClip
 # TODO: 4F11491C
 ParentId
 
+#UseResource stuff
+ResourceName
+
 # names below extracted from Anarchy in the Galaxy
 # credit goes to Phantom Wings (or whoever found them if it isn't him)
 Range

@@ -234,6 +234,7 @@ public class RarcFilesystem implements FilesystemBase
         int fileoffset = fileDataOffset + fe.dataOffset;
         int oldlength = (int)fe.dataSize;
         int newlength = (int)_file.getLength();
+        newlength = (newlength + 0x1F) & ~0x1F;
         int delta = newlength - oldlength;
 
         if (newlength != oldlength)
@@ -258,6 +259,9 @@ public class RarcFilesystem implements FilesystemBase
                 file.position(tofix.entryOffset + 0x8);
                 file.writeInt(tofix.dataOffset);
             }
+            
+            file.position(4);
+            file.writeInt((int)file.getLength());
         }
 
         file.position(fileoffset);

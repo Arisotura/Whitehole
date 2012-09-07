@@ -208,8 +208,10 @@ public class BmdRenderer extends GLRenderer
             // if they're selected into a, b or c
             String rout, a, b, c, d, operation;
 
-            frag.append("    konst.rgb = " + c_konstsel[mat.constColorSel[i]] + ";\n");
-            frag.append("    konst.a = " + a_konstsel[mat.constAlphaSel[i]] + ";\n");
+            if (mat.constColorSel[i] != (byte)0xFF)
+                frag.append("    konst.rgb = " + c_konstsel[mat.constColorSel[i]] + ";\n");
+            if (mat.constAlphaSel[i] != (byte)0xFF)
+                frag.append("    konst.a = " + a_konstsel[mat.constAlphaSel[i]] + ";\n");
             if (mat.tevOrder[i].texMap != (byte)0xFF && mat.tevOrder[i].texcoordID != (byte)0xFF)
                 frag.append(String.format("    texcolor = texture2D(texture%1$d, gl_TexCoord[%2$d].st);\n",
                     mat.tevOrder[i].texMap, mat.tevOrder[i].texcoordID));
@@ -739,7 +741,6 @@ public class BmdRenderer extends GLRenderer
                             {
                                 if ((prim.arrayMask & (1 << 13)) != 0) { Vector2 t = model.texcoordArray[0][prim.texcoordIndices[0][i]]; gl.glTexCoord2f(t.x, t.y); }
                             }
-                            //if ((prim.ArrayMask & (1 << 0)) != 0) gl.glColor4(debug[prim.PosMatrixIndices[i]]);
 
                             if ((prim.arrayMask & (1 << 10)) != 0) { Vector3 n = model.normalArray[prim.normalIndices[i]]; gl.glNormal3f(n.x, n.y, n.z); }
 
