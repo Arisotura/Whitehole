@@ -30,6 +30,7 @@ public class ObjectModelSubstitutor
     
     public static String substituteObjectKey(LevelObject obj, String objectkey)
     {
+        if (obj.name.equals("Pole")) objectkey += String.format("_%1$f", obj.scale.y);
         return objectkey;
     }
     
@@ -39,6 +40,8 @@ public class ObjectModelSubstitutor
         {
             switch (obj.name)
             {
+                case "Pole": return new ObjRenderer_Pole(info, obj.scale);
+                    
                 case "HeavenlyBeachPlanet": return new ObjRenderer_HeavenlyBeachPlanet(info);
                 //case "OceanBowl": return new ObjRenderer_OceanBowl(info); // too glitchy.
             }

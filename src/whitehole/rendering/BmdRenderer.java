@@ -511,6 +511,14 @@ public class BmdRenderer extends GLRenderer
         {
             if (node.nodeType != 0) continue;
             int shape = node.nodeID;
+            
+            // Pole:
+            // 0 - (joint)
+            // 1 - bottom part
+            // 2 - pole part
+            // 3 - pole top part?
+            // 4 - top part
+            // 5 - (joint)
 
             if (node.materialID != 0xFFFF)
             {
@@ -777,8 +785,8 @@ public class BmdRenderer extends GLRenderer
     }
 
     private RarcFilesystem container;
-    private Bmd model;
-    private int[] textures;
-    private boolean hasShaders;
-    private Shader[] shaders;
+    protected Bmd model;
+    protected int[] textures;
+    protected boolean hasShaders;
+    protected Shader[] shaders;
 }

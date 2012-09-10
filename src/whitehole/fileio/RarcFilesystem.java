@@ -266,7 +266,7 @@ public class RarcFilesystem implements FilesystemBase
 
         file.position(fileoffset);
         _file.position(0);
-        byte[] data = _file.readBytes(newlength);
+        byte[] data = _file.readBytes((int)_file.getLength());
         file.writeBytes(data);
 
         file.save();

@@ -203,6 +203,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         pnlObjectSettings = new PropertyPanel();
         scpObjSettingsContainer.setViewportView(pnlObjectSettings);
+        scpObjSettingsContainer.getVerticalScrollBar().setUnitIncrement(16);
         //pnlObjectSettings.setEventListener(this);
         pnlObjectSettings.setEventListener(new PropertyPanel.EventListener() 
         {
