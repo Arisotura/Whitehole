@@ -772,7 +772,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private void btnDeselectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnDeselectActionPerformed
     {//GEN-HEADEREND:event_btnDeselectActionPerformed
         rerenderTasks.push("zone:"+selectedObj.zone);
-        selectedVal = 0xFFFFFFFF;
+        selectedVal = 0xFFFFFF;
         selectedObj = null;
         selectionChanged();
         glCanvas.repaint();
@@ -842,7 +842,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         if (evt.getNewLeadSelectionPath() == null)
         {
-            selectedVal = 0xFFFFFFFF;
+            selectedVal = 0xFFFFFF;
             selectedObj = null;
         }
         else
@@ -850,7 +850,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             TreeNode selnode = (TreeNode)evt.getNewLeadSelectionPath().getLastPathComponent();
             if (selnode.getClass() != ObjTreeNode.class)
             {
-                selectedVal = 0xFFFFFFFF;
+                selectedVal = 0xFFFFFF;
                 selectedObj = null;
             }
             else
@@ -984,7 +984,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             if (tgbDeleteObject.isSelected())
             {
                 deleteObject(selectedObj.uniqueID);
-                selectedVal = 0xFFFFFFFF;
+                selectedVal = 0xFFFFFF;
                 selectedObj = null;
                 selectionChanged();
             }
@@ -1132,8 +1132,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             isDragging = false;
             pickingCapture = false;
-            underCursor = 0xFFFFFFFF;
-            selectedVal = 0xFFFFFFFF;
+            underCursor = 0xFFFFFF;
+            selectedVal = 0xFFFFFF;
             selectedObj = null;
             objectBeingAdded = "";
             addingOnLayer = "";
@@ -1285,12 +1285,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 {
                     if (mode == 0) 
                     {
-                        // set color to the object's uniqueID (ARGB)
+                        // set color to the object's uniqueID (RGB)
                         gl.glColor4ub(
                                 (byte)(obj.uniqueID >>> 16), 
                                 (byte)(obj.uniqueID >>> 8), 
                                 (byte)obj.uniqueID, 
-                                (byte)(obj.uniqueID >>> 24));
+                                (byte)0xFF);
                     }
                     obj.render(renderinfo);
                 }
@@ -1652,7 +1652,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     xdelta *= 0.002f;
                     ydelta *= 0.002f;
                     
-                    /*if (underCursor != 0xFFFFFFFF)
+                    /*if (underCursor != 0xFFFFFF)
                     {
                         float dist = camDistance - depthUnderCursor;
                         if (dist > 0f)
@@ -1666,7 +1666,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 }
                 else if (mouseButton == MouseEvent.BUTTON1)
                 {
-                    if (underCursor == 0xFFFFFFFF)
+                    if (underCursor == 0xFFFFFF)
                     {
                         xdelta *= 0.005f;
                         ydelta *= 0.005f;
@@ -1764,7 +1764,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
             else
             {
-                if (objid == selectedVal || objid == 0xFFFFFFFF)
+                if (objid == selectedVal || objid == 0xFFFFFF)
                 {
                     tvObjectList.setSelectionPath(null);
                 }
