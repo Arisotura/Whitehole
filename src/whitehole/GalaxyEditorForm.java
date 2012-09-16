@@ -1169,7 +1169,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         
         
-        private void renderSelectHilite(GL2 gl)
+        private void renderSelectHighlight(GL2 gl)
         {
             gl.glUseProgram(0);
             for (int i = 0; i < 8; i++)
@@ -1297,7 +1297,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 
                 if (mode == 2 && selectedObj != null && selectedObj.zone.equals(zone))
                 {
-                    renderSelectHilite(gl);
+                    renderSelectHighlight(gl);
                 }
 
                 gl.glEndList();
@@ -1488,7 +1488,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             gl.glFlush();
             
-            gl.glReadPixels(lastMouseMove.x - 1, glad.getHeight() - lastMouseMove.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_BYTE, pickingFrameBuffer);
+            gl.glReadPixels(lastMouseMove.x - 1, glad.getHeight() - lastMouseMove.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV, pickingFrameBuffer);
             gl.glReadPixels(lastMouseMove.x, glad.getHeight() - lastMouseMove.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
             pickingDepth = -(zFar * zNear / (pickingDepthBuffer.get(0) * (zFar - zNear) - zFar));
            
@@ -1611,7 +1611,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             if (pickingCapture)
             {
-                underCursor = pickingFrameBuffer.get(4);
+                underCursor = pickingFrameBuffer.get(4) & 0xFFFFFF;
                 depthUnderCursor = pickingDepth;
                 pickingCapture = false;
             }
@@ -1741,7 +1741,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     objid != pickingFrameBuffer.get(7))
                 return;
             
-            if (objid != 0xFFFFFFFF && !globalObjList.containsKey(objid))
+            objid &= 0xFFFFFF;
+            if (objid != 0xFFFFFF && !globalObjList.containsKey(objid))
                 return;
             
             // no need to handle rerendering here: changing the treeview's selection
