@@ -476,6 +476,9 @@ public class BmdRenderer extends GLRenderer
     @Override
     public boolean gottaRender(RenderInfo info) throws GLException
     {
+        if (info.renderMode == RenderMode.PICKING)
+            return true;
+        
         for (Bmd.Material mat : model.materials)
         {
             if (!((mat.drawFlag == 4) ^ (info.renderMode == RenderMode.TRANSLUCENT)))
@@ -528,11 +531,11 @@ public class BmdRenderer extends GLRenderer
 
                 Bmd.Material mat = model.materials[node.materialID];
 
-                if ((mat.drawFlag == 4) ^ (info.renderMode == RenderMode.TRANSLUCENT))
-                    continue;
-
                 if (info.renderMode != RenderMode.PICKING)
                 {
+                    if ((mat.drawFlag == 4) ^ (info.renderMode == RenderMode.TRANSLUCENT))
+                        continue;
+                    
                     if (hasShaders)
                     {
                         // shader: handles multitexturing, color combination, alpha test
@@ -619,7 +622,6 @@ public class BmdRenderer extends GLRenderer
                             break;
                     }
                 }
-
 
                 if (mat.cullMode == 0)
                     gl.glDisable(GL2.GL_CULL_FACE);

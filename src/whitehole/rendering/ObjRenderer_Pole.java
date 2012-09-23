@@ -29,15 +29,22 @@ public class ObjRenderer_Pole extends BmdRenderer
         super(info, "Pole");
         myscale = scale;
         
-        // scale=2: both parts stuck together
-        // scale=3: begins being usable
-        model.joints[1].finalMatrix.m[13] = 100f * scale.y;
+        // really ugly hack
+        // the game's renderer must be making use of the weighted vertices and all
+        // but for now this does the trick
+        model.joints[1].finalMatrix.m[13] = 100f * scale.y / scale.x;
     }
     
     @Override
     public boolean isScaled()
     {
         return false;
+    }
+    
+    @Override
+    public boolean hasSpecialScaling()
+    {
+        return true;
     }
     
     @Override

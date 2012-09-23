@@ -19,14 +19,18 @@
 package whitehole.rendering;
 
 import java.io.IOException;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GLException;
+import whitehole.vectors.Vector3;
 
-public class ObjRenderer_HeavenlyBeachPlanet extends GLRenderer
+public class DoubleBmdRenderer extends GLRenderer
 {
-    public ObjRenderer_HeavenlyBeachPlanet(RenderInfo info) throws IOException
+    public DoubleBmdRenderer(RenderInfo info, String model1, Vector3 pos1, String model2, Vector3 pos2) throws IOException
     {
-        rend1 = new BmdRenderer(info, "HeavenlyBeachPlanet");
-        rend2 = new BmdRenderer(info, "HeavenlyBeachPlanetWater");
+        rend1 = new BmdRenderer(info, model1);
+        position1 = pos1;
+        rend2 = new BmdRenderer(info, model2);
+        position2 = pos2;
     }
     
     @Override
@@ -46,10 +50,21 @@ public class ObjRenderer_HeavenlyBeachPlanet extends GLRenderer
     @Override
     public void render(RenderInfo info) throws GLException
     {
-        rend1.render(info);
-        rend2.render(info);
+        GL2 gl = info.drawable.getGL().getGL2();
+        
+        if (rend1.gottaRender(info))
+        {
+            gl.glTranslatef(position1.x, position1.y, position1.z);
+            rend1.render(info);
+        }
+        if (rend2.gottaRender(info))
+        {
+            gl.glTranslatef(position2.x, position2.y, position2.z);
+            rend2.render(info);
+        }
     }
     
     
     private BmdRenderer rend1, rend2;
+    private Vector3 position1, position2;
 }

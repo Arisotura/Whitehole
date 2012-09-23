@@ -238,7 +238,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     public void updateZone(String zone)
     {
-        rerenderTasks.push("zone:"+zone);
+        rerenderTasks.add("zone:"+zone);
         glCanvas.repaint();
     }
 
@@ -765,13 +765,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         else
             zoneModeLayerBitmask &= ~layer;
         
-        rerenderTasks.push("allobjects:");
+        rerenderTasks.add("allobjects:");
         glCanvas.repaint();
     }
     
     private void btnDeselectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnDeselectActionPerformed
     {//GEN-HEADEREND:event_btnDeselectActionPerformed
-        rerenderTasks.push("zone:"+selectedObj.zone);
+        rerenderTasks.add("zone:"+selectedObj.zone);
         selectedVal = 0xFFFFFF;
         selectedObj = null;
         selectionChanged();
@@ -836,7 +836,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         String lastzone = "lolz";
         if (selectedObj != null)
         {
-            rerenderTasks.push("zone:"+selectedObj.zone);
+            rerenderTasks.add("zone:"+selectedObj.zone);
             lastzone = selectedObj.zone;
         }
         
@@ -858,7 +858,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 selectedObj = ((ObjTreeNode)selnode).object;
                 selectedVal = selectedObj.uniqueID;
                 if (!lastzone.equals(selectedObj.zone))
-                    rerenderTasks.push("zone:"+selectedObj.zone);
+                    rerenderTasks.add("zone:"+selectedObj.zone);
             }
         }
         
@@ -954,8 +954,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         TreeNode newnode = listnode.addObject(newobj);
         objlist.nodesWereInserted(listnode, new int[] { listnode.getIndex(newnode) });
         
-        rerenderTasks.push("zone:"+curZone);
-        rerenderTasks.push("addobj:"+new Integer(uid).toString());
+        rerenderTasks.add("addobj:"+new Integer(uid).toString());
+        rerenderTasks.add("zone:"+curZone);
         glCanvas.repaint();
     }
     
@@ -963,7 +963,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     {
         LevelObject obj = globalObjList.get(uid);
         zoneArcs.get(obj.zone).objects.get(obj.layer).remove(obj);
-        rerenderTasks.push("zone:"+obj.zone);
+        rerenderTasks.add("delobj:"+new Integer(uid).toString());
+        rerenderTasks.add("zone:"+obj.zone);
         
         DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
         ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
@@ -972,7 +973,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         objlist.removeNodeFromParent(thenode);
         objlist.nodesWereRemoved(listnode, new int[] { theid }, new Object[] { thenode });
         
-        rerenderTasks.push("delobj:"+new Integer(uid).toString());
         glCanvas.repaint();
     }
     
@@ -1038,8 +1038,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
             objlist.nodeChanged(listnode.children.get(selectedObj.uniqueID));
             
-            rerenderTasks.push("zone:"+selectedObj.zone);
-            rerenderTasks.push("object:"+new Integer(selectedObj.uniqueID).toString());
+            rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
+            rerenderTasks.add("zone:"+selectedObj.zone);
             glCanvas.repaint();
         }
         else if (propname.equals("zone"))
@@ -1062,8 +1062,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             objlist.nodeChanged(listnode.children.get(selectedObj.uniqueID));
             
             selectionChanged();
-            rerenderTasks.push("zone:"+oldzone);
-            rerenderTasks.push("zone:"+newzone);
+            rerenderTasks.add("zone:"+oldzone);
+            rerenderTasks.add("zone:"+newzone);
             glCanvas.repaint();
         }
         else if (propname.equals("layer"))
@@ -1075,7 +1075,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             curZoneArc.objects.get(oldlayer).remove(selectedObj);
             curZoneArc.objects.get(newlayer).add(selectedObj);
             
-            rerenderTasks.push("zone:"+selectedObj.zone);
+            rerenderTasks.add("zone:"+selectedObj.zone);
             glCanvas.repaint();
         }
         else if (propname.startsWith("pos_") || propname.startsWith("dir_") || propname.startsWith("scale_"))
@@ -1093,7 +1093,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 case "scale_z": selectedObj.scale.z = (float)(double)value; break;
             }
             
-            rerenderTasks.push("zone:"+selectedObj.zone);
+            if (propname.startsWith("scale_") && selectedObj.renderer.hasSpecialScaling())
+                rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
+            
+            rerenderTasks.add("zone:"+selectedObj.zone);
             glCanvas.repaint();
         }
         else if (propname.startsWith("Obj_arg"))
@@ -1161,7 +1164,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE; renderAllObjects(gl);
             renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT; renderAllObjects(gl);
             
-            rerenderTasks = new Stack<>();
+            rerenderTasks = new PriorityQueue<>();
             
             gl.glFrontFace(GL2.GL_CW);
             
@@ -1401,9 +1404,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             GL2 gl = renderinfo.drawable.getGL().getGL2();
             
-            while (!rerenderTasks.empty())
+            while (!rerenderTasks.isEmpty())
             {
-                String[] task = rerenderTasks.pop().split(":");
+                String[] task = rerenderTasks.poll().split(":");
                 switch (task[0])
                 {
                     case "zone":
@@ -1640,7 +1643,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     pnlObjectSettings.setFieldValue("pos_x", selectedObj.position.x);
                     pnlObjectSettings.setFieldValue("pos_y", selectedObj.position.y);
                     pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);
-                    rerenderTasks.push("zone:"+selectedObj.zone);
+                    rerenderTasks.add("zone:"+selectedObj.zone);
                 }
             }
             else
@@ -1799,7 +1802,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     selectedObj = globalObjList.get(objid);
                     
                     if (!oldzone.isEmpty() && !oldzone.equals(selectedObj.zone))
-                        rerenderTasks.push("zone:"+oldzone);
+                        rerenderTasks.add("zone:"+oldzone);
 
                     if (galaxyMode)
                     {
@@ -1864,7 +1867,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 pnlObjectSettings.setFieldValue("pos_x", selectedObj.position.x);
                 pnlObjectSettings.setFieldValue("pos_y", selectedObj.position.y);
                 pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);
-                rerenderTasks.push("zone:"+selectedObj.zone);
+                rerenderTasks.add("zone:"+selectedObj.zone);
             }
             else
             {
@@ -1918,7 +1921,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private GLRenderer.RenderInfo renderinfo;
     private HashMap<String, int[]> objDisplayLists;
     private HashMap<Integer, int[]> zoneDisplayLists;
-    private Stack<String> rerenderTasks;
+    private Queue<String> rerenderTasks;
     private int zoneModeLayerBitmask;
 
     private Matrix4 modelViewMatrix;

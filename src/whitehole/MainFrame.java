@@ -228,7 +228,10 @@ public class MainFrame extends javax.swing.JFrame {
             "A level editor for Super Mario Galaxy 1 and 2\n" +
             "\n" +
             Whitehole.name + " is free software, and shouldn't be provided as\n" +
-            "a part of a paid software package\n" + 
+            "a part of a paid software package.\n" + 
+            "\n" +
+            "If you downloaded " + Whitehole.name + " from a site other than Kuribo64,\n" +
+            "we can't guarantee anything as to the package's cleanness.\n" +
             "\n" +
             "Main coding: Mega-Mario\n" +
             "Credits: \n" +
@@ -236,7 +239,7 @@ public class MainFrame extends javax.swing.JFrame {
             " * Dirbaio for programming help\n" +
             " * NWPlayer123 for design suggestions\n" + 
             "\n" + 
-            "See " + Whitehole.websiteURL + " for more details.\n";
+            "See Kuribo64 (" + Whitehole.websiteURL + ") for more details.\n";
 
         if (Whitehole.version.toLowerCase().contains("private"))
             msg += "\nThis is a private beta version. Leak it out and this'll be the last one you get.\n";

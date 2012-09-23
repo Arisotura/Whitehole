@@ -20,17 +20,24 @@ package whitehole.rendering;
 
 import java.io.IOException;
 import whitehole.smg.LevelObject;
+import whitehole.vectors.Vector3;
 
 public class ObjectModelSubstitutor 
 {
     public static String substituteModelName(LevelObject obj, String modelname)
     {
+        switch (obj.name)
+        {
+            case "BenefitItemOneUp": return "KinokoOneUp";
+            case "SplashPieceBlock": return "CoinBlock";
+        }
+        
         return modelname;
     }
     
     public static String substituteObjectKey(LevelObject obj, String objectkey)
     {
-        if (obj.name.equals("Pole")) objectkey += String.format("_%1$f", obj.scale.y);
+        if (obj.name.equals("Pole")) objectkey += String.format("_%1$3f", obj.scale.y / obj.scale.x);
         return objectkey;
     }
     
@@ -40,9 +47,12 @@ public class ObjectModelSubstitutor
         {
             switch (obj.name)
             {
+                case "Patakuri": return new DoubleBmdRenderer(info, "Kuribo", new Vector3(), "PatakuriWing", new Vector3(0f,15f,-25f));
                 case "Pole": return new ObjRenderer_Pole(info, obj.scale);
                     
-                case "HeavenlyBeachPlanet": return new ObjRenderer_HeavenlyBeachPlanet(info);
+                case "FlagKoopaA": return new BtiRenderer(info, "FlagKoopaA", new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
+                    
+                case "HeavenlyBeachPlanet": return new DoubleBmdRenderer(info, "HeavenlyBeachPlanet", new Vector3(), "HeavenlyBeachPlanetWater", new Vector3());
                 //case "OceanBowl": return new ObjRenderer_OceanBowl(info); // too glitchy.
             }
         }
