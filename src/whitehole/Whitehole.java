@@ -53,6 +53,7 @@ public class Whitehole
         Settings.initialize();
         Bcsv.populateHashTable();
         ObjectDB.initialize();
+        TextureCache.initialize();
         ShaderCache.initialize();
         RendererCache.initialize();
         

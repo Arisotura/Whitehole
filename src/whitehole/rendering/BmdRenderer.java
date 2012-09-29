@@ -21,10 +21,7 @@ package whitehole.rendering;
 import java.io.*;
 import java.nio.*;
 import java.nio.charset.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
-import java.util.zip.CRC32;
 import javax.media.opengl.*;
 import whitehole.*;
 import whitehole.fileio.RarcFilesystem;
@@ -35,6 +32,18 @@ public class BmdRenderer extends GLRenderer
 {
     private void uploadTexture(GL2 gl, int id)
     {
+        Bmd.Texture tex = model.textures[id];
+        int hash = 0;
+        for (int i = 0; i < tex.mipmapCount; i++)
+            hash = (int)SuperFastHash.calculate(tex.image[i], (long)hash, 0, tex.image[i].length);
+        textures[id] = hash;
+        
+        if (TextureCache.containsEntry(hash))
+        {
+            TextureCache.getEntry(hash);
+            return;
+        }
+        
         int[] wrapmodes = { GL2.GL_CLAMP_TO_EDGE, GL2.GL_REPEAT, GL2.GL_MIRRORED_REPEAT };
         int[] minfilters = { GL2.GL_NEAREST, GL2.GL_LINEAR,
                              GL2.GL_NEAREST_MIPMAP_NEAREST, GL2.GL_LINEAR_MIPMAP_NEAREST,
@@ -43,11 +52,10 @@ public class BmdRenderer extends GLRenderer
                              GL2.GL_NEAREST, GL2.GL_LINEAR,
                              GL2.GL_NEAREST, GL2.GL_LINEAR, };
 
-        Bmd.Texture tex = model.textures[id];
         int[] texids = new int[1];
         gl.glGenTextures(1, texids, 0);
         int texid = texids[0];
-        textures[id] = texid;
+        TextureCache.addEntry(hash, texid);
 
         gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
 
@@ -83,6 +91,7 @@ public class BmdRenderer extends GLRenderer
         ByteBuffer sig = ByteBuffer.wrap(sigarray);
         Bmd.Material mat = model.materials[matid];
         
+        sig.put((byte)mat.numTexgens);
         for (int i = 0; i < mat.numTexgens; i++)
         {
             // TODO matrices
@@ -105,6 +114,7 @@ public class BmdRenderer extends GLRenderer
             sig.put((byte)mat.constColors[i].a);
         }
 
+        sig.put((byte)mat.numTevStages);
         for (int i = 0; i < mat.numTevStages; i++)
         {
             sig.put(mat.constColorSel[i]);
@@ -575,7 +585,13 @@ public class BmdRenderer extends GLRenderer
         }
 
         for (int tex : textures)
-            gl.glDeleteTextures(1, new int[] { tex }, 0);
+        {
+            int theid = TextureCache.getTextureID(tex);
+            if (!TextureCache.removeEntry(tex))
+                continue;
+            
+            gl.glDeleteTextures(1, new int[] { theid }, 0);
+        }
 
         if (model != null)
         {
@@ -679,7 +695,7 @@ public class BmdRenderer extends GLRenderer
                             int loc = gl.glGetUniformLocation(shaders[node.materialID].program, String.format("texture%1$d", i));
                             gl.glUniform1i(loc, i);
 
-                            int texid = textures[mat.texStages[i]];
+                            int texid = TextureCache.getTextureID(textures[mat.texStages[i]]);
                             gl.glEnable(GL2.GL_TEXTURE_2D);
                             gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
                         }
@@ -693,7 +709,7 @@ public class BmdRenderer extends GLRenderer
                         gl.glActiveTexture(GL2.GL_TEXTURE0);
                         if (mat.texStages[0] != (short)0xFFFF)
                         {
-                            int texid = textures[mat.texStages[0]];
+                            int texid = TextureCache.getTextureID(textures[mat.texStages[0]]);
                             gl.glEnable(GL2.GL_TEXTURE_2D);
                             gl.glBindTexture(GL2.GL_TEXTURE_2D, texid);
                         }
