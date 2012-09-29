@@ -53,6 +53,7 @@ public class Whitehole
         Settings.initialize();
         Bcsv.populateHashTable();
         ObjectDB.initialize();
+        ShaderCache.initialize();
         RendererCache.initialize();
         
         try

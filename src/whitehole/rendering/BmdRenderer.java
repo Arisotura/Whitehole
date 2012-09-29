@@ -21,7 +21,10 @@ package whitehole.rendering;
 import java.io.*;
 import java.nio.*;
 import java.nio.charset.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.zip.CRC32;
 import javax.media.opengl.*;
 import whitehole.*;
 import whitehole.fileio.RarcFilesystem;
@@ -73,9 +76,126 @@ public class BmdRenderer extends GLRenderer
             width /= 2; height /= 2;
         }
     }
+    
+    private int shaderHash(int matid)
+    {
+        byte[] sigarray = new byte[200];
+        ByteBuffer sig = ByteBuffer.wrap(sigarray);
+        Bmd.Material mat = model.materials[matid];
+        
+        for (int i = 0; i < mat.numTexgens; i++)
+        {
+            // TODO matrices
+            sig.put(mat.texGen[i].src);
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            sig.putShort((short)mat.colorS10[i].r);
+            sig.putShort((short)mat.colorS10[i].g);
+            sig.putShort((short)mat.colorS10[i].b);
+            sig.putShort((short)mat.colorS10[i].a);
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            sig.put((byte)mat.constColors[i].r);
+            sig.put((byte)mat.constColors[i].g);
+            sig.put((byte)mat.constColors[i].b);
+            sig.put((byte)mat.constColors[i].a);
+        }
+
+        for (int i = 0; i < mat.numTevStages; i++)
+        {
+            sig.put(mat.constColorSel[i]);
+            sig.put(mat.constAlphaSel[i]);
+            sig.put(mat.tevOrder[i].texMap);
+            sig.put(mat.tevOrder[i].texcoordID);
+            
+            sig.put(mat.tevStage[i].colorOp);
+            sig.put(mat.tevStage[i].colorRegID);
+            sig.put(mat.tevStage[i].colorIn[0]);
+            sig.put(mat.tevStage[i].colorIn[1]);
+            sig.put(mat.tevStage[i].colorIn[2]);
+            sig.put(mat.tevStage[i].colorIn[3]);
+            if (mat.tevStage[i].colorOp < 2)
+            {
+                sig.put(mat.tevStage[i].colorBias);
+                sig.put(mat.tevStage[i].colorScale);
+            }
+
+            sig.put(mat.tevStage[i].alphaOp);
+            sig.put(mat.tevStage[i].alphaRegID);
+            sig.put(mat.tevStage[i].alphaIn[0]);
+            sig.put(mat.tevStage[i].alphaIn[1]);
+            sig.put(mat.tevStage[i].alphaIn[2]);
+            sig.put(mat.tevStage[i].alphaIn[3]);
+            if (mat.tevStage[i].alphaOp < 2)
+            {
+                sig.put(mat.tevStage[i].alphaBias);
+                sig.put(mat.tevStage[i].alphaScale);
+            }
+        }
+
+        if (mat.alphaComp.mergeFunc == 1 && (mat.alphaComp.func0 == 7 || mat.alphaComp.func1 == 7))
+        {
+            sig.put((byte)0x77);
+        }
+        else if (mat.alphaComp.mergeFunc == 0 && (mat.alphaComp.func0 == 0 || mat.alphaComp.func1 == 0))
+        {
+            sig.put((byte)0x00);
+        }
+        else
+        {
+            int b2 = 3;
+
+            if (mat.alphaComp.mergeFunc == 1)
+            {
+                if (mat.alphaComp.func0 == 0) b2 = 2;
+                else if (mat.alphaComp.func1 == 0) b2 = 1;
+            }
+            else if (mat.alphaComp.mergeFunc == 0)
+            {
+                if (mat.alphaComp.func0 == 7) b2 = 2;
+                else if (mat.alphaComp.func1 == 7) b2 = 1;
+            }
+            
+            if ((b2 & 1) != 0)
+            {
+                sig.put((byte)0x01);
+                sig.put(mat.alphaComp.func0);
+                sig.put((byte)mat.alphaComp.ref0);
+            }
+            if ((b2 & 2) != 0)
+            {
+                sig.put((byte)0x02);
+                sig.put(mat.alphaComp.func1);
+                sig.put((byte)mat.alphaComp.ref1);
+            }
+            if (b2 == 3)
+                sig.put(mat.alphaComp.mergeFunc);
+        }
+        
+        return (int)SuperFastHash.calculate(sigarray, 0, 0, sig.position());
+    }
 
     private void generateShaders(GL2 gl, int matid) throws GLException
     {
+        shaders[matid] = new Shader();
+        
+        int hash = shaderHash(matid);
+        shaders[matid].cacheKey = hash;
+        
+        if (ShaderCache.containsEntry(hash))
+        {
+            ShaderCache.CacheEntry entry = ShaderCache.getEntry(hash);
+            shaders[matid].vertexShader = entry.vertexID;
+            shaders[matid].fragmentShader = entry.fragmentID;
+            shaders[matid].program = entry.programID;
+            
+            return;
+        }
+        
         Locale usa = new Locale("en-US");
         
         String[] texgensrc = { "normalize(gl_Vertex)", "vec4(gl_Normal,1.0)", "argh", "argh",
@@ -122,7 +242,6 @@ public class BmdRenderer extends GLRenderer
 
         int success;
         Bmd.Material mat = model.materials[matid];
-        shaders[matid] = new Shader();
 
         StringBuilder vert = new StringBuilder();
         vert.append("#version 120\n");
@@ -363,6 +482,8 @@ public class BmdRenderer extends GLRenderer
             throw new GLException("!Failed to link shader program: " + log);
             // TODO: better error reporting/logging?
         }
+        
+        ShaderCache.addEntry(hash, vertid, fragid, sid);
     }
 
 
@@ -433,6 +554,9 @@ public class BmdRenderer extends GLRenderer
         {
             for (Shader shader : shaders)
             {
+                if (!ShaderCache.removeEntry(shader.cacheKey))
+                    continue;
+                
                 if (shader.vertexShader > 0)
                 {
                     gl.glDetachShader(shader.program, shader.vertexShader);
@@ -781,9 +905,9 @@ public class BmdRenderer extends GLRenderer
     }
 
 
-    private class Shader
+    protected class Shader
     {
-        public int program, vertexShader, fragmentShader;
+        public int program, vertexShader, fragmentShader, cacheKey;
     }
 
     private RarcFilesystem container;
