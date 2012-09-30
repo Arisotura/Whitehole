@@ -297,7 +297,21 @@ public class DataHelper
                     }
                     break;
 
-                default: throw new IOException(String.format("decodeTextureData: unsupported texture format %1$d",format));
+                default: 
+                    {
+                        System.out.println(String.format("Unsupported texture type %1$d, generating solid color texture instead", format));
+                        
+                        image = new byte[width * height * 4];
+                        for (int i = 0; i < width * height; i++)
+                        {
+                            int outp = i * 4;
+                            image[outp++] = (byte)255;
+                            image[outp++] = (byte)0;
+                            image[outp++] = (byte)255;
+                            image[outp  ] = (byte)255;
+                        }
+                    }
+                    break;
             }
 
             ret[mip] = image;

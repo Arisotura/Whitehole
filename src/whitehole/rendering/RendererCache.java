@@ -62,7 +62,7 @@ public class RendererCache
             }
             catch (GLException ex)
             {
-                if (!ex.getMessage().contains("doesn't exist"))
+                if (!ex.getMessage().contains("doesn't exist") && !ex.getMessage().equals("No suitable model file inside RARC"))
                     ex.printStackTrace();
                 entry.renderer = null;
             }
