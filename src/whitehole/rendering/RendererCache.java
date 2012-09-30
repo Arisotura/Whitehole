@@ -62,6 +62,8 @@ public class RendererCache
             }
             catch (GLException ex)
             {
+                if (!ex.getMessage().contains("doesn't exist"))
+                    ex.printStackTrace();
                 entry.renderer = null;
             }
         }

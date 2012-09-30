@@ -155,8 +155,44 @@ public class DataHelper
                         }
                     }
                     break;
+                    
+                case 5: // RGB5A3
+                    {
+                        image = new byte[width * height * 4];
 
-                case 6: // RGB565
+                        for (int by = 0; by < height; by += 4)
+                        {
+                            for (int bx = 0; bx < width; bx += 4)
+                            {
+                                for (int y = 0; y < 4; y++)
+                                {
+                                    for (int x = 0; x < 4; x++)
+                                    {
+                                        int col = file.readShort() & 0xFFFF;
+
+                                        int outp = (((by + y) * width) + (bx + x)) * 4;
+                                        if ((col & 0x8000) != 0)
+                                        {
+                                            image[outp++] = (byte)(((col & 0x001F) << 3) | ((col & 0x001F) >>> 2));
+                                            image[outp++] = (byte)(((col & 0x03E0) >>> 3) | ((col & 0x03E0) >>> 8));
+                                            image[outp++] = (byte)(((col & 0x7C00) >>> 7) | ((col & 0x7C00) >>> 12));
+                                            image[outp  ] = (byte)255;
+                                        }
+                                        else
+                                        {
+                                            image[outp++] = (byte)(((col & 0x000F) << 4) | (col & 0x000F));
+                                            image[outp++] = (byte)((col & 0x00F0) | ((col & 0x00F0) >>> 4));
+                                            image[outp++] = (byte)(((col & 0x0F00) >>> 4) | ((col & 0x0F00) >>> 8));
+                                            image[outp  ] = (byte)(((col & 0x7000) >>> 7) | ((col & 0x7000) >>> 10) | ((col & 0x7000) >>> 13));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                case 6: // RGBA8
                     {
                         image = new byte[width * height * 4];
 
@@ -172,8 +208,8 @@ public class DataHelper
                                         byte r = file.readByte();
 
                                         int outp = (((by + y) * width) + (bx + x)) * 4;
-                                        image[outp  ] = a;
-                                        image[outp+1] = r;
+                                        image[outp+3] = a;
+                                        image[outp+2] = r;
                                     }
                                 }
                                 for (int y = 0; y < 4; y++)
@@ -184,8 +220,8 @@ public class DataHelper
                                         byte b = file.readByte();
 
                                         int outp = (((by + y) * width) + (bx + x)) * 4;
-                                        image[outp+2] = g;
-                                        image[outp+3] = b;
+                                        image[outp+1] = g;
+                                        image[outp  ] = b;
                                     }
                                 }
                             }
