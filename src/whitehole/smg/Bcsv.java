@@ -203,6 +203,12 @@ public class Bcsv
 
             i++;
         }
+        
+        i = (int)file.getLength();
+        file.position(i);
+        int aligned_end = (i + 0x1F) & ~0x1F;
+        for (; i < aligned_end; i++)
+            file.writeByte((byte)0x40);
 
         file.save();
     }
