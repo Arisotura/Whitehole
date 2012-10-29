@@ -44,6 +44,7 @@ public class GLRenderer
     
     public boolean isScaled() { return true; }
     public boolean hasSpecialScaling() { return false; }
+    public boolean boundToObjArg(int arg) { return false; }
 
     public boolean gottaRender(RenderInfo info) throws GLException { return false; }
     public void render(RenderInfo info) throws GLException {}

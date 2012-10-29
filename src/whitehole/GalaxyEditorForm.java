@@ -1102,6 +1102,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         else if (propname.startsWith("Obj_arg"))
         {
             selectedObj.data.put(propname, (int)Long.parseLong((String)value, 16));
+            
+            int argnum = Integer.parseInt(propname.substring(7));
+            if (selectedObj.renderer.boundToObjArg(argnum))
+            {
+                rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
+                rerenderTasks.add("zone:"+selectedObj.zone);
+                glCanvas.repaint();
+            }
         }
         else if (propname.startsWith("["))
         {
