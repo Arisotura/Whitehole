@@ -143,7 +143,16 @@ public class PropertyPanel extends JPanel
                         {
                             if (!field.field.equals(evt.getSource())) continue;
                             String val = ((JTextField)evt.getSource()).getText();
-                            if (!field.type.equals("text")) val = String.format("%1$d", Long.parseLong(val));
+                            try
+                            {
+                                if (!field.type.equals("text")) val = String.format("%1$d", Long.parseLong(val));
+                                ((JTextField)evt.getSource()).setForeground(Color.getColor("text"));
+                            }
+                            catch (NumberFormatException ex)
+                            {
+                                val = "0";
+                                ((JTextField)evt.getSource()).setForeground(new Color(0xFF4040));
+                            }
                             eventListener.propertyChanged(field.name, val);
                             break;
                         }

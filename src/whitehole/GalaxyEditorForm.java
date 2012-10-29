@@ -1101,23 +1101,29 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         else if (propname.startsWith("Obj_arg"))
         {
-            selectedObj.data.put(propname, (int)Long.parseLong((String)value, 16));
-            
-            int argnum = Integer.parseInt(propname.substring(7));
-            if (selectedObj.renderer.boundToObjArg(argnum))
+            try
             {
-                rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
-                rerenderTasks.add("zone:"+selectedObj.zone);
-                glCanvas.repaint();
+                selectedObj.data.put(propname, (int)Long.parseLong((String)value, 16));
+            
+                int argnum = Integer.parseInt(propname.substring(7));
+                if (selectedObj.renderer.boundToObjArg(argnum))
+                {
+                    rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
+                    rerenderTasks.add("zone:"+selectedObj.zone);
+                    glCanvas.repaint();
+                }
             }
+            catch (NumberFormatException ex) {}
         }
         else if (propname.startsWith("["))
         {
-            selectedObj.data.put((int)Long.parseLong(propname.substring(1, 9)), (int)value);
+            try { selectedObj.data.put((int)Long.parseLong(propname.substring(1, 9), 16), Integer.parseInt((String)value)); }
+            catch (NumberFormatException ex) {}
         }
         else
         {
-            selectedObj.data.put(propname, (int)value);
+            try { selectedObj.data.put(propname, Integer.parseInt((String)value)); }
+            catch (NumberFormatException ex) {}
         }
     }
 
