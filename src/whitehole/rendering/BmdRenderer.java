@@ -494,10 +494,23 @@ public class BmdRenderer extends GLRenderer
         }
         
         ShaderCache.addEntry(hash, vertid, fragid, sid);
+        //System.out.println(frag.toString());
     }
 
-
+    
+    public BmdRenderer()
+    {
+        container = null;
+        model = null;
+    }
+    
     public BmdRenderer(RenderInfo info, String modelname) throws GLException
+    {
+        ctor_loadModel(info, modelname);
+        ctor_uploadData(info);
+    }
+    
+    protected void ctor_loadModel(RenderInfo info, String modelname) throws GLException
     {
         GL2 gl = info.drawable.getGL().getGL2();
         
@@ -520,7 +533,12 @@ public class BmdRenderer extends GLRenderer
             
             throw new GLException("Failed to load model "+modelname+": "+ex.getMessage());
         }
-
+    }
+    
+    protected void ctor_uploadData(RenderInfo info) throws GLException
+    {
+        GL2 gl = info.drawable.getGL().getGL2();
+        
         String extensions = gl.glGetString(GL2.GL_EXTENSIONS);
         hasShaders = extensions.contains("GL_ARB_shading_language_100") &&
             extensions.contains("GL_ARB_shader_objects") &&

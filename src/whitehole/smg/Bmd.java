@@ -18,8 +18,12 @@
 
 package whitehole.smg;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.*;
+import javax.imageio.ImageIO;
 import whitehole.rendering.Helper;
 import whitehole.smg.DataHelper;
 import whitehole.fileio.*;
@@ -936,6 +940,27 @@ public class Bmd
             int dataoffset = file.readInt();
             tex.image = DataHelper.decodeTextureData(file, sectionstart + dataoffset + 0x20 + (0x20 * i), 
                     tex.mipmapCount, tex.format, tex.width, tex.height);
+            
+            /*try 
+            {
+                BufferedImage bi = new BufferedImage(tex.width, tex.height, BufferedImage.TYPE_INT_ARGB);
+                
+                for (int y = 0; y < tex.height; y++)
+                {
+                    for (int x = 0; x < tex.width; x++)
+                    {
+                        int argb = ((int)tex.image[0][(y*tex.width+x)*4+0]) & 0xFF;
+                        argb |= (((int)tex.image[0][(y*tex.width+x)*4+1]) & 0xFF) << 8;
+                        argb |= (((int)tex.image[0][(y*tex.width+x)*4+2]) & 0xFF) << 16;
+                        argb |= (((int)tex.image[0][(y*tex.width+x)*4+3]) & 0xFF) << 24;
+                        bi.setRGB(x, y, argb);
+                    }
+                }
+                
+                File outputfile = new File(String.format("tex%1$d.png", i));
+                ImageIO.write(bi, "png", outputfile);
+            } 
+            catch (IOException ex) {}*/
         }
 
         file.position(sectionstart + sectionsize);

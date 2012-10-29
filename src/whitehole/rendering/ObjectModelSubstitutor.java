@@ -30,6 +30,8 @@ public class ObjectModelSubstitutor
         {
             case "BenefitItemOneUp": return "KinokoOneUp";
             case "SplashPieceBlock": return "CoinBlock";
+                
+            case "KinopioAstro": return "Kinopio";
         }
         
         return modelname;
@@ -37,7 +39,13 @@ public class ObjectModelSubstitutor
     
     public static String substituteObjectKey(LevelObject obj, String objectkey)
     {
-        if (obj.name.equals("Pole")) objectkey += String.format("_%1$3f", obj.scale.y / obj.scale.x);
+        switch (obj.name)
+        {
+            case "Pole": objectkey += String.format("_%1$3f", obj.scale.y / obj.scale.x); break;
+                
+            case "Kinopio": objectkey += String.format("_%1$d", obj.data.get("Obj_arg1")); break;
+        }
+        
         return objectkey;
     }
     
@@ -48,6 +56,8 @@ public class ObjectModelSubstitutor
             switch (obj.name)
             {
                 case "Patakuri": return new DoubleBmdRenderer(info, "Kuribo", new Vector3(), "PatakuriWing", new Vector3(0f,15f,-25f));
+                case "Kinopio": return new ObjRenderer_Kinopio(info, (int)obj.data.get("Obj_arg1"));
+                    
                 case "Pole": return new ObjRenderer_Pole(info, obj.scale);
                     
                 case "FlagKoopaA": return new BtiRenderer(info, "FlagKoopaA", new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
