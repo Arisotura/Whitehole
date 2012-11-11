@@ -30,6 +30,8 @@ public class ObjectModelSubstitutor
         {
             case "BenefitItemOneUp": return "KinokoOneUp";
             case "SplashPieceBlock": return "CoinBlock";
+                
+            case "Karikari": return "Karipon";
         }
         
         return modelname;
@@ -43,6 +45,8 @@ public class ObjectModelSubstitutor
                 
             case "Kinopio": 
             case "KinopioAstro": objectkey = String.format("object_Kinopio_%1$d", obj.data.get("Obj_arg1")); break;
+                
+            case "UFOKinoko": objectkey = String.format("object_UFOKinoko_%1$d", obj.data.get("Obj_arg0")); break;
                 
             case "AstroDome":
             case "AstroDomeEntrance":
@@ -62,6 +66,8 @@ public class ObjectModelSubstitutor
                 case "Patakuri": return new DoubleBmdRenderer(info, "Kuribo", new Vector3(), "PatakuriWing", new Vector3(0f,15f,-25f));
                 case "Kinopio": 
                 case "KinopioAstro": return new ObjRenderer_Kinopio(info, (int)obj.data.get("Obj_arg1"));
+                    
+                case "UFOKinoko": return new ObjRenderer_UFOKinoko(info, (int)obj.data.get("Obj_arg0"));
                     
                 case "Pole": return new ObjRenderer_Pole(info, obj.scale);
                     

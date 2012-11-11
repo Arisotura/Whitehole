@@ -22,12 +22,12 @@ import java.io.*;
 
 public class RarcFile extends MemoryFile
 {
-    public RarcFile(RarcFilesystem fs, int id) throws IOException
+    public RarcFile(RarcFilesystem fs, String fullname) throws IOException
     {
-        super(fs.getFileContents(id));
+        super(fs.getFileContents(fullname));
         
         filesystem = fs;
-        fileID = id;
+        fileName = fullname;
     }
 
     @Override
@@ -37,8 +37,6 @@ public class RarcFile extends MemoryFile
     }
 
 
-    private RarcFilesystem filesystem;
-    private int fileID;
-
-    public int ID() { return fileID; }
+    public RarcFilesystem filesystem;
+    public String fileName;
 }

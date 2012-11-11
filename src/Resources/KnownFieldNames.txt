@@ -5,6 +5,17 @@ Floor_code
 Wall_code
 Camera_through
 
+# GroupInfo
+sx
+sy
+sz
+rx
+ry
+rz
+tx
+ty
+tz
+
 # ZoneList.bcsv
 ZoneName
 
@@ -21,6 +32,9 @@ IsHidden
 # ChangeSceneListInfo
 SceneNo
 MarioNo
+
+# CommonPathInfo
+num_pnt
 
 # CommonPathPointInfo
 point_arg0
@@ -47,8 +61,28 @@ FarClip
 # TODO: 4F11491C
 ParentId
 
-#UseResource stuff
+# UseResource stuff
 ResourceName
+
+# PlanetMapDataTable
+PlanetName
+LowFlag
+MiddleFlag
+BloomFlag
+WaterFlag
+IndirectFlag
+ForceLowScenarioName0
+ForceLowScenarioName1
+ForceLowScenarioName2
+ForceLowScenarioName3
+ForceLowScenarioName4
+ForceLowScenarioName5
+ForceLowScenarioName6
+ForceLowScenarioName7
+
+# ObjNameTable
+en_name
+jp_name
 
 # names below extracted from Anarchy in the Galaxy
 # credit goes to Phantom Wings (or whoever found them if it isn't him)

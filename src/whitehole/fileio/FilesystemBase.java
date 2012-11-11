@@ -23,6 +23,7 @@ import java.util.List;
 
 public interface FilesystemBase
 {
+    public void save() throws IOException;
     public void close() throws IOException;
     
     public List<String> getDirectories(String directory);

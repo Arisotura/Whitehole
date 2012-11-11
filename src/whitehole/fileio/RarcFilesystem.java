@@ -18,7 +18,8 @@
 
 package whitehole.fileio;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
 public class RarcFilesystem implements FilesystemBase
@@ -34,33 +35,42 @@ public class RarcFilesystem implements FilesystemBase
             throw new IOException(String.format("File isn't a RARC (tag 0x%1$08X, expected 0x52415243)", tag));
 
         file.position(0xC);
-        fileDataOffset = file.readInt() + 0x20;
+        int fileDataOffset = file.readInt() + 0x20;
         file.position(0x20);
-        numDirNodes = file.readInt();
-        dirNodesOffset = file.readInt() + 0x20;
+        int numDirNodes = file.readInt();
+        int dirNodesOffset = file.readInt() + 0x20;
+        int numFileEntries = file.readInt();
+        int fileEntriesOffset = file.readInt() + 0x20;
         file.skip(0x4);
-        fileEntriesOffset = file.readInt() + 0x20;
-        file.skip(0x4);
-        stringTableOffset = file.readInt() + 0x20;
+        int stringTableOffset = file.readInt() + 0x20;
+        unk38 = file.readInt();
 
-        dirEntries = new LinkedHashMap<>();
-        fileEntries = new LinkedHashMap<>();
+        dirEntries = new LinkedHashMap<>(numDirNodes);
+        fileEntries = new LinkedHashMap<>(numFileEntries);
 
         DirEntry root = new DirEntry();
-        root.ID = 0;
-        root.parentDir = 0xFFFFFFFF;
+        root.parentDir = null;
 
         file.position(dirNodesOffset + 0x6);
         int rnoffset = file.readShort();
         file.position(stringTableOffset + rnoffset);
         root.name = file.readString("ASCII", 0);
         root.fullName = "/" + root.name;
+        root.tempID = 0;
 
-        dirEntries.put(0, root);
+        dirEntries.put(root.fullName.toLowerCase(), root);
 
         for (int i = 0; i < numDirNodes; i++)
         {
-            DirEntry parentdir = dirEntries.get(i);
+            DirEntry parentdir = null;
+            for (DirEntry de : dirEntries.values())
+            {
+                if (de.tempID == i)
+                {
+                    parentdir = de;
+                    break;
+                }
+            }
 
             file.position(dirNodesOffset + (i * 0x10) + 10);
 
@@ -87,31 +97,233 @@ public class RarcFilesystem implements FilesystemBase
                 if (fileid == 0xFFFF)
                 {
                     DirEntry d = new DirEntry();
-                    d.entryOffset = entryoffset;
-                    d.ID = dataoffset;
-                    d.parentDir = i;
-                    d.nameOffset = nameoffset;
+                    d.parentDir = parentdir;
                     d.name = name;
                     d.fullName = fullname;
+                    d.tempID = dataoffset;
 
-                    dirEntries.put(dataoffset, d);
+                    dirEntries.put(fullname.toLowerCase(), d);
+                    parentdir.childrenDirs.add(d);
                 }
                 else
                 {
                     FileEntry f = new FileEntry();
-                    f.entryOffset = entryoffset;
-                    f.ID = fileid;
-                    f.parentDir = i;
-                    f.nameOffset = nameoffset;
-                    f.dataOffset = dataoffset;
+                    f.parentDir = parentdir;
+                    f.dataOffset = fileDataOffset + dataoffset;
                     f.dataSize = datasize;
                     f.name = name;
                     f.fullName = fullname;
+                    f.data = null;
 
-                    fileEntries.put(fileid, f);
+                    fileEntries.put(fullname.toLowerCase(), f);
+                    parentdir.childrenFiles.add(f);
                 }
             }
         }
+    }
+    
+    private int align32(int val)
+    {
+        return (val + 0x1F) & ~0x1F;
+    }
+    
+    private int dirMagic(String name)
+    {
+        String uppername = name.toUpperCase();
+        int ret = 0;
+        
+        for (int i = 0; i < 4; i++)
+        {
+            ret <<= 8;
+            
+            if (i >= uppername.length())
+                ret += 0x20;
+            else
+                ret += uppername.charAt(i);
+        }
+        
+        return ret;
+    }
+    
+    private short nameHash(String name)
+    {
+        short ret = 0;
+        for (char ch : name.toCharArray())
+        {
+            ret *= 3;
+            ret += ch;
+        }
+        return ret;
+    }
+    
+    @Override
+    public void save() throws IOException
+    {
+        for (FileEntry fe : fileEntries.values())
+        {
+            if (fe.data != null) continue;
+            file.position(fe.dataOffset);
+            fe.data = file.readBytes((int)fe.dataSize);
+        }
+        
+        int dirOffset = 0x40;
+        int fileOffset = dirOffset + align32(dirEntries.size() * 0x10);
+        int stringOffset = fileOffset + align32((fileEntries.size() + (dirEntries.size() * 3) - 1) * 0x14);
+        
+        int dataOffset = stringOffset;
+        int dataLength = 0;
+        for (DirEntry de : dirEntries.values())
+            dataOffset += de.name.length() + 1;
+        for (FileEntry fe : fileEntries.values())
+        {
+            dataOffset += fe.name.length() + 1;
+            dataLength += align32(fe.data.length);
+        }
+        dataOffset += 5;
+        dataOffset = align32(dataOffset);
+        
+        int dirSubOffset = 0;
+        int fileSubOffset = 0;
+        int stringSubOffset = 0;
+        int dataSubOffset = 0;
+        
+        file.setLength(dataOffset + dataLength);
+        
+        // RARC header
+        // certain parts of this will have to be written later on
+        file.position(0);
+        file.writeInt(0x52415243);
+        file.writeInt(dataOffset + dataLength);
+        file.writeInt(0x00000020);
+        file.writeInt(dataOffset - 0x20);
+        file.writeInt(dataLength);
+        file.writeInt(dataLength);
+        file.writeInt(0x00000000);
+        file.writeInt(0x00000000);
+        file.writeInt(dirEntries.size());
+        file.writeInt(dirOffset - 0x20);
+        file.writeInt(fileEntries.size() + (dirEntries.size() * 3) - 1);
+        file.writeInt(fileOffset - 0x20);
+        file.writeInt(dataOffset - stringOffset);
+        file.writeInt(stringOffset - 0x20);
+        file.writeInt(unk38);
+        file.writeInt(0x00000000);
+        
+        file.position(stringOffset);
+        file.writeString("ASCII", ".", 0);
+        file.writeString("ASCII", "..", 0);
+        stringSubOffset += 5;
+        
+        Stack<Iterator<DirEntry>> dirstack = new Stack<>();
+        DirEntry curdir = (DirEntry)dirEntries.values().toArray()[0];
+        short fileid = 0;
+        for (;;)
+        {
+            // write the directory node
+            curdir.tempID = dirSubOffset / 0x10;
+            file.position(dirOffset + dirSubOffset);
+            file.writeInt((curdir.tempID == 0) ? 0x524F4F54 : dirMagic(curdir.name));
+            file.writeInt(stringSubOffset);
+            file.writeShort(nameHash(curdir.name));
+            file.writeShort((short)(2 + curdir.childrenDirs.size() + curdir.childrenFiles.size()));
+            file.writeInt(fileSubOffset / 0x14);
+            dirSubOffset += 0x10;
+            
+            if (curdir.tempID > 0)
+            {
+                file.position(curdir.tempNameOffset);
+                file.writeShort((short)stringSubOffset);
+                file.writeInt(curdir.tempID);
+            }
+            file.position(stringOffset + stringSubOffset);
+            stringSubOffset += file.writeString("ASCII", curdir.name, 0);
+            
+            // write the child file/dir entries
+            file.position(fileOffset + fileSubOffset);
+            for (DirEntry cde : curdir.childrenDirs)
+            {
+                file.writeShort((short)0xFFFF);
+                file.writeShort(nameHash(cde.name));
+                file.writeShort((short)0x0200);
+                cde.tempNameOffset = (int)file.position();
+                file.skip(6);
+                file.writeInt(0x00000010);
+                file.writeInt(0x00000000);
+                fileSubOffset += 0x14;
+            }
+            
+            for (FileEntry cfe : curdir.childrenFiles)
+            {
+                file.position(fileOffset + fileSubOffset);
+                file.writeShort(fileid);
+                file.writeShort(nameHash(cfe.name));
+                file.writeShort((short)0x1100);
+                file.writeShort((short)stringSubOffset);
+                file.writeInt(dataSubOffset);
+                file.writeInt(cfe.data.length);
+                file.writeInt(0x00000000);
+                fileSubOffset += 0x14;
+                fileid++;
+
+                file.position(stringOffset + stringSubOffset);
+                stringSubOffset += file.writeString("ASCII", cfe.name, 0);
+                
+                file.position(dataOffset + dataSubOffset);
+                cfe.dataOffset = (int)file.position();
+                cfe.dataSize = cfe.data.length;
+                file.writeBytes(cfe.data);
+                dataSubOffset += align32(cfe.data.length);
+                cfe.data = null;
+            }
+            
+            file.position(fileOffset + fileSubOffset);
+            file.writeShort((short)0xFFFF);
+            file.writeShort((short)0x002E);
+            file.writeShort((short)0x0200);
+            file.writeShort((short)0x0000);
+            file.writeInt(curdir.tempID);
+            file.writeInt(0x00000010);
+            file.writeInt(0x00000000);
+            file.writeShort((short)0xFFFF);
+            file.writeShort((short)0x00B8);
+            file.writeShort((short)0x0200);
+            file.writeShort((short)0x0002);
+            file.writeInt((curdir.parentDir != null) ? curdir.parentDir.tempID : 0xFFFFFFFF);
+            file.writeInt(0x00000010);
+            file.writeInt(0x00000000);
+            fileSubOffset += 0x28;
+            
+            // determine who's next on the list
+            // * if we have a child directory, process it
+            // * otherwise, look if we have remaining siblings
+            // * and if none, go back to our parent and look for siblings again
+            // * until we have done them all
+            if (!curdir.childrenDirs.isEmpty())
+            {
+                dirstack.push(curdir.childrenDirs.iterator());
+                curdir = dirstack.peek().next();
+            }
+            else
+            {
+                curdir = null;
+                while (curdir == null)
+                {
+                    if (dirstack.empty())
+                        break;
+                    
+                    Iterator<DirEntry> it = dirstack.peek();
+                    if (it.hasNext())
+                        curdir = it.next();
+                    else
+                        dirstack.pop();
+                }
+                
+                if (curdir == null)
+                    break;
+            }
+        }
+        
+        file.save();
     }
 
     @Override
@@ -124,35 +336,21 @@ public class RarcFilesystem implements FilesystemBase
     @Override
     public boolean directoryExists(String directory)
     {
-        for (DirEntry de : dirEntries.values())
-        {
-            if (de.fullName.equalsIgnoreCase(directory))
-                return true;
-        }
-        
-        return false;
+        return dirEntries.containsKey(directory.toLowerCase());
     }
 
     @Override
     public List<String> getDirectories(String directory)
     {
-        DirEntry dir = null;
-        for (DirEntry de : dirEntries.values())
-        {
-            if (de.fullName.equalsIgnoreCase(directory))
-            {
-                dir = de;
-                break;
-            }
-        }
+        if (!dirEntries.containsKey(directory.toLowerCase())) 
+            return null;
         
-        if (dir == null) return null;
+        DirEntry dir = dirEntries.get(directory.toLowerCase());
         
         List<String> ret = new ArrayList<>();
-        for (DirEntry de : dirEntries.values())
+        for (DirEntry de : dir.childrenDirs)
         {
-            if (de.parentDir == dir.ID)
-                ret.add(de.name);
+            ret.add(de.name);
         }
         
         return ret;
@@ -162,35 +360,21 @@ public class RarcFilesystem implements FilesystemBase
     @Override
     public boolean fileExists(String filename)
     {
-        for (FileEntry fe : fileEntries.values())
-        {
-            if (fe.fullName.equalsIgnoreCase(filename))
-                return true;
-        }
-        
-        return false;
+        return fileEntries.containsKey(filename.toLowerCase());
     }
 
     @Override
     public List<String> getFiles(String directory)
     {
-        DirEntry dir = null;
-        for (DirEntry de : dirEntries.values())
-        {
-            if (de.fullName.equalsIgnoreCase(directory))
-            {
-                dir = de;
-                break;
-            }
-        }
+        if (!dirEntries.containsKey(directory.toLowerCase())) 
+            return null;
         
-        if (dir == null) return null;
+        DirEntry dir = dirEntries.get(directory.toLowerCase());
         
         List<String> ret = new ArrayList<>();
-        for (FileEntry fe : fileEntries.values())
+        for (FileEntry fe : dir.childrenFiles)
         {
-            if (fe.parentDir == dir.ID)
-                ret.add(fe.name);
+            ret.add(fe.name);
         }
         
         return ret;
@@ -199,75 +383,35 @@ public class RarcFilesystem implements FilesystemBase
     @Override
     public FileBase openFile(String filename) throws FileNotFoundException
     {
-        for (FileEntry fe : fileEntries.values())
-        {
-            if (fe.fullName.equalsIgnoreCase(filename))
-            {
-                try
-                {
-                    return new RarcFile(this, fe.ID);
-                }
-                catch (IOException ex)
-                {
-                    throw new FileNotFoundException("got IOException");
-                }
-            }
-        }
+        if (!fileEntries.containsKey(filename.toLowerCase()))
+            throw new FileNotFoundException(filename + " not found in RARC");
         
-        throw new FileNotFoundException(filename + " not found in RARC");
+        try
+        {
+            return new RarcFile(this, filename);
+        }
+        catch (IOException ex)
+        {
+            throw new FileNotFoundException("got IOException");
+        }
     }
 
 
     // support functions for RarcFile
-    public byte[] getFileContents(int id) throws IOException
+    public byte[] getFileContents(String fullname) throws IOException
     {
-        FileEntry fe = fileEntries.get(id);
+        FileEntry fe = fileEntries.get(fullname.toLowerCase());
 
-        file.position(fileDataOffset + fe.dataOffset);
+        file.position(fe.dataOffset);
         return file.readBytes((int)fe.dataSize);
     }
 
     public void reinsertFile(RarcFile _file) throws IOException
     {
-        FileEntry fe = fileEntries.get(_file.ID());
+        FileEntry fe = fileEntries.get(_file.fileName.toLowerCase());
 
-        int fileoffset = fileDataOffset + fe.dataOffset;
-        int oldlength = (int)fe.dataSize;
-        int newlength = (int)_file.getLength();
-        newlength = (newlength + 0x1F) & ~0x1F;
-        int delta = newlength - oldlength;
-
-        if (newlength != oldlength)
-        {
-            file.position(fileoffset + oldlength);
-            byte[] tomove = file.readBytes((int)(file.getLength() - file.position()));
-
-            file.position(fileoffset + newlength);
-            file.setLength(file.getLength() + delta);
-            file.writeBytes(tomove);
-
-            fe.dataSize = (int)newlength;
-            file.position(fe.entryOffset + 0xC);
-            file.writeInt(fe.dataSize);
-
-            for (FileEntry tofix : fileEntries.values())
-            {
-                if (tofix.ID == fe.ID) continue;
-                if (tofix.dataOffset < (fe.dataOffset + oldlength)) continue;
-
-                tofix.dataOffset = (int)(tofix.dataOffset + delta);
-                file.position(tofix.entryOffset + 0x8);
-                file.writeInt(tofix.dataOffset);
-            }
-            
-            file.position(4);
-            file.writeInt((int)file.getLength());
-        }
-
-        file.position(fileoffset);
         _file.position(0);
-        byte[] data = _file.readBytes((int)_file.getLength());
-        file.writeBytes(data);
+        fe.data = _file.readBytes((int)_file.getLength());
 
         file.save();
     }
@@ -281,41 +425,46 @@ public class RarcFilesystem implements FilesystemBase
 
     private class FileEntry
     {
-        public int entryOffset;
-
-        public int ID;
-        public int nameOffset;
+        public FileEntry()
+        { 
+            data = null;
+        }
+        
         public int dataOffset;
         public int dataSize;
 
-        public int parentDir;
+        public DirEntry parentDir;
 
         public String name;
         public String fullName;
+        
+        public byte[] data;
     }
 
     private class DirEntry
     {
-        public int entryOffset;
+        public DirEntry()
+        {
+            childrenDirs = new LinkedList<>();
+            childrenFiles = new LinkedList<>();
+        }
 
-        public int ID;
-        public int nameOffset;
-
-        public int parentDir;
+        public DirEntry parentDir;
+        public LinkedList<DirEntry> childrenDirs;
+        public LinkedList<FileEntry> childrenFiles;
 
         public String name;
         public String fullName;
+        
+        public int tempID;
+        public int tempNameOffset;
     }
 
 
     private FileBase file;
 
-    private int fileDataOffset;
-    private int numDirNodes;
-    private int dirNodesOffset;
-    private int fileEntriesOffset;
-    private int stringTableOffset;
+    private int unk38;
 
-    private LinkedHashMap<Integer, FileEntry> fileEntries;
-    private LinkedHashMap<Integer, DirEntry> dirEntries;
+    private LinkedHashMap<String, FileEntry> fileEntries;
+    private LinkedHashMap<String, DirEntry> dirEntries;
 }

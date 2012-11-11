@@ -28,6 +28,7 @@ import javax.swing.*;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.*;
 import javax.swing.tree.*;
+import whitehole.fileio.RarcFilesystem;
 import whitehole.vectors.*;
 import whitehole.rendering.*;
 import whitehole.smg.*;
@@ -233,6 +234,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 maxUniqueID++;
             }
         }
+        
+        // HACK TEST HACK TEST HACK TEST HACK TEST HACK TEST HACK TEST HACK TEST
+        if (!zone.equals("BeltConveyerExGalaxy")) return;
+        RarcFilesystem rarc = new RarcFilesystem(arc.filesystem.openFile("/StageData/BeltConveyerExGalaxy.arc"));
+        Bcsv bcsv = new Bcsv(rarc.openFile("/stage/jmp/path/commonpathpointinfo.0")); // path #10 has l_id 14
+        test_points = new ArrayList<>(bcsv.entries.size());
+        for (Bcsv.Entry entry : bcsv.entries)
+            test_points.add(entry);
+        // HACK TEST HACK TEST HACK TEST HACK TEST HACK TEST HACK TEST HACK TEST
     }
     
     
@@ -293,6 +303,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jScrollPane3 = new javax.swing.JScrollPane();
         tvObjectList = new javax.swing.JTree();
         scpObjSettingsContainer = new javax.swing.JScrollPane();
+        jPanel4 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(800, 600));
@@ -520,6 +531,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jSplitPane4.setRightComponent(scpObjSettingsContainer);
 
         tpLeftPanel.addTab("Objects", jSplitPane4);
+        tpLeftPanel.addTab("Paths", jPanel4);
 
         jSplitPane1.setLeftComponent(tpLeftPanel);
 
@@ -1559,6 +1571,68 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glVertex3f(0f, 0f, 100000f);
             gl.glEnd();
             
+            // HACK TEST HACK TEST HACK TEST HACK TEST HACK TEST HACK TEST HACK
+            /*gl.glBegin(GL2.GL_LINE_STRIP);
+            gl.glLineWidth(2f);
+            gl.glColor4f(1f, 1f, 0f, 1f);
+            gl.glVertex3f((float)test_points.get(0).get("pnt0_x"), 
+                    (float)test_points.get(0).get("pnt0_y"), 
+                    (float)test_points.get(0).get("pnt0_z"));
+            for (int b = 1; b < test_points.size(); b++)
+            {
+                Vector3 p1 = new Vector3(
+                        (float)test_points.get(b-1).get("pnt0_x"), 
+                        (float)test_points.get(b-1).get("pnt0_y"), 
+                        (float)test_points.get(b-1).get("pnt0_z"));
+                Vector3 p2 = new Vector3(
+                        (float)test_points.get(b-1).get("pnt2_x"), 
+                        (float)test_points.get(b-1).get("pnt2_y"), 
+                        (float)test_points.get(b-1).get("pnt2_z"));
+                if (b >= test_points.size()) b = 0;
+                Vector3 p3 = new Vector3(
+                        (float)test_points.get(b).get("pnt1_x"), 
+                        (float)test_points.get(b).get("pnt1_y"), 
+                        (float)test_points.get(b).get("pnt1_z"));
+                Vector3 p4 = new Vector3(
+                        (float)test_points.get(b).get("pnt0_x"), 
+                        (float)test_points.get(b).get("pnt0_y"), 
+                        (float)test_points.get(b).get("pnt0_z"));
+                
+                // p1*(1-t)^3 + 3*p2*t*(1-t)^2 + 3*p3*t^2*(1-t) + p4*t^3
+                for (float t = 0f; t < 1f; t += 0.01f)
+                {
+                    float x = (p1.x * (float)Math.pow(1f - t, 3f)) + 
+                            (3 * p2.x * t * (float)Math.pow(1f - t, 2f)) + 
+                            (3 * p3.x * (float)Math.pow(t, 2f) * (1f - t)) + 
+                            (p4.x * (float)Math.pow(t, 3f));
+                    float y = (p1.y * (float)Math.pow(1f - t, 3f)) + 
+                            (3 * p2.y * t * (float)Math.pow(1f - t, 2f)) + 
+                            (3 * p3.y * (float)Math.pow(t, 2f) * (1f - t)) + 
+                            (p4.y * (float)Math.pow(t, 3f));
+                    float z = (p1.z * (float)Math.pow(1f - t, 3f)) + 
+                            (3 * p2.z * t * (float)Math.pow(1f - t, 2f)) + 
+                            (3 * p3.z * (float)Math.pow(t, 2f) * (1f - t)) + 
+                            (p4.z * (float)Math.pow(t, 3f));
+                    
+                    gl.glVertex3f(x, y, z);
+                }
+                
+                if (b == 0) break;
+            }
+            gl.glEnd();*/
+            /*gl.glBegin(GL2.GL_LINES);
+            for (Bcsv.Entry entry : test_points)
+            {
+                gl.glColor4f(0f, 1f, 0f, 1f);
+                gl.glVertex3f((float)entry.get("pnt0_x"), (float)entry.get("pnt0_y"), (float)entry.get("pnt0_z"));
+                gl.glVertex3f((float)entry.get("pnt1_x"), (float)entry.get("pnt1_y"), (float)entry.get("pnt1_z"));
+                gl.glColor4f(0f, 0f, 1f, 1f);
+                gl.glVertex3f((float)entry.get("pnt0_x"), (float)entry.get("pnt0_y"), (float)entry.get("pnt0_z"));
+                gl.glVertex3f((float)entry.get("pnt2_x"), (float)entry.get("pnt2_y"), (float)entry.get("pnt2_z"));
+            }
+            gl.glEnd();*/
+            // HACK TEST HACK TEST HACK TEST HACK TEST HACK TEST HACK TEST HACK
+            
             glad.swapBuffers();
         }
         @Override
@@ -1885,7 +1959,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
             else
             {
-                float delta = (float)(e.getPreciseWheelRotation() * 0.1f);
+                float delta = (float)(e.getPreciseWheelRotation() * Math.min(0.1f, pickingDepth / 10f));
                 camTarget.x += delta * (float)Math.cos(camRotation.x) * (float)Math.cos(camRotation.y);
                 camTarget.y += delta * (float)Math.sin(camRotation.y);
                 camTarget.z += delta * (float)Math.sin(camRotation.x) * (float)Math.cos(camRotation.y);
@@ -1963,6 +2037,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private CheckBoxList lbLayersList;
     private PropertyPanel pnlObjectSettings;
     
+    private java.util.List<Bcsv.Entry> test_points;
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddScenario;
     private javax.swing.JButton btnAddZone;
@@ -1980,6 +2056,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;

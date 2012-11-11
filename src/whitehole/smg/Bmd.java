@@ -676,7 +676,8 @@ public class Bmd
             short[] texgen_id = new short[8];
             for (int j = 0; j < 8; j++) texgen_id[j] = file.readShort();
             file.skip(16); // texGenInfo2 -- 12
-            file.skip(20); // texMatrices -- 13?
+            short[] texmtx_id = new short[10];
+            for (int j = 0; j < 10; j++) texmtx_id[j] = file.readShort();
             file.skip(40); // dttMatrices -- 14?
             short[] texstage_id = new short[8];
             for (int j = 0; j < 8; j++) texstage_id[j] = file.readShort();
@@ -735,7 +736,43 @@ public class Bmd
             // with some luck we don't need to support texgens2
             // SMG models don't seem to use it
 
-            //
+            mat.texMtx = new Material.TexMtxInfo[10];
+            for (int j = 0; j < 10; j++)
+            {
+                mat.texMtx[j] = mat.new TexMtxInfo();
+                
+                if (texmtx_id[j] == (short)0xFFFF)
+                {
+                    // invalid texmtx -- todo
+                    
+                    mat.texMtx[j].finalMatrix = new Matrix4();
+                }
+                else
+                {
+                    file.position(sectionstart + offsets[13] + (texmtx_id[j] * 100));
+                    //System.out.println(String.format("MATRIX %1$d @ %2$08X", texmtx_id[j], file.position()));
+                    // CollapsePlane:
+                    // 0: 1EC8
+                    // 1: 1F2C
+                    
+                    mat.texMtx[j].unks1 = file.readShort();
+                    mat.texMtx[j].unks2 = file.readShort();
+                    
+                    mat.texMtx[j].unkf1 = new float[5];
+                    for (int k = 0; k < 5; k++) mat.texMtx[j].unkf1[k] = file.readFloat();
+                    
+                    mat.texMtx[j].unks3 = file.readShort();
+                    mat.texMtx[j].unks4 = file.readShort();
+                    
+                    mat.texMtx[j].unkf2 = new float[2];
+                    for (int k = 0; k < 2; k++) mat.texMtx[j].unkf2[k] = file.readFloat();
+                    mat.texMtx[j].unkf3 = new float[16];
+                    for (int k = 0; k < 16; k++) mat.texMtx[j].unkf3[k] = file.readFloat();
+                    
+                    mat.texMtx[j].finalMatrix = new Matrix4();
+                    mat.texMtx[j].finalMatrix.m = mat.texMtx[j].unkf3;
+                }
+            }
 
             mat.texStages = new short[8];
             for (int j = 0; j < 8; j++)
@@ -1057,6 +1094,16 @@ public class Bmd
             public byte src;
             public byte matrix;
         }
+        
+        public class TexMtxInfo
+        {
+            public short unks1, unks2;
+            public float[] unkf1;
+            public short unks3, unks4;
+            public float[] unkf2, unkf3;
+            
+            public Matrix4 finalMatrix;
+        }
 
         public class TevStageInfo
         {
@@ -1117,7 +1164,7 @@ public class Bmd
         public TexGenInfo[] texGen;
         // texGenInfo2
 
-        // texMatrices
+        public TexMtxInfo[] texMtx;
         // dttMatrices
 
         public short[] texStages;

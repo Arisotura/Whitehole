@@ -259,12 +259,29 @@ public class BmdRenderer extends GLRenderer
         vert.append("void main()\n");
         vert.append("{\n");
         vert.append("    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n");
+        vert.append("    gl_Normal = vec3(gl_ModelViewMatrix * vec4(gl_Normal,0.0)) * vec3(10000.0,10000.0,10000.0);\n");
         vert.append("    gl_FrontColor = gl_Color;\n");
         vert.append("    gl_FrontSecondaryColor = gl_SecondaryColor;\n");
         for (int i = 0; i < mat.numTexgens; i++)
         {
             // TODO matrices
-            vert.append(String.format("    gl_TexCoord[%1$d] = %2$s;\n", i, texgensrc[mat.texGen[i].src]));
+            int mtxid = mat.texGen[i].matrix;
+            
+            String thematrix = "";
+            /*if (mtxid >= 30 && mtxid <= 57)
+            {
+                thematrix = "* mat4(";
+                for (int j = 0; j < 16; j++)
+                {
+                    if (j > 0) thematrix += ",";
+                    thematrix += String.format(usa, "%1$f", mat.texMtx[(mtxid - 30) / 3].unkf3[j]);
+                }
+                thematrix += ") * (1.0/4.0)";
+            }*/
+            
+            // 0.5^8
+            //vec4(gl_Vertex.x*(-0.00390625),gl_Vertex.z*(-0.00390625),1.0,0.0);// %3$s * %2$s;
+            vert.append(String.format("    gl_TexCoord[%1$d] = %2$s;// %3$s;\n", i, texgensrc[mat.texGen[i].src], thematrix));
         }
         vert.append("}\n");
 
@@ -279,9 +296,13 @@ public class BmdRenderer extends GLRenderer
         if (success == 0)
         {
             //string log = gl.glGetShaderInfoLog(vertid);
-            String log = "TODO port this shit from C#";
-            System.out.println("ARGH");
-            throw new GLException("!Failed to compile vertex shader: " + log);
+            gl.glGetShaderiv(vertid, GL2.GL_INFO_LOG_LENGTH, sillyarray, 0);
+            int loglength = sillyarray[0];
+            byte[] _log = new byte[loglength];
+            gl.glGetShaderInfoLog(vertid, loglength, sillyarray, 0, _log, 0);
+            CharBuffer log;
+            try { log = Charset.forName("ASCII").newDecoder().decode(ByteBuffer.wrap(_log)); } catch (Exception ex) { log = CharBuffer.wrap("lolfail"); }
+            throw new GLException("!Failed to compile vertex shader: " + log.toString() + "\n" + vert.toString());
             // TODO: better error reporting/logging?
         }
 
@@ -494,6 +515,7 @@ public class BmdRenderer extends GLRenderer
         }
         
         ShaderCache.addEntry(hash, vertid, fragid, sid);
+        //System.out.println(matid);
         //System.out.println(frag.toString());
     }
 
@@ -510,7 +532,7 @@ public class BmdRenderer extends GLRenderer
         ctor_uploadData(info);
     }
     
-    protected void ctor_loadModel(RenderInfo info, String modelname) throws GLException
+    protected final void ctor_loadModel(RenderInfo info, String modelname) throws GLException
     {
         GL2 gl = info.drawable.getGL().getGL2();
         
@@ -535,7 +557,7 @@ public class BmdRenderer extends GLRenderer
         }
     }
     
-    protected void ctor_uploadData(RenderInfo info) throws GLException
+    protected final void ctor_uploadData(RenderInfo info) throws GLException
     {
         GL2 gl = info.drawable.getGL().getGL2();
         
