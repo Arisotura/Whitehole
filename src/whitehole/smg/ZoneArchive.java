@@ -88,12 +88,12 @@ public class ZoneArchive
     
     public void save() throws IOException
     {
-        RarcFilesystem zonearc = new RarcFilesystem(filesystem.openFile(zonefile));
+        archive = new RarcFilesystem(filesystem.openFile(zonefile));
         
-        saveObjects(zonearc, "MapParts", "MapPartsInfo");
-        saveObjects(zonearc, "Placement", "ObjInfo");
+        saveObjects("MapParts", "MapPartsInfo");
+        saveObjects("Placement", "ObjInfo");
         
-        zonearc.close();
+        archive.close();
     }
     
     public void close()
@@ -105,31 +105,33 @@ public class ZoneArchive
     {
         objects = new HashMap<>();
         subZones = new HashMap<>();
-        RarcFilesystem zonearc = new RarcFilesystem(filesystem.openFile(zonefile));
+        archive = new RarcFilesystem(filesystem.openFile(zonefile));
         
-        loadObjects(zonearc, "MapParts", "MapPartsInfo");
-        loadObjects(zonearc, "Placement", "ObjInfo");
+        loadObjects("MapParts", "MapPartsInfo");
+        loadObjects("Placement", "ObjInfo");
         
-        loadSubZones(zonearc);
+        loadPaths();
         
-        zonearc.close();
+        loadSubZones();
+        
+        archive.close();
     }
     
-    private void loadObjects(RarcFilesystem arc, String dir, String file)
+    private void loadObjects(String dir, String file)
     {
-        List<String> layers = arc.getDirectories("/Stage/Jmp/" + dir);
+        List<String> layers = archive.getDirectories("/Stage/Jmp/" + dir);
         for (String layer : layers)
-            addObjectsToList(arc, dir + "/" + layer + "/" + file);
+            addObjectsToList(dir + "/" + layer + "/" + file);
     }
     
-    private void saveObjects(RarcFilesystem arc, String dir, String file)
+    private void saveObjects(String dir, String file)
     {
-        List<String> layers = arc.getDirectories("/Stage/Jmp/" + dir);
+        List<String> layers = archive.getDirectories("/Stage/Jmp/" + dir);
         for (String layer : layers)
-            saveObjectList(arc, dir + "/" + layer + "/" + file);
+            saveObjectList(dir + "/" + layer + "/" + file);
     }
     
-    private void addObjectsToList(RarcFilesystem arc, String filepath)
+    private void addObjectsToList(String filepath)
     {
         String layer = filepath.split("/")[1].toLowerCase();
         
@@ -138,9 +140,9 @@ public class ZoneArchive
         
         try
         {
-            Bcsv bcsv = new Bcsv(arc.openFile("/Stage/Jmp/" + filepath));
+            Bcsv bcsv = new Bcsv(archive.openFile("/Stage/Jmp/" + filepath));
             for (Bcsv.Entry entry : bcsv.entries)
-                objects.get(layer).add(new LevelObject(zoneName, filepath, entry));
+                objects.get(layer).add(new LevelObject(this, filepath, entry));
             bcsv.close();
         }
         catch (IOException ex)
@@ -151,7 +153,7 @@ public class ZoneArchive
         }
     }
     
-    private void saveObjectList(RarcFilesystem arc, String filepath)
+    private void saveObjectList(String filepath)
     {
         String[] stuff = filepath.split("/");
         String dir = stuff[0], file = stuff[2];
@@ -161,7 +163,7 @@ public class ZoneArchive
         
         try
         {
-            Bcsv bcsv = new Bcsv(arc.openFile("/Stage/Jmp/" + filepath));
+            Bcsv bcsv = new Bcsv(archive.openFile("/Stage/Jmp/" + filepath));
             bcsv.entries.clear();
             for (LevelObject obj : objects.get(layer))
             {
@@ -182,14 +184,30 @@ public class ZoneArchive
         }
     }
     
-    private void loadSubZones(RarcFilesystem arc)
+    private void loadPaths()
     {
-        List<String> layers = arc.getDirectories("/Stage/Jmp/Placement");
+        try
+        {
+            Bcsv bcsv = new Bcsv(archive.openFile("/Stage/jmp/Path/CommonPathInfo"));
+            paths = new ArrayList<>(bcsv.entries.size());
+            for (Bcsv.Entry entry : bcsv.entries)
+                paths.add(new PathObject(this, entry));
+            bcsv.close();
+        }
+        catch (IOException ex)
+        {
+            System.out.println(zoneName+": Failed to load paths: "+ex.getMessage());
+        }
+    }
+    
+    private void loadSubZones()
+    {
+        List<String> layers = archive.getDirectories("/Stage/Jmp/Placement");
         for (String layer : layers)
         {
             try
             {
-                Bcsv bcsv = new Bcsv(arc.openFile("/Stage/Jmp/Placement/" + layer + "/StageObjInfo"));
+                Bcsv bcsv = new Bcsv(archive.openFile("/Stage/Jmp/Placement/" + layer + "/StageObjInfo"));
                 subZones.put(layer.toLowerCase(), bcsv.entries); // lazy lol
                 bcsv.close();
             }
@@ -207,10 +225,12 @@ public class ZoneArchive
     public GameArchive game;
     public FilesystemBase filesystem;
     public String zonefile;
+    public RarcFilesystem archive;
     
     public String zoneName;
     
     public int gameMask;
     public HashMap<String, List<LevelObject>> objects;
+    public List<PathObject> paths;
     public HashMap<String, List<Bcsv.Entry>> subZones;
 }

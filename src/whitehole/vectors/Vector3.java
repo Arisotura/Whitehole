@@ -40,6 +40,15 @@ public class Vector3
     }
     
     
+    public static boolean roughlyEqual(Vector3 a, Vector3 b)
+    {
+        float epsilon = 0.00001f;
+        if (Math.abs(a.x - b.x) > epsilon) return false;
+        if (Math.abs(a.y - b.y) > epsilon) return false;
+        if (Math.abs(a.z - b.z) > epsilon) return false;
+        return true;
+    }
+    
     public static void transform(Vector3 v, Matrix4 m, Vector3 out)
     {
         float x = v.x * m.m[0] + v.y * m.m[4] + v.z * m.m[8] + m.m[12],

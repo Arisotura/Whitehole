@@ -415,12 +415,6 @@ public class RarcFilesystem implements FilesystemBase
 
         file.save();
     }
-    
-    
-    // type: 0=file, 1=dir
-    private void addEntry(int id, String name, int type)
-    {
-    }
 
 
     private class FileEntry

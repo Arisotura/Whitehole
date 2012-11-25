@@ -38,6 +38,14 @@ public class Vector2
     }
     
     
+    public static boolean roughlyEqual(Vector2 a, Vector2 b)
+    {
+        float epsilon = 0.00001f;
+        if (Math.abs(a.x - b.x) > epsilon) return false;
+        if (Math.abs(a.y - b.y) > epsilon) return false;
+        return true;
+    }
+    
     public float length()
     {
         return (float)Math.sqrt(x * x + y * y);

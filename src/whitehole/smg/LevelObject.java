@@ -25,7 +25,7 @@ import whitehole.vectors.Vector3;
 
 public class LevelObject
 {
-    public LevelObject(String zone, String filepath, Bcsv.Entry entry)
+    public LevelObject(ZoneArchive zone, String filepath, Bcsv.Entry entry)
     {
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -46,7 +46,7 @@ public class LevelObject
         scale = new Vector3((float)data.get("scale_x"), (float)data.get("scale_y"), (float)data.get("scale_z"));
     }
     
-    public LevelObject(String zone, String filepath, int game, String objname, Vector3 pos)
+    public LevelObject(ZoneArchive zone, String filepath, int game, String objname, Vector3 pos)
     {
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -143,13 +143,6 @@ public class LevelObject
     }
     
     
-    @Override
-    public String toString()
-    {
-        return name;
-    }
-    
-    
     public final void loadDBInfo()
     {
         if (ObjectDB.objects.containsKey(name))
@@ -205,8 +198,16 @@ public class LevelObject
         gl.glPopMatrix();
     }
     
+    @Override
+    public String toString()
+    {
+        String l = layer.equals("common") ? "Common" : "Layer"+layer.substring(5).toUpperCase();
+        return dbInfo.name + " [" + l + "]";
+    }
     
-    public String zone, directory, layer, file;
+    
+    public ZoneArchive zone;
+    public String directory, layer, file;
     public String name;
     public Bcsv.Entry data;
     public ObjectDB.Object dbInfo;

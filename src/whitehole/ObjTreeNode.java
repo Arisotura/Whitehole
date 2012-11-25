@@ -22,13 +22,32 @@ import java.util.Enumeration;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import whitehole.smg.LevelObject;
+import whitehole.smg.PathPointObject;
 
 public class ObjTreeNode implements MutableTreeNode
 {
+    public ObjTreeNode()
+    {
+        this.parent = null;
+        this.object = null;
+        this.userObject = null;
+        this.uniqueID = -1;
+    }
+    
     public ObjTreeNode(LevelObject obj)
     {
         this.parent = null;
         this.object = obj;
+        this.userObject = null;
+        this.uniqueID = obj.uniqueID;
+    }
+    
+    public ObjTreeNode(PathPointObject obj)
+    {
+        this.parent = null;
+        this.object = obj;
+        this.userObject = null;
+        this.uniqueID = obj.uniqueID;
     }
     
 
@@ -40,7 +59,10 @@ public class ObjTreeNode implements MutableTreeNode
     public void remove(MutableTreeNode node) {}
 
     @Override
-    public void setUserObject(Object object) {}
+    public void setUserObject(Object object)
+    {
+        userObject = object;
+    }
 
     @Override
     public void removeFromParent()
@@ -101,11 +123,17 @@ public class ObjTreeNode implements MutableTreeNode
     @Override
     public String toString()
     {
-        String layer = object.layer.equals("common") ? "Common" : "Layer"+object.layer.substring(5).toUpperCase();
-        return object.dbInfo.name + " [" + layer + "]";
+        if (userObject != null)
+            return userObject.toString();
+        else if (object != null)
+            return object.toString();
+        else
+            return "unknown node lol";
     }
     
     
     public TreeNode parent;
-    public LevelObject object;
+    public Object object;
+    public Object userObject;
+    public int uniqueID;
 }

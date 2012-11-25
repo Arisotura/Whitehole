@@ -23,13 +23,23 @@ import java.util.LinkedHashMap;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import whitehole.smg.LevelObject;
+import whitehole.smg.PathObject;
+import whitehole.smg.PathPointObject;
 
-public class ObjListTreeNode implements MutableTreeNode
+public class ObjListTreeNode extends ObjTreeNode
 {
     public ObjListTreeNode()
     {
-        parent = null;
         children = new LinkedHashMap<>();
+    }
+    
+    public ObjListTreeNode(PathObject obj)
+    {
+        object = obj;
+        uniqueID = obj.uniqueID;
+        children = new LinkedHashMap<>();
+        for (PathPointObject ptobj : obj.points.values())
+            addObject(ptobj);
     }
     
     @Override
@@ -48,13 +58,7 @@ public class ObjListTreeNode implements MutableTreeNode
     @Override
     public void remove(MutableTreeNode node)
     {
-        children.remove(((ObjTreeNode)node).object.uniqueID);
-    }
-
-    @Override
-    public void setUserObject(Object object)
-    {
-        userObject = object;
+        children.remove(((ObjTreeNode)node).uniqueID);
     }
 
     @Override
@@ -91,11 +95,11 @@ public class ObjListTreeNode implements MutableTreeNode
     @Override
     public int getIndex(TreeNode node)
     {
-        int uid = ((ObjTreeNode)node).object.uniqueID;
+        int uid = ((ObjTreeNode)node).uniqueID;
         int i = 0;
         for (TreeNode tn : children.values())
         {
-            if (((ObjTreeNode)tn).object.uniqueID == uid)
+            if (((ObjTreeNode)tn).uniqueID == uid)
                 return i;
             
             i++;
@@ -123,13 +127,6 @@ public class ObjListTreeNode implements MutableTreeNode
     }
     
     
-    @Override
-    public String toString()
-    {
-        return userObject.toString();
-    }
-    
-    
     public TreeNode addObject(LevelObject obj)
     {
         ObjTreeNode tn = new ObjTreeNode(obj);
@@ -138,8 +135,22 @@ public class ObjListTreeNode implements MutableTreeNode
         return tn;
     }
     
+    public TreeNode addObject(PathPointObject obj)
+    {
+        ObjTreeNode tn = new ObjTreeNode(obj);
+        children.put(obj.uniqueID, tn);
+        tn.setParent(this);
+        return tn;
+    }
     
-    Object userObject;
-    TreeNode parent;
+    public TreeNode addObject(PathObject obj)
+    {
+        ObjListTreeNode tn = new ObjListTreeNode(obj);
+        children.put(obj.uniqueID, tn);
+        tn.setParent(this);
+        return tn;
+    }
+    
+    
     LinkedHashMap<Integer, TreeNode> children;
 }
