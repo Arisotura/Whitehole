@@ -691,7 +691,8 @@ public class BmdRenderer extends GLRenderer
         Matrix4[] lastmatrixtable = null;
         
         // setup some default OpenGL state
-        gl.glColor4f(1f, 1f, 1f, 1f);
+        if (info.renderMode != RenderMode.PICKING)
+            gl.glColor4f(1f, 1f, 1f, 1f);
 
         for (Bmd.SceneGraphNode node : model.sceneGraph)
         {
