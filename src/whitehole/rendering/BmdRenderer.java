@@ -689,6 +689,9 @@ public class BmdRenderer extends GLRenderer
                           GL2.GL_COPY_INVERTED, GL2.GL_OR_INVERTED, GL2.GL_NAND, GL2.GL_SET };
 
         Matrix4[] lastmatrixtable = null;
+        
+        // setup some default OpenGL state
+        gl.glColor4f(1f, 1f, 1f, 1f);
 
         for (Bmd.SceneGraphNode node : model.sceneGraph)
         {
