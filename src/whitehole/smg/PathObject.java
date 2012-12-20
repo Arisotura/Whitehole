@@ -56,44 +56,56 @@ public class PathObject
             System.out.println(String.format("Failed to load path points for path %1$d: %2$s", index, ex.getMessage()));
             points.clear();
         }
+        
+        displayLists = null;
+    }
+    
+    public void save()
+    {
+        data.put("no", (short)index); // shouldn't be modified, but whatever
+        data.put("l_id", pathID);
+        data.put("num_pnt", (int)points.size());
+        
+        try
+        {
+            Bcsv pointsfile = new Bcsv(zone.archive.openFile(String.format("/Stage/jmp/Path/CommonPathPointInfo.%1$d", index)));
+            pointsfile.entries.clear();
+            for (PathPointObject ptobj : points.values())
+            {
+                ptobj.save();
+                pointsfile.entries.add(ptobj.data);
+            }
+            pointsfile.save();
+            pointsfile.close();
+        }
+        catch (IOException ex)
+        {
+            System.out.println(String.format("Failed to save path points for path %1$d: %2$s", index, ex.getMessage()));
+        }
     }
     
     
     public void prerender(GLRenderer.RenderInfo info)
     {
-        displayLists = new int[2];
-        
         GL2 gl = info.drawable.getGL().getGL2();
+        
+        if (displayLists == null)
+        {
+            displayLists = new int[2];
+            displayLists[0] = gl.glGenLists(1);
+            displayLists[1] = gl.glGenLists(1);
+        }
         
         // DISPLAY LIST 0 -- path rendered in picking mode (just the points)
         
-        displayLists[0] = gl.glGenLists(1);
         gl.glNewList(displayLists[0], GL2.GL_COMPILE);
         
         for (PathPointObject point : points.values())
         {
             gl.glBegin(GL2.GL_POINTS);
 
-            gl.glPointSize(8f);
             int uniqueid = point.uniqueID;
-            gl.glColor4ub(
-                (byte)(uniqueid >>> 16), 
-                (byte)(uniqueid >>> 8), 
-                (byte)uniqueid, 
-                (byte)0xFF);
-            gl.glVertex3f(point.point0.x, point.point0.y, point.point0.z);
-
-            gl.glPointSize(6f);
-            uniqueid++;
-            gl.glColor4ub(
-                (byte)(uniqueid >>> 16), 
-                (byte)(uniqueid >>> 8), 
-                (byte)uniqueid, 
-                (byte)0xFF);
-            if (Vector3.roughlyEqual(point.point0, point.point1))
-                gl.glVertex3f(point.point1.x+50f, point.point1.y+50f, point.point1.z+50f);
-            else
-                gl.glVertex3f(point.point1.x, point.point1.y, point.point1.z);
+            gl.glPointSize(12f);
             
             uniqueid++;
             gl.glColor4ub(
@@ -101,10 +113,23 @@ public class PathObject
                 (byte)(uniqueid >>> 8), 
                 (byte)uniqueid, 
                 (byte)0xFF);
-            if (Vector3.roughlyEqual(point.point0, point.point2))
-                gl.glVertex3f(point.point2.x+50f, point.point2.y+50f, point.point2.z+50f);
-            else
-                gl.glVertex3f(point.point2.x, point.point2.y, point.point2.z);
+            gl.glVertex3f(point.point1.x, point.point1.y, point.point1.z);
+            
+            uniqueid++;
+            gl.glColor4ub(
+                (byte)(uniqueid >>> 16), 
+                (byte)(uniqueid >>> 8), 
+                (byte)uniqueid, 
+                (byte)0xFF);
+            gl.glVertex3f(point.point2.x, point.point2.y, point.point2.z);
+            
+            uniqueid -= 2;
+            gl.glColor4ub(
+                (byte)(uniqueid >>> 16), 
+                (byte)(uniqueid >>> 8), 
+                (byte)uniqueid, 
+                (byte)0xFF);
+            gl.glVertex3f(point.point0.x, point.point0.y, point.point0.z);
             
             gl.glEnd();
         }
@@ -113,7 +138,6 @@ public class PathObject
         
         // DISPLAY LIST 1 -- shows the path fully
         
-        displayLists[1] = gl.glGenLists(1);
         gl.glNewList(displayLists[1], GL2.GL_COMPILE);
         
         for (int i = 0; i < 8; i++)
@@ -144,15 +168,8 @@ public class PathObject
             gl.glVertex3f(point.point0.x, point.point0.y, point.point0.z);
 
             gl.glPointSize(6f);
-            if (Vector3.roughlyEqual(point.point0, point.point1))
-                gl.glVertex3f(point.point1.x+50f, point.point1.y+50f, point.point1.z+50f);
-            else
-                gl.glVertex3f(point.point1.x, point.point1.y, point.point1.z);
-            
-            if (Vector3.roughlyEqual(point.point0, point.point2))
-                gl.glVertex3f(point.point2.x+50f, point.point2.y+50f, point.point2.z+50f);
-            else
-                gl.glVertex3f(point.point2.x, point.point2.y, point.point2.z);
+            gl.glVertex3f(point.point1.x, point.point1.y, point.point1.z);
+            gl.glVertex3f(point.point2.x, point.point2.y, point.point2.z);
             
             gl.glEnd();
             
@@ -169,6 +186,9 @@ public class PathObject
         int numpnt = (int)data.get("num_pnt");
         int end = numpnt;
         if (((String)data.get("closed")).equals("CLOSE")) end++;
+        
+        Vector3 start = points.get(0).point0;
+        gl.glVertex3f(start.x, start.y, start.z);
         for (int p = 1; p < end; p++)
         {
             int pid = p;
@@ -178,17 +198,27 @@ public class PathObject
             Vector3 p3 = points.get(pid).point1;
             Vector3 p4 = points.get(pid).point0;
             
-            for (float t = 0f; t < 1f; t += 0.01f)
+            // if the curve control points are stuck together, just draw a straight line
+            if (Vector3.roughlyEqual(p1, p2) && Vector3.roughlyEqual(p3, p4))
             {
-                float p1t = (1f - t) * (1f - t) * (1f - t);
-                float p2t = 3 * t * (1f - t) * (1f - t);
-                float p3t = 3 * t * t * (1f - t);
-                float p4t = t * t * t;
+                gl.glVertex3f(p4.x, p4.y, p4.z);
+            }
+            else
+            {
+                float step = 0.01f;
                 
-                gl.glVertex3f(
-                        p1.x * p1t + p2.x * p2t + p3.x * p3t + p4.x * p4t,
-                        p1.y * p1t + p2.y * p2t + p3.y * p3t + p4.y * p4t,
-                        p1.z * p1t + p2.z * p2t + p3.z * p3t + p4.z * p4t);
+                for (float t = step; t < 1f; t += step)
+                {
+                    float p1t = (1f - t) * (1f - t) * (1f - t);
+                    float p2t = 3 * t * (1f - t) * (1f - t);
+                    float p3t = 3 * t * t * (1f - t);
+                    float p4t = t * t * t;
+
+                    gl.glVertex3f(
+                            p1.x * p1t + p2.x * p2t + p3.x * p3t + p4.x * p4t,
+                            p1.y * p1t + p2.y * p2t + p3.y * p3t + p4.y * p4t,
+                            p1.z * p1t + p2.z * p2t + p3.z * p3t + p4.z * p4t);
+                }
             }
         }
         

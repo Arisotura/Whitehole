@@ -35,6 +35,14 @@ public class PathPointObject
         point2 = new Vector3((float)data.get("pnt2_x"), (float)data.get("pnt2_y"), (float)data.get("pnt2_z"));
     }
     
+    public void save()
+    {
+        data.put("id", (short)index);
+        data.put("pnt0_x", point0.x); data.put("pnt0_y", point0.y); data.put("pnt0_z", point0.z);
+        data.put("pnt1_x", point1.x); data.put("pnt1_y", point1.y); data.put("pnt1_z", point1.z);
+        data.put("pnt2_x", point2.x); data.put("pnt2_y", point2.y); data.put("pnt2_z", point2.z);
+    }
+    
     @Override
     public String toString()
     {

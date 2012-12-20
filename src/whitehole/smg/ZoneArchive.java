@@ -93,6 +93,9 @@ public class ZoneArchive
         saveObjects("MapParts", "MapPartsInfo");
         saveObjects("Placement", "ObjInfo");
         
+        savePaths();
+        
+        archive.save();
         archive.close();
     }
     
@@ -192,6 +195,26 @@ public class ZoneArchive
             paths = new ArrayList<>(bcsv.entries.size());
             for (Bcsv.Entry entry : bcsv.entries)
                 paths.add(new PathObject(this, entry));
+            bcsv.close();
+        }
+        catch (IOException ex)
+        {
+            System.out.println(zoneName+": Failed to load paths: "+ex.getMessage());
+        }
+    }
+    
+    private void savePaths()
+    {
+        try
+        {
+            Bcsv bcsv = new Bcsv(archive.openFile("/Stage/jmp/Path/CommonPathInfo"));
+            bcsv.entries.clear();
+            for (PathObject pobj : paths)
+            {
+                pobj.save();
+                bcsv.entries.add(pobj.data);
+            }
+            bcsv.save();
             bcsv.close();
         }
         catch (IOException ex)

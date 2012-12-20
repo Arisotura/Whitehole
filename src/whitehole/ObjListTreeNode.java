@@ -31,6 +31,7 @@ public class ObjListTreeNode extends ObjTreeNode
     public ObjListTreeNode()
     {
         children = new LinkedHashMap<>();
+        object = null;
     }
     
     public ObjListTreeNode(PathObject obj)

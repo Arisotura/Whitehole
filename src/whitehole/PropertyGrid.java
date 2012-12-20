@@ -16,12 +16,65 @@
     with Whitehole. If not, see http://www.gnu.org/licenses/.
 */
 
+// PropertyGrid. Meant to replace PropertyPanel.
+// TODO: program it here
+
 package whitehole;
 
+import javax.swing.JFrame;
 import javax.swing.JTable;
+import javax.swing.table.AbstractTableModel;
 
 public class PropertyGrid extends JTable
 {
-    // a decent PropertyGrid is in the todo list
-    // put the code here :D
+    public PropertyGrid(JFrame parent)
+    {
+        this.parent = parent;
+        this.setModel(new PGModel());
+    }
+    
+    
+    public void clear()
+    {
+        //this.removeAll();
+        
+        /*categories.clear();
+        fields.clear();
+        
+        curRow = 0; curIndex = 0;
+        curCategory = null;*/
+    }
+    
+    public void addCategory(String name, String caption)
+    {
+    }
+    
+    public void addField(String name, String caption, String type, java.util.List choices, Object val)
+    {
+    }
+    
+    
+    public class PGModel extends AbstractTableModel
+    {
+        @Override
+        public int getRowCount()
+        {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public int getColumnCount()
+        {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex)
+        {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+    }
+    
+    
+    private JFrame parent;
 }

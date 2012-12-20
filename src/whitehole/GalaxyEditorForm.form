@@ -122,6 +122,28 @@
                 </Component>
                 <Component class="javax.swing.JToolBar$Separator" name="jSeparator2">
                 </Component>
+                <Component class="javax.swing.JToggleButton" name="btnShowAllPaths">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Show all paths"/>
+                    <Property name="focusable" type="boolean" value="false"/>
+                    <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="verticalTextPosition" type="int" value="3"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnShowAllPathsActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JToggleButton" name="btnShowFakecolor">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="[debug: show fakecolor]"/>
+                    <Property name="focusable" type="boolean" value="false"/>
+                    <Property name="horizontalTextPosition" type="int" value="0"/>
+                    <Property name="verticalTextPosition" type="int" value="3"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnShowFakecolorActionPerformed"/>
+                  </Events>
+                </Component>
               </SubComponents>
             </Container>
             <Component class="javax.swing.JLabel" name="lbStatusLabel">
