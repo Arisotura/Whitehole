@@ -207,6 +207,27 @@ public class PropertyPanel extends JPanel
                 curIndex++;
                 break;
                 
+            case "bool":
+                field.field = new JCheckBox();
+                ((JCheckBox)field.field).setText(" ");
+                ((JCheckBox)field.field).setSelected((boolean)val);
+                ((JCheckBox)field.field).addActionListener(new ActionListener()
+                {
+                    public void actionPerformed(ActionEvent evt)
+                    {
+                        for (Field field : fields.values())
+                        {
+                            if (!field.field.equals(evt.getSource())) continue;
+                            eventListener.propertyChanged(field.name, ((JCheckBox)evt.getSource()).isSelected());
+                            break;
+                        }
+                    }
+                });
+                
+                add(field.field, new GridBagConstraints(1, curRow, 2, 1, 0.6f, 0f, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(1,1,0,1), 0, 0));
+                curIndex++;
+                break;
+                
                 
             case "objname":
                 field.field = new JTextField(val.toString());
@@ -294,6 +315,7 @@ public class PropertyPanel extends JPanel
             case "objname": ((JTextField)f.field).setText((String)value); break;
             case "int": ((JTextField)f.field).setText(String.format("%1$d", Long.parseLong((String)value))); break;
             case "float": ((JSpinner)f.field).setValue((double)(float)value); break;
+            case "bool": ((JCheckBox)f.field).setSelected((boolean)value); break;
         }
     }
     

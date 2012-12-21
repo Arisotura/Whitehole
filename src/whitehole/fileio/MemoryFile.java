@@ -18,9 +18,13 @@
 
 package whitehole.fileio;
 
-import java.io.*;
-import java.nio.*;
-import java.nio.charset.*;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CoderResult;
 
 public class MemoryFile implements FileBase
 {
@@ -140,6 +144,7 @@ public class MemoryFile implements FileBase
     @Override
     public String readString(String encoding, int length) throws IOException
     {
+        if (!Charset.isSupported(encoding)) encoding = "ASCII";
         Charset charset = Charset.forName(encoding);
         CharsetDecoder dec = charset.newDecoder();
         ByteBuffer bin = ByteBuffer.wrap(buffer);
@@ -227,6 +232,7 @@ public class MemoryFile implements FileBase
     @Override
     public int writeString(String encoding, String val, int length) throws IOException
     {
+        if (!Charset.isSupported(encoding)) encoding = "ASCII";
         Charset charset = Charset.forName(encoding);
         CharsetEncoder enc = charset.newEncoder();
         CharBuffer bin = CharBuffer.allocate(1);

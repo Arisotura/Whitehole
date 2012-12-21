@@ -141,6 +141,7 @@ public class ExternalFile implements FileBase
     @Override
     public String readString(String encoding, int length) throws IOException
     {
+        if (!Charset.isSupported(encoding)) encoding = "ASCII";
         Charset charset = Charset.forName(encoding);
         CharsetDecoder dec = charset.newDecoder();
         ByteBuffer bin = ByteBuffer.allocate(8);
@@ -223,6 +224,7 @@ public class ExternalFile implements FileBase
     @Override
     public int writeString(String encoding, String val, int length) throws IOException
     {
+        if (!Charset.isSupported(encoding)) encoding = "ASCII";
         Charset charset = Charset.forName(encoding);
         CharsetEncoder enc = charset.newEncoder();
         CharBuffer bin = CharBuffer.allocate(1);

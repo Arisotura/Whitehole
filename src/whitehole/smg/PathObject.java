@@ -62,6 +62,7 @@ public class PathObject
     
     public void save()
     {
+        // TODO: reallocate no/file IDs and all
         data.put("no", (short)index); // shouldn't be modified, but whatever
         data.put("l_id", pathID);
         data.put("num_pnt", (int)points.size());

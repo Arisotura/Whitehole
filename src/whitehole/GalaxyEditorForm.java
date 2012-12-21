@@ -618,87 +618,60 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
             
             pnlObjectSettings.addCategory("obj_general", "General settings");
-            pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name);
+            if (selectedObj.name != null)
+                pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name);
             if (galaxyMode)
                 pnlObjectSettings.addField("zone", "Zone", "list", galaxyArc.zoneList, selectedObj.zone.zoneName);
             pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer);
 
-            pnlObjectSettings.addCategory("obj_position", "Position");
-            pnlObjectSettings.addField("pos_x", "X position", "float", null, selectedObj.position.x);
-            pnlObjectSettings.addField("pos_y", "Y position", "float", null, selectedObj.position.y);
-            pnlObjectSettings.addField("pos_z", "Z position", "float", null, selectedObj.position.z);
-            pnlObjectSettings.addField("dir_x", "X rotation", "float", null, selectedObj.rotation.x);
-            pnlObjectSettings.addField("dir_y", "Y rotation", "float", null, selectedObj.rotation.y);
-            pnlObjectSettings.addField("dir_z", "Z rotation", "float", null, selectedObj.rotation.z);
-            pnlObjectSettings.addField("scale_x", "X scale", "float", null, selectedObj.scale.x);
-            pnlObjectSettings.addField("scale_y", "Y scale", "float", null, selectedObj.scale.y);
-            pnlObjectSettings.addField("scale_z", "Z scale", "float", null, selectedObj.scale.z);
-            
-            // TODO nice object args (ObjectDB integration)
-            
-            pnlObjectSettings.addCategory("obj_args", "Object arguments");
-            pnlObjectSettings.addField("Obj_arg0", "Obj_arg0", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg0")));
-            pnlObjectSettings.addField("Obj_arg1", "Obj_arg1", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg1")));
-            pnlObjectSettings.addField("Obj_arg2", "Obj_arg2", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg2")));
-            pnlObjectSettings.addField("Obj_arg3", "Obj_arg3", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg3")));
-            if (selectedObj.file.equalsIgnoreCase("objinfo"))
-            {
-                pnlObjectSettings.addField("Obj_arg4", "Obj_arg4", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg4")));
-                pnlObjectSettings.addField("Obj_arg5", "Obj_arg5", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg5")));
-                pnlObjectSettings.addField("Obj_arg6", "Obj_arg6", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg6")));
-                pnlObjectSettings.addField("Obj_arg7", "Obj_arg7", "text", null, String.format("%1$08X",selectedObj.data.get("Obj_arg7")));
-                
-                pnlObjectSettings.addCategory("obj_objinfo", "Object settings");
-                pnlObjectSettings.addField("MessageId", "Message ID", "int", null, selectedObj.data.get("MessageId"));
-                if (curZoneArc.gameMask == 2)
-                    pnlObjectSettings.addField("GeneratorID", "Generator ID", "int", null, selectedObj.data.get("GeneratorID"));
-            }
-            else if (selectedObj.file.equalsIgnoreCase("mappartsinfo"))
-            {
-                pnlObjectSettings.addCategory("obj_mappartsinfo", "Map part settings");
-                pnlObjectSettings.addField("MoveConditionType", "Move condition", "int", null, selectedObj.data.get("MoveConditionType"));
-                pnlObjectSettings.addField("RotateSpeed", "Rotate speed", "int", null, selectedObj.data.get("RotateSpeed"));
-                pnlObjectSettings.addField("RotateAngle", "Rotate angle", "int", null, selectedObj.data.get("RotateAngle"));
-                pnlObjectSettings.addField("RotateAxis", "Rotate axis", "int", null, selectedObj.data.get("RotateAxis"));
-                pnlObjectSettings.addField("RotateAccelType", "Rotate accel type", "int", null, selectedObj.data.get("RotateAccelType"));
-                pnlObjectSettings.addField("RotateStopTime", "Rotate stop time", "int", null, selectedObj.data.get("RotateStopTime"));
-                pnlObjectSettings.addField("RotateType", "Rotate type", "int", null, selectedObj.data.get("RotateType"));
-                pnlObjectSettings.addField("ShadowType", "Shadow type", "int", null, selectedObj.data.get("ShadowType"));
-                pnlObjectSettings.addField("SignMotionType", "Rotate axis", "int", null, selectedObj.data.get("SignMotionType"));
-                pnlObjectSettings.addField("[4137EDFD]", "[4137EDFD]", "int", null, selectedObj.data.get(0x4137EDFD));
-                pnlObjectSettings.addField("FarClip", "Clip distance", "int", null, selectedObj.data.get("FarClip"));
-                if (curZoneArc.gameMask == 2)
-                    pnlObjectSettings.addField("ParentId", "Parent ID", "int", null, selectedObj.data.get("ParentId"));
-            }
-            
-            pnlObjectSettings.addCategory("obj_misc", "Misc. settings");
-            pnlObjectSettings.addField("l_id", "l_id", "int", null, selectedObj.data.get("l_id"));
-            pnlObjectSettings.addField("CameraSetId", "CameraSetId", "int", null, selectedObj.data.get("CameraSetId"));
-            pnlObjectSettings.addField("SW_APPEAR", "SW_APPEAR", "int", null, selectedObj.data.get("SW_APPEAR"));
-            pnlObjectSettings.addField("SW_DEAD", "SW_DEAD", "int", null, selectedObj.data.get("SW_DEAD"));
-            pnlObjectSettings.addField("SW_A", "SW_A", "int", null, selectedObj.data.get("SW_A"));
-            pnlObjectSettings.addField("SW_B", "SW_B", "int", null, selectedObj.data.get("SW_B"));
-            if (curZoneArc.gameMask == 2)
-            {
-                pnlObjectSettings.addField("SW_AWAKE", "SW_AWAKE", "int", null, selectedObj.data.get("SW_AWAKE"));
-                pnlObjectSettings.addField("SW_PARAM", "SW_PARAM", "int", null, selectedObj.data.get("SW_PARAM"));
-                pnlObjectSettings.addField("ParamScale", "ParamScale", "float", null, selectedObj.data.get("ParamScale"));
-            }
-            else
-                pnlObjectSettings.addField("[4F11491C]", "[4F11491C]", "int", null, selectedObj.data.get(0x4F11491C));
-            pnlObjectSettings.addField("CastId", "CastId", "int", null, selectedObj.data.get("CastId"));
-            pnlObjectSettings.addField("ViewGroupId", "ViewGroupId", "int", null, selectedObj.data.get("ViewGroupId"));
-            pnlObjectSettings.addField("ShapeModelNo", "ShapeModelNo", "int", null, selectedObj.data.get("ShapeModelNo"));
-            pnlObjectSettings.addField("CommonPath_ID", "CommonPath_ID", "int", null, selectedObj.data.get("CommonPath_ID"));
-            pnlObjectSettings.addField("ClippingGroupId", "ClippingGroupId", "int", null, selectedObj.data.get("ClippingGroupId"));
-            pnlObjectSettings.addField("GroupId", "GroupId", "int", null, selectedObj.data.get("GroupId"));
-            pnlObjectSettings.addField("DemoGroupId", "DemoGroupId", "int", null, selectedObj.data.get("DemoGroupId"));
-            if (curZoneArc.gameMask == 2 || selectedObj.file.equalsIgnoreCase("objinfo"))
-                pnlObjectSettings.addField("MapParts_ID", "MapParts_ID", "int", null, selectedObj.data.get("MapParts_ID"));
-            if (curZoneArc.gameMask == 2)
-                pnlObjectSettings.addField("Obj_ID", "Obj_ID", "int", null, selectedObj.data.get("Obj_ID"));
-
+            selectedObj.getProperties(pnlObjectSettings);
             pnlObjectSettings.addTermination();
+        }
+        else if (selectedPathPoint != null)
+        {
+            PathObject path = selectedPathPoint.path;
+            LinkedList<String> usagelist = new LinkedList<>();
+            usagelist.add("General");
+            usagelist.add("Camera");
+            
+            pnlObjectSettings.addCategory("path_settings", "Path settings");
+            if (galaxyMode)
+                pnlObjectSettings.addField("[P]zone", "Zone", "list", galaxyArc.zoneList, selectedPathPoint.path.zone.zoneName);
+            pnlObjectSettings.addField("[P]l_id", "Path ID", "int", null, path.pathID);
+            pnlObjectSettings.addField("[P]closed", "Closed", "bool", null, ((String)path.data.get("closed")).equals("CLOSE"));
+            pnlObjectSettings.addField("[P]usage", "Usage", "list", usagelist, path.data.get("usage"));
+            pnlObjectSettings.addField("[P]name", "Name", "text", null, path.data.get("name"));
+            
+            pnlObjectSettings.addCategory("path_args", "Path arguments");
+            pnlObjectSettings.addField("[P]path_arg0", "path_arg0", "int", null, path.data.get("path_arg0"));
+            pnlObjectSettings.addField("[P]path_arg0", "path_arg1", "int", null, path.data.get("path_arg1"));
+            pnlObjectSettings.addField("[P]path_arg0", "path_arg2", "int", null, path.data.get("path_arg2"));
+            pnlObjectSettings.addField("[P]path_arg0", "path_arg3", "int", null, path.data.get("path_arg3"));
+            pnlObjectSettings.addField("[P]path_arg0", "path_arg4", "int", null, path.data.get("path_arg4"));
+            pnlObjectSettings.addField("[P]path_arg0", "path_arg5", "int", null, path.data.get("path_arg5"));
+            pnlObjectSettings.addField("[P]path_arg0", "path_arg6", "int", null, path.data.get("path_arg6"));
+            pnlObjectSettings.addField("[P]path_arg0", "path_arg7", "int", null, path.data.get("path_arg7"));
+            
+            pnlObjectSettings.addCategory("point_coords", "Point coordinates");
+            pnlObjectSettings.addField("pnt0_x", "X", "float", null, selectedPathPoint.point0.x);
+            pnlObjectSettings.addField("pnt0_y", "Y", "float", null, selectedPathPoint.point0.y);
+            pnlObjectSettings.addField("pnt0_z", "Z", "float", null, selectedPathPoint.point0.z);
+            pnlObjectSettings.addField("pnt1_x", "Control 1 X", "float", null, selectedPathPoint.point1.x);
+            pnlObjectSettings.addField("pnt1_y", "Control 1 Y", "float", null, selectedPathPoint.point1.y);
+            pnlObjectSettings.addField("pnt1_z", "Control 1 Z", "float", null, selectedPathPoint.point1.z);
+            pnlObjectSettings.addField("pnt2_x", "Control 2 X", "float", null, selectedPathPoint.point2.x);
+            pnlObjectSettings.addField("pnt2_y", "Control 2 Y", "float", null, selectedPathPoint.point2.y);
+            pnlObjectSettings.addField("pnt2_z", "Control 2 Z", "float", null, selectedPathPoint.point2.z);
+            
+            pnlObjectSettings.addCategory("point_args", "Point arguments");
+            pnlObjectSettings.addField("point_arg0", "point_arg0", "int", null, selectedPathPoint.data.get("point_arg0"));
+            pnlObjectSettings.addField("point_arg1", "point_arg1", "int", null, selectedPathPoint.data.get("point_arg1"));
+            pnlObjectSettings.addField("point_arg2", "point_arg2", "int", null, selectedPathPoint.data.get("point_arg2"));
+            pnlObjectSettings.addField("point_arg3", "point_arg3", "int", null, selectedPathPoint.data.get("point_arg3"));
+            pnlObjectSettings.addField("point_arg4", "point_arg4", "int", null, selectedPathPoint.data.get("point_arg4"));
+            pnlObjectSettings.addField("point_arg5", "point_arg5", "int", null, selectedPathPoint.data.get("point_arg5"));
+            pnlObjectSettings.addField("point_arg6", "point_arg6", "int", null, selectedPathPoint.data.get("point_arg6"));
+            pnlObjectSettings.addField("point_arg7", "point_arg7", "int", null, selectedPathPoint.data.get("point_arg7"));
         }
         else
         {
@@ -1144,115 +1117,145 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     public void propPanelPropertyChanged(String propname, Object value)
     {
-        if (propname.equals("name"))
+        if (selectedObj != null)
         {
-            selectedObj.name = (String)value;
-            selectedObj.loadDBInfo();
-            
-            DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
-            ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
-            objlist.nodeChanged(listnode.children.get(selectedObj.uniqueID));
-            
-            rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
-            rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
-            glCanvas.repaint();
-        }
-        else if (propname.equals("zone"))
-        {
-            String oldzone = selectedObj.zone.zoneName;
-            String newzone = (String)value;
-            
-            selectedObj.zone = zoneArcs.get(newzone);
-            zoneArcs.get(oldzone).objects.get(selectedObj.layer).remove(selectedObj);
-            if (zoneArcs.get(newzone).objects.containsKey(selectedObj.layer))
-                zoneArcs.get(newzone).objects.get(selectedObj.layer).add(selectedObj);
+            if (propname.equals("name"))
+            {
+                selectedObj.name = (String)value;
+                selectedObj.loadDBInfo();
+
+                DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+                ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
+                objlist.nodeChanged(listnode.children.get(selectedObj.uniqueID));
+
+                rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
+                rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
+                glCanvas.repaint();
+            }
+            else if (propname.equals("zone"))
+            {
+                String oldzone = selectedObj.zone.zoneName;
+                String newzone = (String)value;
+
+                selectedObj.zone = zoneArcs.get(newzone);
+                zoneArcs.get(oldzone).objects.get(selectedObj.layer).remove(selectedObj);
+                if (zoneArcs.get(newzone).objects.containsKey(selectedObj.layer))
+                    zoneArcs.get(newzone).objects.get(selectedObj.layer).add(selectedObj);
+                else
+                {
+                    selectedObj.layer = "common";
+                    zoneArcs.get(newzone).objects.get(selectedObj.layer).add(selectedObj);
+                }
+
+                DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+                ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
+                objlist.nodeChanged(listnode.children.get(selectedObj.uniqueID));
+
+                selectionChanged();
+                rerenderTasks.add("zone:"+oldzone);
+                rerenderTasks.add("zone:"+newzone);
+                glCanvas.repaint();
+            }
+            else if (propname.equals("layer"))
+            {
+                String oldlayer = selectedObj.layer;
+                String newlayer = ((String)value).toLowerCase();
+
+                selectedObj.layer = newlayer;
+                curZoneArc.objects.get(oldlayer).remove(selectedObj);
+                curZoneArc.objects.get(newlayer).add(selectedObj);
+
+                rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
+                glCanvas.repaint();
+            }
+            else if (propname.startsWith("pos_") || propname.startsWith("dir_") || propname.startsWith("scale_"))
+            {
+                switch (propname)
+                {
+                    case "pos_x": selectedObj.position.x = (float)(double)value; break;
+                    case "pos_y": selectedObj.position.y = (float)(double)value; break;
+                    case "pos_z": selectedObj.position.z = (float)(double)value; break;
+                    case "dir_x": selectedObj.rotation.x = (float)(double)value; break;
+                    case "dir_y": selectedObj.rotation.y = (float)(double)value; break;
+                    case "dir_z": selectedObj.rotation.z = (float)(double)value; break;
+                    case "scale_x": selectedObj.scale.x = (float)(double)value; break;
+                    case "scale_y": selectedObj.scale.y = (float)(double)value; break;
+                    case "scale_z": selectedObj.scale.z = (float)(double)value; break;
+                }
+
+                if (propname.startsWith("scale_") && selectedObj.renderer.hasSpecialScaling())
+                    rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
+
+                rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
+                glCanvas.repaint();
+            }
             else
             {
-                selectedObj.layer = "common";
-                zoneArcs.get(newzone).objects.get(selectedObj.layer).add(selectedObj);
-            }
-            
-            DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
-            ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
-            objlist.nodeChanged(listnode.children.get(selectedObj.uniqueID));
-            
-            selectionChanged();
-            rerenderTasks.add("zone:"+oldzone);
-            rerenderTasks.add("zone:"+newzone);
-            glCanvas.repaint();
-        }
-        else if (propname.equals("layer"))
-        {
-            String oldlayer = selectedObj.layer;
-            String newlayer = ((String)value).toLowerCase();
-            
-            selectedObj.layer = newlayer;
-            curZoneArc.objects.get(oldlayer).remove(selectedObj);
-            curZoneArc.objects.get(newlayer).add(selectedObj);
-            
-            rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
-            glCanvas.repaint();
-        }
-        else if (propname.startsWith("pos_") || propname.startsWith("dir_") || propname.startsWith("scale_"))
-        {
-            switch (propname)
-            {
-                case "pos_x": selectedObj.position.x = (float)(double)value; break;
-                case "pos_y": selectedObj.position.y = (float)(double)value; break;
-                case "pos_z": selectedObj.position.z = (float)(double)value; break;
-                case "dir_x": selectedObj.rotation.x = (float)(double)value; break;
-                case "dir_y": selectedObj.rotation.y = (float)(double)value; break;
-                case "dir_z": selectedObj.rotation.z = (float)(double)value; break;
-                case "scale_x": selectedObj.scale.x = (float)(double)value; break;
-                case "scale_y": selectedObj.scale.y = (float)(double)value; break;
-                case "scale_z": selectedObj.scale.z = (float)(double)value; break;
-            }
-            
-            if (propname.startsWith("scale_") && selectedObj.renderer.hasSpecialScaling())
-                rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
-            
-            rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
-            glCanvas.repaint();
-        }
-        else if (propname.startsWith("Obj_arg"))
-        {
-            try
-            {
-                selectedObj.data.put(propname, (int)Long.parseLong((String)value, 16));
-            
-                int argnum = Integer.parseInt(propname.substring(7));
-                if (selectedObj.renderer.boundToObjArg(argnum))
+                int val = -1;
+                try { val = Integer.parseInt((String)value); }
+                catch (NumberFormatException ex) {}
+
+                int prophash = 0;
+                if (propname.startsWith("["))
                 {
-                    rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
-                    rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
-                    glCanvas.repaint();
+                    try { prophash = (int)Long.parseLong(propname.substring(1, 9), 16); }
+                    catch (NumberFormatException ex) { System.out.println("BAD PROPNAME "+propname); return; }
+                }
+                else
+                    prophash = Bcsv.fieldNameToHash(propname);
+
+                Object oldval = selectedObj.data.get(prophash);
+                if (oldval.getClass() == Integer.class)
+                    selectedObj.data.put(prophash, val);
+                else if (oldval.getClass() == Short.class)
+                    selectedObj.data.put(prophash, (short)val);
+                else
+                    System.out.println("UNSUPPORTED PROP TYPE: "+oldval.getClass().getName());
+                
+                if (propname.startsWith("Obj_arg"))
+                {
+                    int argnum = Integer.parseInt(propname.substring(7));
+                    if (selectedObj.renderer.boundToObjArg(argnum))
+                    {
+                        rerenderTasks.add("object:"+new Integer(selectedObj.uniqueID).toString());
+                        rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
+                        glCanvas.repaint();
+                    }
                 }
             }
-            catch (NumberFormatException ex) {}
         }
-        else
+        else if (selectedPathPoint != null)
         {
-            int val = -1;
-            try { val = Integer.parseInt((String)value); }
-            catch (NumberFormatException ex) {}
+            PathObject path = selectedPathPoint.path;
             
-            int prophash = 0;
-            if (propname.startsWith("["))
+            if (propname.equals("[P]zone"))
             {
-                try { prophash = (int)Long.parseLong(propname.substring(1, 9), 16); }
-                catch (NumberFormatException ex) { System.out.println("BAD PROPNAME "+propname); return; }
+                String oldzone = path.zone.zoneName;
+                String newzone = (String)value;
+
+                path.zone = zoneArcs.get(newzone);
+                zoneArcs.get(oldzone).paths.remove(path);
+                zoneArcs.get(newzone).paths.add(path);
+
+                // TODO do this right (with the new list and all)
+                /*DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+                ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
+                objlist.nodeChanged(listnode.children.get(selectedObj.uniqueID));*/
+
+                selectionChanged();
+                rerenderTasks.add("zone:"+oldzone);
+                rerenderTasks.add("zone:"+newzone);
+                glCanvas.repaint();
+                
+                throw new UnsupportedOperationException("CHANGING PATH ZONE: SHOULD REALLOCATE no BUT DOESNT, TODO");
             }
             else
-                prophash = Bcsv.fieldNameToHash(propname);
-            
-            Object oldval = selectedObj.data.get(prophash);
-            if (oldval.getClass() == Integer.class)
-                selectedObj.data.put(prophash, val);
-            else if (oldval.getClass() == Short.class)
-                selectedObj.data.put(prophash, (short)val);
-            else
-                System.out.println("UNSUPPORTED PROP TYPE: "+oldval.getClass().getName());
+            {
+                // blargf.
+            }
         }
+        else
+            throw new UnsupportedOperationException("oops, bug. Tell Mega-Mario.");
     }
 
     
@@ -1321,7 +1324,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         private void renderSelectHighlight(GL2 gl)
         {
-            gl.glUseProgram(0);
+            try { gl.glUseProgram(0); } catch (GLException ex) { }
             for (int i = 0; i < 8; i++)
             {
                 gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
@@ -1664,7 +1667,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glMatrixMode(GL2.GL_MODELVIEW);
             gl.glLoadMatrixf(modelViewMatrix.m, 0);
             
-            gl.glUseProgram(0);
+            try { gl.glUseProgram(0); } catch (GLException ex) { }
             gl.glDisable(GL2.GL_ALPHA_TEST);
             gl.glDisable(GL2.GL_BLEND);
             gl.glDisable(GL2.GL_COLOR_LOGIC_OP);
@@ -1725,7 +1728,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glCallList(zoneDisplayLists.get(curScenarioID)[2]);
             
             gl.glDepthMask(true);
-            gl.glUseProgram(0);
+            try { gl.glUseProgram(0); } catch (GLException ex) { }
             for (int i = 0; i < 8; i++)
             {
                 gl.glActiveTexture(GL2.GL_TEXTURE0 + i);

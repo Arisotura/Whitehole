@@ -18,6 +18,9 @@
 
 package whitehole;
 
+import java.io.File;
+import java.io.PrintStream;
+import java.lang.Thread.UncaughtExceptionHandler;
 import whitehole.smg.*;
 import whitehole.rendering.*;
 import javax.swing.*;
@@ -43,29 +46,39 @@ public class Whitehole
      */
     public static void main(String[] args) 
     {
-        // TODO consider a fallback? (use ASCII for BCSV contents, and Japanese text will appear garbled)
-        if (!Charset.isSupported("SJIS"))
+        ThreadGroup strictgroup = new StrictThreadGroup();
+        new Thread(strictgroup, "CATCH 'EM ALL")
         {
-            JOptionPane.showMessageDialog(null, "Shift-JIS encoding isn't supported. Whitehole needs it.", Whitehole.name, JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
-        Settings.initialize();
-        Bcsv.populateHashTable();
-        ObjectDB.initialize();
-        TextureCache.initialize();
-        ShaderCache.initialize();
-        RendererCache.initialize();
-        
-        try
-        {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        }
-        catch (Exception ex)
-        {
-        }
+            public void run() 
+            {
+                if (!Charset.isSupported("SJIS"))
+                {
+                    if (!Preferences.userRoot().getBoolean("charset-alreadyWarned", false))
+                    {
+                        JOptionPane.showMessageDialog(null, "Shift-JIS encoding isn't supported.\nWhitehole will default to ASCII, which may cause certain strings to look corrupted.\n\nThis message appears only once.", 
+                                Whitehole.name, JOptionPane.WARNING_MESSAGE);
+                        Preferences.userRoot().putBoolean("charset-alreadyWarned", true);
+                    }
+                }
 
-        GLProfile.initSingleton();
-        new MainFrame().setVisible(true);
+                Settings.initialize();
+                Bcsv.populateHashTable();
+                ObjectDB.initialize();
+                TextureCache.initialize();
+                ShaderCache.initialize();
+                RendererCache.initialize();
+
+                try
+                {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                }
+                catch (Exception ex)
+                {
+                }
+
+                GLProfile.initSingleton();
+                new MainFrame().setVisible(true);
+            }
+        }.start();
     }
 }
