@@ -644,13 +644,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             pnlObjectSettings.addCategory("path_args", "Path arguments");
             pnlObjectSettings.addField("[P]path_arg0", "path_arg0", "int", null, path.data.get("path_arg0"));
-            pnlObjectSettings.addField("[P]path_arg0", "path_arg1", "int", null, path.data.get("path_arg1"));
-            pnlObjectSettings.addField("[P]path_arg0", "path_arg2", "int", null, path.data.get("path_arg2"));
-            pnlObjectSettings.addField("[P]path_arg0", "path_arg3", "int", null, path.data.get("path_arg3"));
-            pnlObjectSettings.addField("[P]path_arg0", "path_arg4", "int", null, path.data.get("path_arg4"));
-            pnlObjectSettings.addField("[P]path_arg0", "path_arg5", "int", null, path.data.get("path_arg5"));
-            pnlObjectSettings.addField("[P]path_arg0", "path_arg6", "int", null, path.data.get("path_arg6"));
-            pnlObjectSettings.addField("[P]path_arg0", "path_arg7", "int", null, path.data.get("path_arg7"));
+            pnlObjectSettings.addField("[P]path_arg1", "path_arg1", "int", null, path.data.get("path_arg1"));
+            pnlObjectSettings.addField("[P]path_arg2", "path_arg2", "int", null, path.data.get("path_arg2"));
+            pnlObjectSettings.addField("[P]path_arg3", "path_arg3", "int", null, path.data.get("path_arg3"));
+            pnlObjectSettings.addField("[P]path_arg4", "path_arg4", "int", null, path.data.get("path_arg4"));
+            pnlObjectSettings.addField("[P]path_arg5", "path_arg5", "int", null, path.data.get("path_arg5"));
+            pnlObjectSettings.addField("[P]path_arg6", "path_arg6", "int", null, path.data.get("path_arg6"));
+            pnlObjectSettings.addField("[P]path_arg7", "path_arg7", "int", null, path.data.get("path_arg7"));
             
             pnlObjectSettings.addCategory("point_coords", "Point coordinates");
             pnlObjectSettings.addField("pnt0_x", "X", "float", null, selectedPathPoint.point0.x);
@@ -1199,7 +1199,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 if (propname.startsWith("["))
                 {
                     try { prophash = (int)Long.parseLong(propname.substring(1, 9), 16); }
-                    catch (NumberFormatException ex) { System.out.println("BAD PROPNAME "+propname); return; }
+                    catch (NumberFormatException ex) { throw new UnsupportedOperationException("BAD PROPNAME "+propname); }
                 }
                 else
                     prophash = Bcsv.fieldNameToHash(propname);
@@ -1210,7 +1210,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 else if (oldval.getClass() == Short.class)
                     selectedObj.data.put(prophash, (short)val);
                 else
-                    System.out.println("UNSUPPORTED PROP TYPE: "+oldval.getClass().getName());
+                    throw new UnsupportedOperationException("UNSUPPORTED PROP TYPE: "+oldval.getClass().getName());
                 
                 if (propname.startsWith("Obj_arg"))
                 {
@@ -1249,9 +1249,70 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 
                 throw new UnsupportedOperationException("CHANGING PATH ZONE: SHOULD REALLOCATE no BUT DOESNT, TODO");
             }
+            else if (propname.equals("[P]l_id"))
+            {
+                int val = -1;
+                try { val = Integer.parseInt((String)value); }
+                catch (NumberFormatException ex) {}
+                
+                if (val != -1) path.pathID = val;
+                // TODO: check the l_id assigned
+            }
+            else if (propname.equals("[P]closed"))
+            {
+                boolean closed = (boolean)value;
+                if (closed) path.data.put("closed", "CLOSE");
+                else path.data.put("closed", "OPEN");
+                
+                rerenderTasks.add(String.format("path:%1$d", path.uniqueID));
+                glCanvas.repaint();
+            }
+            else if (propname.startsWith("pnt0_") || propname.startsWith("pnt1_") || propname.startsWith("pnt2_"))
+            {
+                switch (propname)
+                {
+                    case "pnt0_x": selectedPathPoint.point0.x = (float)(double)value; break;
+                    case "pnt0_y": selectedPathPoint.point0.y = (float)(double)value; break;
+                    case "pnt0_z": selectedPathPoint.point0.z = (float)(double)value; break;
+                    case "pnt1_x": selectedPathPoint.point1.x = (float)(double)value; break;
+                    case "pnt1_y": selectedPathPoint.point1.y = (float)(double)value; break;
+                    case "pnt1_z": selectedPathPoint.point1.z = (float)(double)value; break;
+                    case "pnt2_x": selectedPathPoint.point2.x = (float)(double)value; break;
+                    case "pnt2_y": selectedPathPoint.point2.y = (float)(double)value; break;
+                    case "pnt2_z": selectedPathPoint.point2.z = (float)(double)value; break;
+                }
+                
+                rerenderTasks.add(String.format("path:%1$d", path.uniqueID));
+                rerenderTasks.add("zone:"+path.zone.zoneName);
+                glCanvas.repaint();
+            }
             else
             {
-                // blargf.
+                int intval = -1;
+                try { intval = Integer.parseInt((String)value); }
+                catch (NumberFormatException ex) {}
+                
+                if (propname.startsWith("[P]"))
+                {
+                    propname = propname.substring(3);
+                    Object oldval = path.data.get(propname);
+                    if (oldval.getClass() == Integer.class)
+                        path.data.put(propname, intval);
+                    else if (oldval.getClass() == Short.class)
+                        path.data.put(propname, (short)intval);
+                    else if (oldval.getClass() == String.class)
+                        path.data.put(propname, value);
+                    else
+                        throw new UnsupportedOperationException("UNSUPPORTED PROP TYPE: "+oldval.getClass().getName());
+                }
+                else
+                {
+                    Object oldval = selectedPathPoint.data.get(propname);
+                    if (oldval.getClass() == Integer.class)
+                        selectedPathPoint.data.put(propname, intval);
+                    else
+                        throw new UnsupportedOperationException("UNSUPPORTED PROP TYPE: "+oldval.getClass().getName());
+                }
             }
         }
         else
@@ -1879,7 +1940,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                                 break;
                         }
                         
-                        // TODO update future panel settings
+                        pnlObjectSettings.setFieldValue("pnt0_x", selectedPathPoint.point0.x);
+                        pnlObjectSettings.setFieldValue("pnt0_y", selectedPathPoint.point0.y);
+                        pnlObjectSettings.setFieldValue("pnt0_z", selectedPathPoint.point0.z);
+                        pnlObjectSettings.setFieldValue("pnt1_x", selectedPathPoint.point1.x);
+                        pnlObjectSettings.setFieldValue("pnt1_y", selectedPathPoint.point1.y);
+                        pnlObjectSettings.setFieldValue("pnt1_z", selectedPathPoint.point1.z);
+                        pnlObjectSettings.setFieldValue("pnt2_x", selectedPathPoint.point2.x);
+                        pnlObjectSettings.setFieldValue("pnt2_y", selectedPathPoint.point2.y);
+                        pnlObjectSettings.setFieldValue("pnt2_z", selectedPathPoint.point2.z);
                         rerenderTasks.add(String.format("path:%1$d", selectedPathPoint.path.uniqueID));
                         rerenderTasks.add("zone:"+selectedPathPoint.path.zone.zoneName);
                     }
