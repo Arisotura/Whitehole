@@ -18,9 +18,12 @@
 
 package whitehole.rendering;
 
+import java.io.IOException;
 import java.util.*;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
+import whitehole.*;
+import whitehole.fileio.RarcFilesystem;
 import whitehole.smg.*;
 import whitehole.vectors.*;
 
@@ -31,10 +34,36 @@ public class RendererCache
         cache = new HashMap<>();
         refContext = null;
         contextCount = 0;
+        
+        planetList = null;
+    }
+    
+    public static void loadPlanetList()
+    {
+        if (planetList != null) return;
+        
+        try
+        {
+            RarcFilesystem arc = new RarcFilesystem(Whitehole.game.filesystem.openFile("/ObjectData/PlanetMapDataTable.arc"));
+            Bcsv planetmap = new Bcsv(arc.openFile("/PlanetMapDataTable/PlanetMapDataTable.bcsv"));
+            
+            planetList = new ArrayList<>(planetmap.entries.size());
+            for (Bcsv.Entry entry : planetmap.entries)
+                planetList.add((String)entry.get("PlanetName"));
+            
+            planetmap.close();
+            arc.close();
+        }
+        catch (IOException ex)
+        {
+            planetList = new ArrayList<>(0);
+        }
     }
     
     public static GLRenderer getObjectRenderer(GLRenderer.RenderInfo info, LevelObject obj)
     {
+        loadPlanetList();
+        
         String modelname = obj.name;
         modelname = ObjectModelSubstitutor.substituteModelName(obj, modelname);
         
@@ -58,7 +87,10 @@ public class RendererCache
         {
             try
             {
-                entry.renderer = new BmdRenderer(info, modelname);
+                if (planetList.contains(obj.name))
+                    entry.renderer = new PlanetRenderer(info, obj.name);
+                else
+                    entry.renderer = new BmdRenderer(info, modelname);
             }
             catch (GLException ex)
             {
@@ -113,4 +145,6 @@ public class RendererCache
     public static HashMap<String, CacheEntry> cache;
     public static GLContext refContext;
     public static int contextCount;
+    
+    private static List<String> planetList;
 }
