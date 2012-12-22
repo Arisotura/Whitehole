@@ -410,6 +410,56 @@ public class RarcFilesystem implements FilesystemBase
             throw new FileNotFoundException("got IOException");
         }
     }
+    
+    @Override
+    public void createFile(String parent, String newfile)
+    {
+        if (!dirEntries.containsKey(parent.toLowerCase())) return;
+        if (fileEntries.containsKey((parent + "/" + newfile).toLowerCase())) return;
+        if (dirEntries.containsKey((parent + "/" + newfile).toLowerCase())) return;
+        DirEntry parentdir = dirEntries.get(parent.toLowerCase());
+        
+        FileEntry fe = new FileEntry();
+        fe.data = new byte[0];
+        
+        fe.dataSize = fe.data.length;
+        fe.fullName = parent + "/" + newfile;
+        fe.name = newfile;
+        fe.parentDir = parentdir;
+        
+        parentdir.childrenFiles.add(fe);
+        fileEntries.put(fe.fullName.toLowerCase(), fe);
+    }
+
+    @Override
+    public void renameFile(String file, String newname)
+    {
+        if (!fileEntries.containsKey(file.toLowerCase())) return;
+        FileEntry fe = fileEntries.get(file.toLowerCase());
+        DirEntry parent = fe.parentDir;
+        
+        if (fileEntries.containsKey((parent.fullName + "/" + newname).toLowerCase()) ||
+            dirEntries.containsKey((parent.fullName + "/" + newname).toLowerCase())) 
+            return;
+        
+        fileEntries.remove(fe.fullName.toLowerCase());
+        
+        fe.name = newname;
+        fe.fullName = parent.fullName + "/" + newname;
+        
+        fileEntries.put(fe.fullName.toLowerCase(), fe);
+    }
+
+    @Override
+    public void deleteFile(String file)
+    {
+        if (!fileEntries.containsKey(file.toLowerCase())) return;
+        FileEntry fe = fileEntries.get(file.toLowerCase());
+        DirEntry parent = fe.parentDir;
+        
+        parent.childrenFiles.remove(fe);
+        dirEntries.remove(file.toLowerCase());
+    }
 
 
     // support functions for RarcFile

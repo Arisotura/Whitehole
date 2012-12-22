@@ -32,4 +32,7 @@ public interface FilesystemBase
     public List<String> getFiles(String directory);
     public boolean fileExists(String directory);
     public FileBase openFile(String filename) throws FileNotFoundException;
+    public void createFile(String parent, String newfile);
+    public void renameFile(String file, String newname);
+    public void deleteFile(String file);
 }
