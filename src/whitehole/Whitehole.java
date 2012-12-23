@@ -32,7 +32,7 @@ public class Whitehole
 {
     
     public static final String name = "Whitehole";
-    public static final String version = "v1.01";
+    public static final String version = "v1.1 PRIVATE BETA";
     public static String fullName = name + " " + version;
     //public static boolean isBeta = version.contains("beta");
     

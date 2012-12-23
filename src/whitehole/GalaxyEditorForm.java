@@ -48,6 +48,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         treeNodeList = new HashMap<>();
         
         unsavedChanges = false;
+        keyMask = 0;
+        keyDelta = 0;
     }
 
     /**
@@ -205,6 +207,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         glCanvas.addMouseListener(renderer);
         glCanvas.addMouseMotionListener(renderer);
         glCanvas.addMouseWheelListener(renderer);
+        glCanvas.addKeyListener(renderer);
         
         pnlGLPanel.add(glCanvas, BorderLayout.CENTER);
         pnlGLPanel.validate();
@@ -216,9 +219,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         //pnlObjectSettings.setEventListener(this);
         pnlObjectSettings.setEventListener(new PropertyPanel.EventListener() 
         {
+            @Override
             public void propertyChanged(String propname, Object value)
             { propPanelPropertyChanged(propname, value); }
         });
+        
+        glCanvas.requestFocusInWindow();
     }
     
     private void loadZone(String zone) throws IOException
@@ -688,6 +694,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         pnlObjectSettings.validate();
         pnlObjectSettings.repaint();
+        
+        glCanvas.requestFocusInWindow();
     }
     
     private void setStatusText()
@@ -1452,9 +1460,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         unsavedChanges = true;
     }
+    
+    
 
     
-    public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener
+    public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     {
         public GalaxyRenderer()
         {
@@ -1658,7 +1668,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                         
                         pobj.render(renderinfo);
                         
-                        if (mode == 2 && selectedPathPoint != null && pobj.uniqueID == selectedPathPoint.path.uniqueID)
+                        if (mode == 1 && selectedPathPoint != null && pobj.uniqueID == selectedPathPoint.path.uniqueID)
                         {
                             gl.glBegin(GL2.GL_POINTS);
                             gl.glColor4f(1f, 1f, 0f, 1f);
@@ -2161,7 +2171,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
             else
             {
-                if (objid == selectedVal || objid == 0xFFFFFF)
+                if (objid == (selectedVal + selectedSubVal) || objid == 0xFFFFFF)
                 {
                     tvObjectList.setSelectionPath(null);
                 }
@@ -2204,14 +2214,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                         selectedObj = globalObjList.get(objid);
                         newzone = selectedObj.zone.zoneName;
                         uid = selectedObj.uniqueID;
-                        selectedSubVal = 0;
                     }
                     else if (globalPathPointList.containsKey(objid))
                     {
                         selectedPathPoint = globalPathPointList.get(objid);
                         newzone = selectedPathPoint.path.zone.zoneName;
                         uid = selectedPathPoint.uniqueID;
-                        selectedSubVal = objid - uid;
                     }
                     
                     if (!oldzone.isEmpty() && !oldzone.equals(newzone))
@@ -2236,6 +2244,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                         tvObjectList.setSelectionPath(tp);
                         tvObjectList.scrollPathToVisible(tp);
                     }
+                    
+                    if (selectedPathPoint != null)
+                        selectedSubVal = objid - uid;
                 }
             }
             
@@ -2304,6 +2315,78 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             e.getComponent().repaint();
         }
         
+        @Override
+        public void keyTyped(KeyEvent e)
+        {
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e)
+        {
+            switch (e.getKeyCode())
+            {
+                case KeyEvent.VK_LEFT:
+                case KeyEvent.VK_NUMPAD4: keyMask |= 1; break;
+                case KeyEvent.VK_RIGHT:
+                case KeyEvent.VK_NUMPAD6: keyMask |= (1 << 1); break;
+                case KeyEvent.VK_UP:
+                case KeyEvent.VK_NUMPAD8: keyMask |= (1 << 2); break;
+                case KeyEvent.VK_DOWN:
+                case KeyEvent.VK_NUMPAD2: keyMask |= (1 << 3); break;
+                case KeyEvent.VK_PAGE_UP:
+                case KeyEvent.VK_NUMPAD9: keyMask |= (1 << 4); break;
+                case KeyEvent.VK_PAGE_DOWN:
+                case KeyEvent.VK_END:
+                case KeyEvent.VK_NUMPAD3:
+                case KeyEvent.VK_NUMPAD1: keyMask |= (1 << 5); break;
+            }
+            
+            if ((selectedObj != null || selectedPathPoint != null) && (keyMask & 0x3F) != 0)
+            {
+                Vector3 delta = new Vector3();
+                int disp;
+                if (keyDelta == 0)
+                    disp = 1;
+                else
+                    disp = (int)Math.pow(10, Math.floor(Math.log10((double)keyDelta)));
+                
+                if ((keyMask & 1) != 0) delta.x = disp;
+                else if ((keyMask & (1 << 1)) != 0) delta.x = -disp;
+                if ((keyMask & (1 << 2)) != 0) delta.z = disp;
+                else if ((keyMask & (1 << 3)) != 0) delta.z = -disp;
+                if ((keyMask & (1 << 4)) != 0) delta.y = disp;
+                else if ((keyMask & (1 << 5)) != 0) delta.y = -disp;
+                
+                offsetSelectionBy(delta);
+                keyDelta += disp;
+            }
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e)
+        {
+            switch (e.getKeyCode())
+            {
+                case KeyEvent.VK_LEFT:
+                case KeyEvent.VK_NUMPAD4: keyMask &= ~1; break;
+                case KeyEvent.VK_RIGHT:
+                case KeyEvent.VK_NUMPAD6: keyMask &= ~(1 << 1); break;
+                case KeyEvent.VK_UP:
+                case KeyEvent.VK_NUMPAD8: keyMask &= ~(1 << 2); break;
+                case KeyEvent.VK_DOWN:
+                case KeyEvent.VK_NUMPAD2: keyMask &= ~(1 << 3); break;
+                case KeyEvent.VK_PAGE_UP:
+                case KeyEvent.VK_NUMPAD9: keyMask &= ~(1 << 4); break;
+                case KeyEvent.VK_PAGE_DOWN:
+                case KeyEvent.VK_END:
+                case KeyEvent.VK_NUMPAD3:
+                case KeyEvent.VK_NUMPAD1: keyMask &= ~(1 << 5); break;
+            }
+            
+            if ((keyMask & 0x3F) == 0)
+                keyDelta = 0;
+        }
+        
         
         public final float fov = (float)((70f * Math.PI) / 180f);
         public final float zNear = 0.01f;
@@ -2359,6 +2442,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private int mouseButton;
     private Point lastMouseMove;
     private boolean isDragging;
+    private int keyMask;
+    private int keyDelta;
     private boolean pickingCapture;
     private IntBuffer pickingFrameBuffer;
     private FloatBuffer pickingDepthBuffer;

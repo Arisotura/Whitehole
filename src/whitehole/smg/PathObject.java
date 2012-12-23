@@ -203,7 +203,7 @@ public class PathObject
         gl.glHint(GL2.GL_POINT_SMOOTH_HINT, GL2.GL_NICEST);
         
         Color4 pcolor = pathcolors[index % pathcolors.length];
-        gl.glColor4f(pcolor.r, pcolor.g, pcolor.b, 0.8f);
+        gl.glColor4f(pcolor.r, pcolor.g, pcolor.b, pcolor.a);
         
         for (PathPointObject point : points.values())
         {
