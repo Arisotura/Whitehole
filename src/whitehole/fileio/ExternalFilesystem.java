@@ -34,6 +34,11 @@ public class ExternalFilesystem implements FilesystemBase
     }
     
     @Override
+    public void save()
+    {
+    }
+    
+    @Override
     public void close()
     {
     }
@@ -97,6 +102,24 @@ public class ExternalFilesystem implements FilesystemBase
     {
         if (!fileExists(filename)) throw new FileNotFoundException("File " + filename + "doesn't exist");
         return new ExternalFile(baseDirectory.getPath() + filename);
+    }
+    
+    @Override
+    public void createFile(String parent, String newfile)
+    {
+        throw new UnsupportedOperationException("not done lol");
+    }
+
+    @Override
+    public void renameFile(String file, String newname)
+    {
+        throw new UnsupportedOperationException("not done lol");
+    }
+
+    @Override
+    public void deleteFile(String file)
+    {
+        throw new UnsupportedOperationException("not done lol");
     }
 
 

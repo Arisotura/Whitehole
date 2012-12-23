@@ -29,6 +29,14 @@ public class Bcsv
     {
         this.file = file;
         file.setBigEndian(true);
+        
+        if (file.getLength() == 0)
+        {
+            fields = new LinkedHashMap<>();
+            entries = new ArrayList<>();
+            
+            return;
+        }
 
         file.position(0);
         int entrycount = file.readInt();
@@ -219,13 +227,11 @@ public class Bcsv
     }
 
 
-    public Field addField(String name, int offset, byte type, int mask, int shift, Object defaultval)
+    public Field addField(String name, int offset, int type, int mask, int shift, Object defaultval)
     {
         int[] datasizes = { 4, -1, 4, 4, 2, 1, 4 };
 
         addHash(name); // hehe
-
-        int nbytes = datasizes[type];
 
         if (type == 2 || type == 6)
         {
@@ -247,7 +253,7 @@ public class Bcsv
         newfield.nameHash = Bcsv.fieldNameToHash(name);
         newfield.mask = mask;
         newfield.shiftAmount = (byte)shift;
-        newfield.type = type;
+        newfield.type = (byte)type;
         newfield.entryOffset = (short)offset;
         fields.put(newfield.nameHash, newfield);
 
@@ -359,6 +365,8 @@ public class Bcsv
 
                 addHash(line);
             }
+            
+            strm.close();
         }
         catch (IOException ex) {}
     }

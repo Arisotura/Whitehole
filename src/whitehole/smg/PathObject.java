@@ -63,7 +63,7 @@ public class PathObject
     public void save()
     {
         // TODO: reallocate no/file IDs and all
-        data.put("no", (short)index); // shouldn't be modified, but whatever
+        data.put("no", (short)index);
         data.put("l_id", pathID);
         data.put("num_pnt", (int)points.size());
         
@@ -83,6 +83,50 @@ public class PathObject
         {
             System.out.println(String.format("Failed to save path points for path %1$d: %2$s", index, ex.getMessage()));
         }
+    }
+    
+    public void createStorage()
+    {
+        String filename = String.format("/Stage/jmp/Path/CommonPathPointInfo.%1$d", index);
+        if (zone.archive.fileExists(filename))
+            return;
+        
+        try
+        {
+            zone.archive.createFile(filename.substring(0, filename.lastIndexOf("/")), filename.substring(filename.lastIndexOf("/")+1));
+            Bcsv pointsfile = new Bcsv(zone.archive.openFile(filename));
+            
+            pointsfile.addField("point_arg0", 36, 0, 0xFFFFFFFF, 0, 0);
+            pointsfile.addField("point_arg1", 40, 0, 0xFFFFFFFF, 0, 0);
+            pointsfile.addField("point_arg2", 44, 0, 0xFFFFFFFF, 0, 0);
+            pointsfile.addField("point_arg3", 48, 0, 0xFFFFFFFF, 0, 0);
+            pointsfile.addField("point_arg4", 52, 0, 0xFFFFFFFF, 0, 0);
+            pointsfile.addField("point_arg5", 56, 0, 0xFFFFFFFF, 0, 0);
+            pointsfile.addField("point_arg6", 60, 0, 0xFFFFFFFF, 0, 0);
+            pointsfile.addField("point_arg7", 64, 0, 0xFFFFFFFF, 0, 0);
+            pointsfile.addField("pnt0_x", 0, 2, 0xFFFFFFFF, 0, 0f);
+            pointsfile.addField("pnt0_y", 4, 2, 0xFFFFFFFF, 0, 0f);
+            pointsfile.addField("pnt0_z", 8, 2, 0xFFFFFFFF, 0, 0f);
+            pointsfile.addField("pnt1_x", 12, 2, 0xFFFFFFFF, 0, 0f);
+            pointsfile.addField("pnt1_y", 16, 2, 0xFFFFFFFF, 0, 0f);
+            pointsfile.addField("pnt1_z", 20, 2, 0xFFFFFFFF, 0, 0f);
+            pointsfile.addField("pnt2_x", 24, 2, 0xFFFFFFFF, 0, 0f);
+            pointsfile.addField("pnt2_y", 28, 2, 0xFFFFFFFF, 0, 0f);
+            pointsfile.addField("pnt2_z", 32, 2, 0xFFFFFFFF, 0, 0f);
+            pointsfile.addField("id", 68, 4, 0xFFFF, 0, (short)0);
+            
+            pointsfile.save();
+            pointsfile.close();
+        }
+        catch (IOException ex)
+        {
+            System.out.println(String.format("Failed to create new storage for path %1$d: %2$s", index, ex.getMessage()));
+        }
+    }
+    
+    public void deleteStorage()
+    {
+        zone.archive.deleteFile(String.format("/Stage/jmp/Path/CommonPathPointInfo.%1$d", index));
     }
     
     

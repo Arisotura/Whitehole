@@ -18,7 +18,7 @@
 
 package whitehole.fileio;
 
-import java.io.*;
+import java.io.IOException;
 
 public class RarcFile extends MemoryFile
 {

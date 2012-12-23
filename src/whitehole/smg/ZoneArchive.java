@@ -88,19 +88,17 @@ public class ZoneArchive
     
     public void save() throws IOException
     {
-        archive = new RarcFilesystem(filesystem.openFile(zonefile));
-        
         saveObjects("MapParts", "MapPartsInfo");
         saveObjects("Placement", "ObjInfo");
-        
         savePaths();
         
         archive.save();
-        archive.close();
     }
     
     public void close()
     {
+        try { archive.close(); }
+        catch (IOException ex) {}
     }
     
     
@@ -112,12 +110,8 @@ public class ZoneArchive
         
         loadObjects("MapParts", "MapPartsInfo");
         loadObjects("Placement", "ObjInfo");
-        
         loadPaths();
-        
         loadSubZones();
-        
-        archive.close();
     }
     
     private void loadObjects(String dir, String file)

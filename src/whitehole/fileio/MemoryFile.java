@@ -155,10 +155,8 @@ public class MemoryFile implements FileBase
         for (int i = 0; length == 0 || i < length; i++)
         {
             CoderResult res = dec.decode(bin, bout, false);
-            if (res == CoderResult.UNDERFLOW)
+            if (res != CoderResult.OVERFLOW)
                 break;
-            else if (res != CoderResult.OVERFLOW)
-                throw new IOException("Error while reading string");
             
             char ch = bout.get(0);
             if (ch == '\0') break;

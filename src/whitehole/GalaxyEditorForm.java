@@ -1328,23 +1328,58 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             if (propname.equals("[P]zone"))
             {
                 String oldzone = path.zone.zoneName;
+                ZoneArchive oldzonearc = zoneArcs.get(oldzone);
                 String newzone = (String)value;
+                ZoneArchive newzonearc = zoneArcs.get(newzone);
+                int uid = selectedPathPoint.uniqueID;
+                
+                oldzonearc.paths.remove(path);
+                path.deleteStorage();
+                
+                int newid = 0;
+                boolean found;
+                for (;;)
+                {
+                    found = true;
+                    
+                    for (PathObject pobj : newzonearc.paths)
+                    {
+                        if (pobj.index == newid)
+                        {
+                            found = false;
+                            break;
+                        }
+                    }
+                    
+                    if (found) break;
+                    else newid++;
+                }
 
                 path.zone = zoneArcs.get(newzone);
-                zoneArcs.get(oldzone).paths.remove(path);
-                zoneArcs.get(newzone).paths.add(path);
-
-                // TODO do this right (with the new list and all)
-                /*DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
-                ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
-                objlist.nodeChanged(listnode.children.get(selectedObj.uniqueID));*/
+                newzonearc.paths.add(path);
+                
+                path.index = newid;
+                path.createStorage();
+                
+                for (int z = 0; z < galaxyArc.zoneList.size(); z++)
+                {
+                    if (!galaxyArc.zoneList.get(z).equals(newzone))
+                        continue;
+                    lbZoneList.setSelectedIndex(z);
+                    break;
+                }
+                if (treeNodeList.containsKey(uid))
+                {
+                    TreeNode tn = treeNodeList.get(uid);
+                    TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(tn));
+                    tvObjectList.setSelectionPath(tp);
+                    tvObjectList.scrollPathToVisible(tp);
+                }
 
                 selectionChanged();
                 rerenderTasks.add("zone:"+oldzone);
                 rerenderTasks.add("zone:"+newzone);
                 glCanvas.repaint();
-                
-                throw new UnsupportedOperationException("CHANGING PATH ZONE: SHOULD REALLOCATE no BUT DOESNT, TODO");
             }
             else if (propname.equals("[P]l_id"))
             {
