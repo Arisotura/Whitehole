@@ -2345,10 +2345,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             {
                 Vector3 delta = new Vector3();
                 int disp;
-                if (keyDelta == 0)
-                    disp = 1;
-                else
-                    disp = (int)Math.pow(10, Math.floor(Math.log10((double)keyDelta)));
+                if (keyDelta > 500) disp = 100;
+                else if (keyDelta > 50) disp = 10;
+                else disp = 1;
                 
                 if ((keyMask & 1) != 0) delta.x = disp;
                 else if ((keyMask & (1 << 1)) != 0) delta.x = -disp;
