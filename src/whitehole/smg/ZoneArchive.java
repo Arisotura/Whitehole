@@ -90,6 +90,7 @@ public class ZoneArchive
     {
         saveObjects("MapParts", "MapPartsInfo");
         saveObjects("Placement", "ObjInfo");
+        saveObjects("Start", "StartInfo");
         savePaths();
         
         archive.save();
@@ -133,7 +134,7 @@ public class ZoneArchive
     {
         String[] stuff = filepath.split("/");
         String layer = stuff[1].toLowerCase();
-        String type = stuff[2].toLowerCase();
+        String file = stuff[2].toLowerCase();
         
         if (!objects.containsKey(layer))
             objects.put(layer, new ArrayList<LevelObject>());
@@ -142,7 +143,7 @@ public class ZoneArchive
         {
             Bcsv bcsv = new Bcsv(archive.openFile("/Stage/Jmp/" + filepath));
             
-            switch (type)
+            switch (file)
             {
                 case "mappartsinfo":
                 case "objinfo":

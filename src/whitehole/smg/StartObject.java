@@ -141,17 +141,17 @@ public class StartObject extends LevelObject
     @Override
     public void save()
     {
-        /*data.put("name", name);
+        data.put("name", name);
         data.put("pos_x", position.x); data.put("pos_y", position.y); data.put("pos_z", position.z);
         data.put("dir_x", rotation.x); data.put("dir_y", rotation.y); data.put("dir_z", rotation.z);
-        data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);*/
+        data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);
     }
 
     
     @Override
     public void getProperties(PropertyPanel panel)
     {
-        /*panel.addCategory("obj_position", "Position");
+        panel.addCategory("obj_position", "Position");
         panel.addField("pos_x", "X position", "float", null, position.x);
         panel.addField("pos_y", "Y position", "float", null, position.y);
         panel.addField("pos_z", "Z position", "float", null, position.z);
@@ -161,79 +161,15 @@ public class StartObject extends LevelObject
         panel.addField("scale_x", "X scale", "float", null, scale.x);
         panel.addField("scale_y", "Y scale", "float", null, scale.y);
         panel.addField("scale_z", "Z scale", "float", null, scale.z);
-        if (zone.gameMask == 2)
-            panel.addField("ParamScale", "ParamScale", "float", null, data.get("ParamScale"));
 
         // TODO nice object args (ObjectDB integration)
 
         panel.addCategory("obj_args", "Object arguments");
         panel.addField("Obj_arg0", "Obj_arg0", "int", null, data.get("Obj_arg0"));
-        panel.addField("Obj_arg1", "Obj_arg1", "int", null, data.get("Obj_arg1"));
-        panel.addField("Obj_arg2", "Obj_arg2", "int", null, data.get("Obj_arg2"));
-        panel.addField("Obj_arg3", "Obj_arg3", "int", null, data.get("Obj_arg3"));
-        if (file.equalsIgnoreCase("objinfo"))
-        {
-            panel.addField("Obj_arg4", "Obj_arg4", "int", null, data.get("Obj_arg4"));
-            panel.addField("Obj_arg5", "Obj_arg5", "int", null, data.get("Obj_arg5"));
-            panel.addField("Obj_arg6", "Obj_arg6", "int", null, data.get("Obj_arg6"));
-            panel.addField("Obj_arg7", "Obj_arg7", "int", null, data.get("Obj_arg7"));
-        }
-        
-        panel.addCategory("obj_eventinfo", "Event IDs");
-        panel.addField("SW_APPEAR", "SW_APPEAR", "int", null, data.get("SW_APPEAR"));
-        panel.addField("SW_DEAD", "SW_DEAD", "int", null, data.get("SW_DEAD"));
-        panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"));
-        panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"));
-        if (zone.gameMask == 2)
-        {
-            panel.addField("SW_AWAKE", "SW_AWAKE", "int", null, data.get("SW_AWAKE"));
-            panel.addField("SW_PARAM", "SW_PARAM", "int", null, data.get("SW_PARAM"));
-        }
 
         panel.addCategory("obj_objinfo", "Object settings");
-        panel.addField("l_id", "Object ID", "int", null, data.get("l_id"));
-        if (file.equalsIgnoreCase("objinfo"))
-        {
-            panel.addField("MessageId", "Message ID", "int", null, data.get("MessageId"));
-            if (zone.gameMask == 2)
-                panel.addField("GeneratorID", "Generator ID", "int", null, data.get("GeneratorID"));
-        }
-        
-        panel.addField("ViewGroupId", "View group ID", "int", null, data.get("ViewGroupId"));
-        panel.addField("CommonPath_ID", "Path ID", "int", null, data.get("CommonPath_ID"));
-        panel.addField("ClippingGroupId", "Clipping group ID", "int", null, data.get("ClippingGroupId"));
-        panel.addField("GroupId", "Group ID", "int", null, data.get("GroupId"));
-        panel.addField("DemoGroupId", "Demo group ID", "int", null, data.get("DemoGroupId"));
-        
-        if (file.equalsIgnoreCase("mappartsinfo"))
-        {
-            panel.addCategory("obj_mappartsinfo", "Map part settings");
-            panel.addField("MoveConditionType", "Move condition", "int", null, data.get("MoveConditionType"));
-            panel.addField("RotateSpeed", "Rotate speed", "int", null, data.get("RotateSpeed"));
-            panel.addField("RotateAngle", "Rotate angle", "int", null, data.get("RotateAngle"));
-            panel.addField("RotateAxis", "Rotate axis", "int", null, data.get("RotateAxis"));
-            panel.addField("RotateAccelType", "Rotate accel type", "int", null, data.get("RotateAccelType"));
-            panel.addField("RotateStopTime", "Rotate stop time", "int", null, data.get("RotateStopTime"));
-            panel.addField("RotateType", "Rotate type", "int", null, data.get("RotateType"));
-            panel.addField("ShadowType", "Shadow type", "int", null, data.get("ShadowType"));
-            panel.addField("SignMotionType", "Rotate axis", "int", null, data.get("SignMotionType"));
-            panel.addField("[4137EDFD]", "[4137EDFD]", "int", null, data.get(0x4137EDFD));
-            panel.addField("FarClip", "Clip distance", "int", null, data.get("FarClip"));
-            if (zone.gameMask == 2)
-                panel.addField("ParentId", "Parent ID", "int", null, data.get("ParentId"));
-        }
-
-        panel.addCategory("obj_misc", "Misc. settings");
-        
-        if (zone.gameMask == 1)
-            panel.addField("[4F11491C]", "[4F11491C]", "int", null, data.get(0x4F11491C));
-        panel.addField("CameraSetId", "CameraSetId", "int", null, data.get("CameraSetId"));
-        panel.addField("CastId", "CastId", "int", null, data.get("CastId"));
-        panel.addField("ShapeModelNo", "ShapeModelNo", "int", null, data.get("ShapeModelNo"));
-        if (zone.gameMask == 2 || file.equalsIgnoreCase("objinfo"))
-            panel.addField("MapParts_ID", "MapParts_ID", "int", null, data.get("MapParts_ID"));
-        if (zone.gameMask == 2)
-            panel.addField("Obj_ID", "Obj_ID", "int", null, data.get("Obj_ID"));*/
+        panel.addField("MarioNo", "Mario ID", "int", null, data.get("MarioNo"));
+        panel.addField("Camera_id", "Camera ID", "int", null, data.get("Camera_id"));
     }
     
     @Override

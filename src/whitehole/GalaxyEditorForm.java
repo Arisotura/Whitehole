@@ -1676,7 +1676,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     for (PathObject pobj : zonearc.paths)
                     {
                         if (!btnShowAllPaths.isSelected() && // isSelected? intuitive naming ftw :/
-                                (selectedObj == null || pobj.pathID != (short)selectedObj.data.get("CommonPath_ID")) &&
+                                (selectedObj == null || !selectedObj.data.containsKey("CommonPath_ID") || pobj.pathID != (short)selectedObj.data.get("CommonPath_ID")) &&
                                 (selectedPathPoint == null || pobj.uniqueID != selectedPathPoint.path.uniqueID))
                             continue;
                         
