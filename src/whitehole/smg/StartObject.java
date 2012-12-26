@@ -38,8 +38,6 @@ public class StartObject extends LevelObject
         loadDBInfo();
         renderer = null;
         
-        number = (int)data.get("MarioNo");
-        
         uniqueID = -1;
         
         position = new Vector3((float)data.get("pos_x"), (float)data.get("pos_y"), (float)data.get("pos_z"));
@@ -47,7 +45,7 @@ public class StartObject extends LevelObject
         scale = new Vector3((float)data.get("scale_x"), (float)data.get("scale_y"), (float)data.get("scale_z"));
     }
     
-    public StartObject(ZoneArchive zone, String filepath, int game, String objname, Vector3 pos)
+    public StartObject(ZoneArchive zone, String filepath, int game, Vector3 pos)
     {
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -57,7 +55,7 @@ public class StartObject extends LevelObject
         
         data = new Bcsv.Entry();
         
-        name = objname;
+        name = "Mario";
         loadDBInfo();
         renderer = null;
         
@@ -67,75 +65,14 @@ public class StartObject extends LevelObject
         rotation = new Vector3(0f, 0f, 0f);
         scale = new Vector3(1f, 1f, 1f);
         
-        // name, MarioNo, Obj_arg0, Camera_id, pos, rot, scale
-        // name=Mario
-        
-        /*data.put("name", name);
+        data.put("name", name);
         data.put("pos_x", position.x); data.put("pos_y", position.y); data.put("pos_z", position.z);
         data.put("dir_x", rotation.x); data.put("dir_y", rotation.y); data.put("dir_z", rotation.z);
         data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);
         
         data.put("Obj_arg0", -1);
-        data.put("Obj_arg1", -1);
-        data.put("Obj_arg2", -1);
-        data.put("Obj_arg3", -1);
-        if (file.equalsIgnoreCase("objinfo"))
-        {
-            data.put("Obj_arg4", -1);
-            data.put("Obj_arg5", -1);
-            data.put("Obj_arg6", -1);
-            data.put("Obj_arg7", -1);
-        }
-        
-        data.put("l_id", 0);
-        data.put("CameraSetId", -1);
-        data.put("SW_APPEAR", -1);
-        data.put("SW_DEAD", -1);
-        data.put("SW_A",  -1);
-        data.put("SW_B", -1);
-        if (game == 2)
-        {
-            data.put("SW_AWAKE", -1);
-            data.put("SW_PARAM", -1);
-            data.put("ParamScale", 1f);
-        }
-        else
-            data.put(0x4F11491C, -1);
-        data.put("CastId", -1);
-        data.put("ViewGroupId", -1);
-        data.put("ShapeModelNo", (short)-1);
-        data.put("CommonPath_ID", (short)-1);
-        data.put("ClippingGroupId", (short)-1);
-        data.put("GroupId", (short)-1);
-        data.put("DemoGroupId", (short)-1);
-        if (game == 2 || file.equalsIgnoreCase("objinfo"))
-            data.put("MapParts_ID", (short)-1);
-        if (game == 2)
-            data.put("Obj_ID", (short)-1);
-        
-        if (file.equalsIgnoreCase("objinfo"))
-        {
-            data.put("MessageId", -1);
-            if (game == 2)
-                data.put("GeneratorID", (short)-1);
-        }
-        
-        if (file.equalsIgnoreCase("mappartsinfo"))
-        {
-            data.put("MoveConditionType", 0);
-            data.put("RotateSpeed", 0);
-            data.put("RotateAngle", 0);
-            data.put("RotateAxis", 0);
-            data.put("RotateAccelType", 0);
-            data.put("RotateStopTime", 0);
-            data.put("RotateType", 0);
-            data.put("ShadowType", 0);
-            data.put("SignMotionType", 0);
-            data.put(0x4137EDFD, -1);
-            data.put("FarClip", -1);
-            if (game == 2)
-                data.put("ParentId", (short)-1);
-        }*/
+        data.put("MarioNo", 0);
+        data.put("Camera_id", -1);
     }
     
     @Override
@@ -176,9 +113,6 @@ public class StartObject extends LevelObject
     public String toString()
     {
         String l = layer.equals("common") ? "Common" : "Layer"+layer.substring(5).toUpperCase();
-        return String.format("Starting point %1$d [%2$s]", number, l);
+        return String.format("Starting point %1$d [%2$s]", (int)data.get("MarioNo"), l);
     }
-    
-    
-    public int number;
 }
