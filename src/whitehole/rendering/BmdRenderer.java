@@ -259,7 +259,7 @@ public class BmdRenderer extends GLRenderer
         vert.append("void main()\n");
         vert.append("{\n");
         vert.append("    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n");
-        vert.append("    gl_Normal = vec3(gl_ModelViewMatrix * vec4(gl_Normal,0.0)) * vec3(10000.0,10000.0,10000.0);\n");
+        //vert.append("    gl_Normal = vec3(gl_ModelViewMatrix * vec4(gl_Normal,0.0)) * vec3(10000.0,10000.0,10000.0);\n");
         vert.append("    gl_FrontColor = gl_Color;\n");
         vert.append("    gl_FrontSecondaryColor = gl_SecondaryColor;\n");
         for (int i = 0; i < mat.numTexgens; i++)

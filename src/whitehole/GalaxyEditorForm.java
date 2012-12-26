@@ -1246,23 +1246,29 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         rerenderTasks.add("addobj:"+new Integer(uid).toString());
         rerenderTasks.add("zone:"+curZone);
         glCanvas.repaint();
+        unsavedChanges = true;
     }
     
     private void deleteObject(int uid)
     {
         LevelObject obj = globalObjList.get(uid);
         zoneArcs.get(obj.zone.zoneName).objects.get(obj.layer).remove(obj);
-        rerenderTasks.add("delobj:"+new Integer(uid).toString());
+        rerenderTasks.add(String.format("delobj:%1$d", uid));
         rerenderTasks.add("zone:"+obj.zone.zoneName);
-        
-        DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
-        ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(0);
-        MutableTreeNode thenode = (MutableTreeNode)listnode.children.get(selectedObj.uniqueID);
-        int theid = listnode.getIndex(thenode);
-        objlist.removeNodeFromParent(thenode);
-        objlist.nodesWereRemoved(listnode, new int[] { theid }, new Object[] { thenode });
+
+        if (treeNodeList.containsKey(uid))
+        {
+            DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+            ObjTreeNode thenode = (ObjTreeNode)treeNodeList.get(uid);
+            ObjListTreeNode listnode = (ObjListTreeNode)thenode.parent;
+            int theid = listnode.getIndex(thenode);
+            objlist.removeNodeFromParent(thenode);
+            objlist.nodesWereRemoved(listnode, new int[] { theid }, new Object[] { thenode });
+            treeNodeList.remove(uid);
+        }
         
         glCanvas.repaint();
+        unsavedChanges = true;
     }
     
     
@@ -2286,11 +2292,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                         selectedPathPoint = globalPathPointList.get(objid);
                         newzone = selectedPathPoint.path.zone.zoneName;
                         uid = selectedPathPoint.uniqueID;
+                        selectedSubVal = objid - uid;
                     }
                     
                     if (!oldzone.isEmpty() && !oldzone.equals(newzone))
                         rerenderTasks.add("zone:"+oldzone);
-
+                       
                     if (galaxyMode)
                     {
                         for (int z = 0; z < galaxyArc.zoneList.size(); z++)
@@ -2302,17 +2309,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                         }
                     }
                     tpLeftPanel.setSelectedIndex(1);
-
-                    if (treeNodeList.containsKey(uid))
+                    
+                    if ((oldzone.isEmpty() || oldzone.equals(newzone)) && treeNodeList.containsKey(uid))
                     {
                         TreeNode tn = treeNodeList.get(uid);
                         TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(tn));
                         tvObjectList.setSelectionPath(tp);
                         tvObjectList.scrollPathToVisible(tp);
                     }
-                    
-                    if (selectedPathPoint != null)
-                        selectedSubVal = objid - uid;
                 }
             }
             
