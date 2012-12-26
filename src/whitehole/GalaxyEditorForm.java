@@ -1362,9 +1362,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
             else
             {
-                int val = -1;
-                try { val = Integer.parseInt((String)value); }
-                catch (NumberFormatException ex) {}
+                Object val = -1;
+                if (value.getClass() == String.class)
+                {
+                    try { val = Integer.parseInt((String)value); }
+                    catch (NumberFormatException ex) {}
+                }
+                else if (value.getClass() == Double.class)
+                    val = value;
 
                 int prophash = 0;
                 if (propname.startsWith("["))
@@ -1377,9 +1382,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
                 Object oldval = selectedObj.data.get(prophash);
                 if (oldval.getClass() == Integer.class)
-                    selectedObj.data.put(prophash, val);
+                    selectedObj.data.put(prophash, (int)val);
                 else if (oldval.getClass() == Short.class)
                     selectedObj.data.put(prophash, (short)val);
+                else if (oldval.getClass() == Float.class)
+                    selectedObj.data.put(prophash, (float)(double)val);
                 else
                     throw new UnsupportedOperationException("UNSUPPORTED PROP TYPE: "+oldval.getClass().getName());
                 
