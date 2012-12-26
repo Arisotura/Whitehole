@@ -706,22 +706,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             lbStatusLabel.setText("Editing zone " + curZone);
     }
     
-    private void populateObjectList(int layermask)
+    private void populateObjectSublist(int layermask, ObjListTreeNode objnode, Class type)
     {
-        treeNodeList.clear();
-        
-        DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(curZone);
-        objlist.setRoot(root);
-        
-        ObjListTreeNode objnode = new ObjListTreeNode();
-        objnode.setUserObject("Objects");
-        root.add(objnode);
-        
         for (java.util.List<LevelObject> objs : curZoneArc.objects.values())
         {
             for (LevelObject obj : objs)
             {
+                if (obj.getClass() != type)
+                    continue;
+                
                 if (!obj.layer.equals("common"))
                 {
                     int layernum = obj.layer.charAt(5) - 'a';
@@ -733,6 +726,27 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 treeNodeList.put(obj.uniqueID, tn);
             }
         }
+    }
+    
+    private void populateObjectList(int layermask)
+    {
+        treeNodeList.clear();
+        
+        DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(curZone);
+        objlist.setRoot(root);
+        
+        ObjListTreeNode objnode;
+        
+        objnode = new ObjListTreeNode();
+        objnode.setUserObject("Starting points");
+        root.add(objnode);
+        populateObjectSublist(layermask, objnode, StartObject.class);
+        
+        objnode = new ObjListTreeNode();
+        objnode.setUserObject("Objects");
+        root.add(objnode);
+        populateObjectSublist(layermask, objnode, GeneralObject.class);
         
         objnode = new ObjListTreeNode();
         objnode.setUserObject("Paths");
