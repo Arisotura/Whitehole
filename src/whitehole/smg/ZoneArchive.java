@@ -110,6 +110,7 @@ public class ZoneArchive
         
         loadObjects("MapParts", "MapPartsInfo");
         loadObjects("Placement", "ObjInfo");
+        loadObjects("Start", "StartInfo");
         loadPaths();
         loadSubZones();
     }
@@ -130,7 +131,9 @@ public class ZoneArchive
     
     private void addObjectsToList(String filepath)
     {
-        String layer = filepath.split("/")[1].toLowerCase();
+        String[] stuff = filepath.split("/");
+        String layer = stuff[1].toLowerCase();
+        String type = stuff[2].toLowerCase();
         
         if (!objects.containsKey(layer))
             objects.put(layer, new ArrayList<LevelObject>());
@@ -138,9 +141,23 @@ public class ZoneArchive
         try
         {
             Bcsv bcsv = new Bcsv(archive.openFile("/Stage/Jmp/" + filepath));
-            for (Bcsv.Entry entry : bcsv.entries)
-                objects.get(layer).add(new LevelObject(this, filepath, entry));
+            
+            switch (type)
+            {
+                case "mappartsinfo":
+                case "objinfo":
+                    for (Bcsv.Entry entry : bcsv.entries)
+                        objects.get(layer).add(new GeneralObject(this, filepath, entry));
+                    break;
+                    
+                case "startinfo":
+                    for (Bcsv.Entry entry : bcsv.entries)
+                        objects.get(layer).add(new StartObject(this, filepath, entry));
+                    break;
+            }
+            
             bcsv.close();
+            
         }
         catch (IOException ex)
         {

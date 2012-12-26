@@ -64,6 +64,8 @@ ParentId
 # UseResource stuff
 ResourceName
 
+Camera_id
+
 # PlanetMapDataTable
 PlanetName
 LowFlag

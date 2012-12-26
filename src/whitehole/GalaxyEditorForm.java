@@ -1168,7 +1168,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         else
             filepath = "Placement/" + addingOnLayer + "/ObjInfo";
         
-        LevelObject newobj = new LevelObject(curZoneArc, filepath, curZoneArc.gameMask, objectBeingAdded, pos);
+        LevelObject newobj = new GeneralObject(curZoneArc, filepath, curZoneArc.gameMask, objectBeingAdded, pos);
         
         int uid = 0;
         while (globalObjList.containsKey(uid)) uid++;
