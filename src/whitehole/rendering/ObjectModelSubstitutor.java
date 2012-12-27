@@ -79,8 +79,7 @@ public class ObjectModelSubstitutor
                 case "AstroStarPlate":
                     return new ObjRenderer_AstroPart(info, obj.name, (int)obj.data.get("Obj_arg0"));
                     
-                case "HeavenlyBeachPlanet": return new DoubleBmdRenderer(info, "HeavenlyBeachPlanet", new Vector3(), "HeavenlyBeachPlanetWater", new Vector3());
-                //case "OceanBowl": return new ObjRenderer_OceanBowl(info); // too glitchy.
+                case "RedBlueTurnBlock": return new DoubleBmdRenderer(info, "RedBlueTurnBlock", new Vector3(), "RedBlueTurnBlockBase", new Vector3());
             }
         }
         catch (IOException ex) {}
