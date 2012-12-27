@@ -437,7 +437,7 @@
 
                   <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
                   <SubComponents>
-                    <Container class="javax.swing.JToolBar" name="jToolBar5">
+                    <Container class="javax.swing.JToolBar" name="tbObjToolbar">
                       <Properties>
                         <Property name="floatable" type="boolean" value="false"/>
                         <Property name="rollover" type="boolean" value="true"/>
@@ -471,8 +471,6 @@
                           <Events>
                             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tgbAddObjectActionPerformed"/>
                           </Events>
-                        </Component>
-                        <Component class="javax.swing.JToolBar$Separator" name="jSeparator3">
                         </Component>
                         <Component class="javax.swing.JToggleButton" name="tgbDeleteObject">
                           <Properties>

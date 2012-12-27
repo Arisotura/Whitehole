@@ -201,6 +201,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     {
         setTitle(galaxyName + " - " + Whitehole.fullName);
         setIconImage(Toolkit.getDefaultToolkit().createImage(Whitehole.class.getResource("/Resources/icon.png")));
+        
+        tbObjToolbar.setLayout(new ToolbarFlowLayout(FlowLayout.LEFT, 0, 0));
+        tbObjToolbar.validate();
 
         glCanvas = new GLCanvas(null, null, RendererCache.refContext, null);
         glCanvas.addGLEventListener(renderer = new GalaxyRenderer());
@@ -321,10 +324,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         scpLayersList = new javax.swing.JScrollPane();
         jSplitPane4 = new javax.swing.JSplitPane();
         jPanel3 = new javax.swing.JPanel();
-        jToolBar5 = new javax.swing.JToolBar();
+        tbObjToolbar = new javax.swing.JToolBar();
         tgbAddStart = new javax.swing.JToggleButton();
         tgbAddObject = new javax.swing.JToggleButton();
-        jSeparator3 = new javax.swing.JToolBar.Separator();
         tgbDeleteObject = new javax.swing.JToggleButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         tvObjectList = new javax.swing.JTree();
@@ -538,8 +540,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jPanel3.setPreferredSize(new java.awt.Dimension(149, 300));
         jPanel3.setLayout(new java.awt.BorderLayout());
 
-        jToolBar5.setFloatable(false);
-        jToolBar5.setRollover(true);
+        tbObjToolbar.setFloatable(false);
+        tbObjToolbar.setRollover(true);
 
         tgbAddStart.setText("Add starting point");
         tgbAddStart.setFocusable(false);
@@ -550,7 +552,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 tgbAddStartActionPerformed(evt);
             }
         });
-        jToolBar5.add(tgbAddStart);
+        tbObjToolbar.add(tgbAddStart);
 
         tgbAddObject.setText("Add object");
         tgbAddObject.setFocusable(false);
@@ -561,8 +563,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 tgbAddObjectActionPerformed(evt);
             }
         });
-        jToolBar5.add(tgbAddObject);
-        jToolBar5.add(jSeparator3);
+        tbObjToolbar.add(tgbAddObject);
 
         tgbDeleteObject.setText("Delete...");
         tgbDeleteObject.setFocusable(false);
@@ -573,9 +574,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 tgbDeleteObjectActionPerformed(evt);
             }
         });
-        jToolBar5.add(tgbDeleteObject);
+        tbObjToolbar.add(tgbDeleteObject);
 
-        jPanel3.add(jToolBar5, java.awt.BorderLayout.PAGE_START);
+        jPanel3.add(tbObjToolbar, java.awt.BorderLayout.PAGE_START);
 
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
         tvObjectList.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
@@ -895,7 +896,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             if (selobj != null)
             {
-                if (selobj.getClass() == LevelObject.class)
+                if (selobj.getClass().getSuperclass() == LevelObject.class)
                 {
                     selectedPathPoint = null;
                     selectedObj = (LevelObject) ((ObjTreeNode) selnode).object;
@@ -2133,20 +2134,31 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 {
                     if (upsideDown) xdelta = -xdelta;
                     
-                    xdelta *= 0.002f;
-                    ydelta *= 0.002f;
-                    
-                    /*if (underCursor != 0xFFFFFF)
+                    //if (underCursor == 0xFFFFFF || depthUnderCursor > camDistance)
                     {
-                        float dist = camDistance - depthUnderCursor;
-                        if (dist > 0f)
-                        {
-                            camTarget.x -= 
-                        }
+                        xdelta *= 0.002f;
+                        ydelta *= 0.002f;
+                        
+                        camRotation.x -= xdelta;
+                        camRotation.y -= ydelta;
+                    }
+                   /* else
+                    {
+                        xdelta *= Math.min(0.002f, pixelFactorX * depthUnderCursor);
+                        ydelta *= Math.min(0.002f, pixelFactorY * depthUnderCursor);
+                        
+                        float diff = camDistance - depthUnderCursor;
+                        camTarget.x -= diff * Math.cos(camRotation.x) * Math.cos(camRotation.y);
+                        camTarget.y -= diff * Math.sin(camRotation.y);
+                        camTarget.z += diff * Math.sin(camRotation.x) * Math.cos(camRotation.y);
+                        
+                        camRotation.x -= xdelta;
+                        camRotation.y -= ydelta;
+                        
+                        camTarget.x += diff * Math.cos(camRotation.x) * Math.cos(camRotation.y);
+                        camTarget.y += diff * Math.sin(camRotation.y);
+                        camTarget.z -= diff * Math.sin(camRotation.x) * Math.cos(camRotation.y);
                     }*/
-
-                    camRotation.x -= xdelta;
-                    camRotation.y -= ydelta;
                 }
                 else if (mouseButton == MouseEvent.BUTTON1)
                 {
@@ -2293,13 +2305,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                         selectedObj = globalObjList.get(objid);
                         newzone = selectedObj.zone.zoneName;
                         uid = selectedObj.uniqueID;
+                        selectedSubVal = 0;
                     }
                     else if (globalPathPointList.containsKey(objid))
                     {
                         selectedPathPoint = globalPathPointList.get(objid);
                         newzone = selectedPathPoint.path.zone.zoneName;
                         uid = selectedPathPoint.uniqueID;
-                        selectedSubVal = objid - uid;
                     }
                     
                     if (!oldzone.isEmpty() && !oldzone.equals(newzone))
@@ -2317,13 +2329,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     }
                     tpLeftPanel.setSelectedIndex(1);
                     
-                    if ((oldzone.isEmpty() || oldzone.equals(newzone)) && treeNodeList.containsKey(uid))
+                    if (treeNodeList.containsKey(uid))
                     {
                         TreeNode tn = treeNodeList.get(uid);
                         TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(tn));
                         tvObjectList.setSelectionPath(tp);
                         tvObjectList.scrollPathToVisible(tp);
                     }
+                    
+                    if (selectedPathPoint != null)
+                        selectedSubVal = objid - uid;
                 }
             }
             
@@ -2400,6 +2415,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         @Override
         public void keyPressed(KeyEvent e)
         {
+            int oldmask = keyMask;
+            
             switch (e.getKeyCode())
             {
                 case KeyEvent.VK_LEFT:
@@ -2418,22 +2435,52 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 case KeyEvent.VK_NUMPAD1: keyMask |= (1 << 5); break;
             }
             
-            if ((selectedObj != null || selectedPathPoint != null) && (keyMask & 0x3F) != 0)
+            if ((keyMask & 0x3F) != 0)
             {
                 Vector3 delta = new Vector3();
-                int disp;
-                if (keyDelta > 500) disp = 100;
-                else if (keyDelta > 50) disp = 10;
-                else disp = 1;
+                Vector3 finaldelta;
                 
+                if (oldmask != keyMask) keyDelta = 0;
+                
+                int disp;
+                /*if (keyDelta > 500) disp = 100;
+                else*/ if (keyDelta > 50) disp = 10;
+                else disp = 1;
+
                 if ((keyMask & 1) != 0) delta.x = disp;
                 else if ((keyMask & (1 << 1)) != 0) delta.x = -disp;
-                if ((keyMask & (1 << 2)) != 0) delta.z = disp;
-                else if ((keyMask & (1 << 3)) != 0) delta.z = -disp;
-                if ((keyMask & (1 << 4)) != 0) delta.y = disp;
-                else if ((keyMask & (1 << 5)) != 0) delta.y = -disp;
+                if ((keyMask & (1 << 2)) != 0) delta.y = disp;
+                else if ((keyMask & (1 << 3)) != 0) delta.y = -disp;
+                if ((keyMask & (1 << 4)) != 0) delta.z = -disp;
+                else if ((keyMask & (1 << 5)) != 0) delta.z = disp;
                 
-                offsetSelectionBy(delta);
+                if (e.isControlDown())
+                    finaldelta = delta;
+                else
+                {
+                    finaldelta = new Vector3();
+                    
+                    finaldelta.x = (float)(-(delta.x * Math.sin(camRotation.x))
+                            - (delta.y * Math.cos(camRotation.x) * Math.sin(camRotation.y))
+                            + (delta.z * Math.cos(camRotation.x) * Math.cos(camRotation.y)));
+                    finaldelta.y = (float)((delta.y * Math.cos(camRotation.y))
+                            + (delta.z * Math.sin(camRotation.y)));
+                    finaldelta.z = (float)((delta.x * Math.cos(camRotation.x))
+                            - (delta.y * Math.sin(camRotation.x) * Math.sin(camRotation.y))
+                            + (delta.z * Math.sin(camRotation.x) * Math.cos(camRotation.y)));
+                }
+                
+                if (selectedObj != null || selectedPathPoint != null)
+                    offsetSelectionBy(finaldelta);
+                else
+                {
+                    camTarget.x += finaldelta.x * 0.005f;
+                    camTarget.y += finaldelta.y * 0.005f;
+                    camTarget.z += finaldelta.z * 0.005f;
+                    updateCamera();
+                    e.getComponent().repaint();
+                }
+                
                 keyDelta += disp;
             }
         }
@@ -2561,7 +2608,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
-    private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane4;
@@ -2569,7 +2615,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JToolBar jToolBar3;
     private javax.swing.JToolBar jToolBar4;
-    private javax.swing.JToolBar jToolBar5;
     private javax.swing.JToolBar jToolBar6;
     private javax.swing.JList lbScenarioList;
     private javax.swing.JLabel lbSelected;
@@ -2580,6 +2625,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JSplitPane pnlScenarioZonePanel;
     private javax.swing.JScrollPane scpLayersList;
     private javax.swing.JScrollPane scpObjSettingsContainer;
+    private javax.swing.JToolBar tbObjToolbar;
     private javax.swing.JToggleButton tgbAddObject;
     private javax.swing.JToggleButton tgbAddStart;
     private javax.swing.JToggleButton tgbDeleteObject;
