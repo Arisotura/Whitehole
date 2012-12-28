@@ -56,15 +56,15 @@ RotateStopTime
 RotateType
 ShadowType
 SignMotionType
-# TODO: 4137EDFD
+PressType
 FarClip
-# TODO: 4F11491C
 ParentId
 
 # UseResource stuff
 ResourceName
 
 Camera_id
+ChildObjId
 
 # PlanetMapDataTable
 PlanetName
@@ -133,6 +133,7 @@ SW_APPEAR
 SW_DEAD
 SW_AWAKE
 SW_PARAM
+SW_SLEEP
 MessageId
 CameraSetId
 ViewGroupId

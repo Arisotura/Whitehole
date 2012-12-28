@@ -19,11 +19,12 @@
 package whitehole.smg;
 
 import whitehole.PropertyPanel;
+import whitehole.rendering.GLRenderer;
 import whitehole.vectors.Vector3;
 
-public class GeneralObject extends LevelObject
+public class GravityObject extends LevelObject
 {
-    public GeneralObject(ZoneArchive zone, String filepath, Bcsv.Entry entry)
+    public GravityObject(ZoneArchive zone, String filepath, Bcsv.Entry entry)
     {
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -44,7 +45,7 @@ public class GeneralObject extends LevelObject
         scale = new Vector3((float)data.get("scale_x"), (float)data.get("scale_y"), (float)data.get("scale_z"));
     }
     
-    public GeneralObject(ZoneArchive zone, String filepath, int game, String objname, Vector3 pos)
+    public GravityObject(ZoneArchive zone, String filepath, int game, String objname, Vector3 pos)
     {
         this.zone = zone;
         String[] stuff = filepath.split("/");
@@ -64,7 +65,7 @@ public class GeneralObject extends LevelObject
         rotation = new Vector3(0f, 0f, 0f);
         scale = new Vector3(1f, 1f, 1f);
         
-        data.put("name", name);
+        /*data.put("name", name);
         data.put("pos_x", position.x); data.put("pos_y", position.y); data.put("pos_z", position.z);
         data.put("dir_x", rotation.x); data.put("dir_y", rotation.y); data.put("dir_z", rotation.z);
         data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);
@@ -94,8 +95,7 @@ public class GeneralObject extends LevelObject
             data.put("ParamScale", 1f);
         }
         else
-            data.put("SW_SLEEP", -1);
-        
+            data.put(0x4F11491C, -1);
         data.put("CastId", -1);
         data.put("ViewGroupId", -1);
         data.put("ShapeModelNo", (short)-1);
@@ -126,11 +126,11 @@ public class GeneralObject extends LevelObject
             data.put("RotateType", 0);
             data.put("ShadowType", 0);
             data.put("SignMotionType", 0);
-            data.put("PressType", -1);
+            data.put(0x4137EDFD, -1);
             data.put("FarClip", -1);
             if (game == 2)
                 data.put("ParentId", (short)-1);
-        }
+        }*/
     }
     
     @Override
@@ -146,8 +146,6 @@ public class GeneralObject extends LevelObject
     @Override
     public void getProperties(PropertyPanel panel)
     {
-        boolean ismapparts = file.equalsIgnoreCase("mappartsinfo");
-        
         panel.addCategory("obj_position", "Position");
         panel.addField("pos_x", "X position", "float", null, position.x);
         panel.addField("pos_y", "Y position", "float", null, position.y);
@@ -158,8 +156,21 @@ public class GeneralObject extends LevelObject
         panel.addField("scale_x", "X scale", "float", null, scale.x);
         panel.addField("scale_y", "Y scale", "float", null, scale.y);
         panel.addField("scale_z", "Z scale", "float", null, scale.z);
-        if (zone.gameMask == 2)
-            panel.addField("ParamScale", "ParamScale", "float", null, data.get("ParamScale"));
+        
+        /*SMG1: name, l_id, obj_arg0-3, Range, Distant, Priority, Inverse, Power, Gravity_type, SW_APPEAR/DEAD/A/B/SLEEP, 
+         * pos/dir/scale, FollowId, CommonPath_ID, ClippingGroupId, GroupId, DemoGroupId, MapParts_ID, Obj_ID, C6AE1CD6 (-1)
+
+        SMG2: name, l_id, obj_arg0-3, Range, Distant, Priority, Inverse, Power, Gravity_type, SW_APPEAR/DEAD/A/B/AWAKE, 
+        * pos/dir/scale, FollowId, CommonPath_ID, ClippingGroupId, GroupId, DemoGroupId, MapParts_ID, Obj_ID*/
+        
+        
+        panel.addCategory("obj_grav", "Gravity parameters");
+        panel.addField("Range", "Range", "float", null, data.get("Range"));
+        panel.addField("Distant", "Distance", "float", null, data.get("Distant"));
+        panel.addField("Priority", "Priority", "int", null, data.get("Priority"));
+        panel.addField("Inverse", "Inverse", "int", null, data.get("Inverse"));
+        panel.addField("Power", "Power", "string", null, data.get("Power"));
+        panel.addField("Gravity_type", "Type", "string", null, data.get("Gravity_type"));
 
         // TODO nice object args (ObjectDB integration)
 
@@ -168,13 +179,6 @@ public class GeneralObject extends LevelObject
         panel.addField("Obj_arg1", "Obj_arg1", "int", null, data.get("Obj_arg1"));
         panel.addField("Obj_arg2", "Obj_arg2", "int", null, data.get("Obj_arg2"));
         panel.addField("Obj_arg3", "Obj_arg3", "int", null, data.get("Obj_arg3"));
-        if (!ismapparts)
-        {
-            panel.addField("Obj_arg4", "Obj_arg4", "int", null, data.get("Obj_arg4"));
-            panel.addField("Obj_arg5", "Obj_arg5", "int", null, data.get("Obj_arg5"));
-            panel.addField("Obj_arg6", "Obj_arg6", "int", null, data.get("Obj_arg6"));
-            panel.addField("Obj_arg7", "Obj_arg7", "int", null, data.get("Obj_arg7"));
-        }
         
         panel.addCategory("obj_eventinfo", "Event IDs");
         panel.addField("SW_APPEAR", "SW_APPEAR", "int", null, data.get("SW_APPEAR"));
@@ -182,55 +186,28 @@ public class GeneralObject extends LevelObject
         panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"));
         panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"));
         if (zone.gameMask == 2)
-        {
             panel.addField("SW_AWAKE", "SW_AWAKE", "int", null, data.get("SW_AWAKE"));
-            panel.addField("SW_PARAM", "SW_PARAM", "int", null, data.get("SW_PARAM"));
-        }
         else
             panel.addField("SW_SLEEP", "SW_SLEEP", "int", null, data.get("SW_SLEEP"));
 
         panel.addCategory("obj_objinfo", "Object settings");
         panel.addField("l_id", "Object ID", "int", null, data.get("l_id"));
-        if (!ismapparts)
-        {
-            panel.addField("MessageId", "Message ID", "int", null, data.get("MessageId"));
-            if (zone.gameMask == 2)
-                panel.addField("GeneratorID", "Generator ID", "int", null, data.get("GeneratorID"));
-        }
-        
-        panel.addField("ViewGroupId", "View group ID", "int", null, data.get("ViewGroupId"));
+        panel.addField("FollowId", "Follow ID", "int", null, data.get("FollowId"));
         panel.addField("CommonPath_ID", "Path ID", "int", null, data.get("CommonPath_ID"));
         panel.addField("ClippingGroupId", "Clipping group ID", "int", null, data.get("ClippingGroupId"));
         panel.addField("GroupId", "Group ID", "int", null, data.get("GroupId"));
         panel.addField("DemoGroupId", "Demo group ID", "int", null, data.get("DemoGroupId"));
-        
-        if (ismapparts)
-        {
-            panel.addCategory("obj_mappartsinfo", "Map part settings");
-            panel.addField("MoveConditionType", "Move condition", "int", null, data.get("MoveConditionType"));
-            panel.addField("RotateSpeed", "Rotate speed", "int", null, data.get("RotateSpeed"));
-            panel.addField("RotateAngle", "Rotate angle", "int", null, data.get("RotateAngle"));
-            panel.addField("RotateAxis", "Rotate axis", "int", null, data.get("RotateAxis"));
-            panel.addField("RotateAccelType", "Rotate accel type", "int", null, data.get("RotateAccelType"));
-            panel.addField("RotateStopTime", "Rotate stop time", "int", null, data.get("RotateStopTime"));
-            panel.addField("RotateType", "Rotate type", "int", null, data.get("RotateType"));
-            panel.addField("ShadowType", "Shadow type", "int", null, data.get("ShadowType"));
-            panel.addField("SignMotionType", "Rotate axis", "int", null, data.get("SignMotionType"));
-            panel.addField("PressType", "Press type", "int", null, data.get("PressType"));
-            panel.addField("FarClip", "Clip distance", "int", null, data.get("FarClip"));
-            if (zone.gameMask == 2)
-                panel.addField("ParentId", "Parent ID", "int", null, data.get("ParentId"));
-        }
 
         panel.addCategory("obj_misc", "Misc. settings");
-        
-        panel.addField("CameraSetId", "CameraSetId", "int", null, data.get("CameraSetId"));
-        panel.addField("CastId", "CastId", "int", null, data.get("CastId"));
-        panel.addField("ShapeModelNo", "ShapeModelNo", "int", null, data.get("ShapeModelNo"));
-        if (zone.gameMask == 2 || !ismapparts)
-            panel.addField("MapParts_ID", "MapParts_ID", "int", null, data.get("MapParts_ID"));
-        if (zone.gameMask == 2)
-            panel.addField("Obj_ID", "Obj_ID", "int", null, data.get("Obj_ID"));
+        panel.addField("MapParts_ID", "MapParts_ID", "int", null, data.get("MapParts_ID"));
+        panel.addField("Obj_ID", "Obj_ID", "int", null, data.get("Obj_ID"));
+        panel.addField("ChildObjId", "ChildObjId", "int", null, data.get("ChildObjId"));
+    }
+    
+    @Override
+    public void render(GLRenderer.RenderInfo info)
+    {
+        // TODO some good rendering?
     }
     
     @Override

@@ -1372,22 +1372,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 else if (value.getClass() == Double.class)
                     val = value;
 
-                int prophash = 0;
-                if (propname.startsWith("["))
-                {
-                    try { prophash = (int)Long.parseLong(propname.substring(1, 9), 16); }
-                    catch (NumberFormatException ex) { throw new UnsupportedOperationException("BAD PROPNAME "+propname); }
-                }
-                else
-                    prophash = Bcsv.fieldNameToHash(propname);
-
-                Object oldval = selectedObj.data.get(prophash);
+                Object oldval = selectedObj.data.get(propname);
                 if (oldval.getClass() == Integer.class)
-                    selectedObj.data.put(prophash, (int)val);
+                    selectedObj.data.put(propname, (int)val);
                 else if (oldval.getClass() == Short.class)
-                    selectedObj.data.put(prophash, (short)val);
+                    selectedObj.data.put(propname, (short)val);
                 else if (oldval.getClass() == Float.class)
-                    selectedObj.data.put(prophash, (float)(double)val);
+                    selectedObj.data.put(propname, (float)(double)val);
                 else
                     throw new UnsupportedOperationException("UNSUPPORTED PROP TYPE: "+oldval.getClass().getName());
                 
