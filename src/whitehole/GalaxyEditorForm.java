@@ -204,6 +204,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         tbObjToolbar.setLayout(new ToolbarFlowLayout(FlowLayout.LEFT, 0, 0));
         tbObjToolbar.validate();
+        
+        Font bigfont = lbStatusLabel.getFont().deriveFont(Font.BOLD, 12f);
+        lbStatusLabel.setFont(bigfont);
 
         glCanvas = new GLCanvas(null, null, RendererCache.refContext, null);
         glCanvas.addGLEventListener(renderer = new GalaxyRenderer());
@@ -763,6 +766,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         objnode.setUserObject("Objects");
         root.add(objnode);
         populateObjectSublist(layermask, objnode, GeneralObject.class);
+        
+        objnode = new ObjListTreeNode();
+        objnode.setUserObject("Map parts");
+        root.add(objnode);
+        populateObjectSublist(layermask, objnode, MapPartObject.class);
+        
+        objnode = new ObjListTreeNode();
+        objnode.setUserObject("Gravity");
+        root.add(objnode);
+        populateObjectSublist(layermask, objnode, GravityObject.class);
         
         objnode = new ObjListTreeNode();
         objnode.setUserObject("Paths");
@@ -1373,10 +1386,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     val = value;
 
                 Object oldval = selectedObj.data.get(propname);
-                if (oldval.getClass() == Integer.class)
+                if (oldval.getClass() == String.class)
+                    selectedObj.data.put(propname, value);
+                else if (oldval.getClass() == Integer.class)
                     selectedObj.data.put(propname, (int)val);
                 else if (oldval.getClass() == Short.class)
-                    selectedObj.data.put(propname, (short)val);
+                    selectedObj.data.put(propname, (short)(int)val);
                 else if (oldval.getClass() == Float.class)
                     selectedObj.data.put(propname, (float)(double)val);
                 else

@@ -111,7 +111,7 @@ public class RendererCache
             
             entry.renderer = cubeRenderer;
             cubeRendererCount++;*/
-            entry.renderer = new ColorCubeRenderer(100f, new Color4(1f, 1f, 1f, 1f), new Color4(0f, 0f, 1f, 1f), true);
+            entry.renderer = new ColorCubeRenderer(100f, new Color4(0.5f, 0.5f, 1f, 1f), new Color4(0f, 0f, 0.8f, 1f), true);
         }
         
         cache.put(key, entry);

@@ -91,6 +91,7 @@ public class ZoneArchive
         saveObjects("MapParts", "MapPartsInfo");
         saveObjects("Placement", "ObjInfo");
         saveObjects("Start", "StartInfo");
+        saveObjects("Placement", "PlanetObjInfo");
         savePaths();
         
         archive.save();
@@ -112,6 +113,7 @@ public class ZoneArchive
         loadObjects("MapParts", "MapPartsInfo");
         loadObjects("Placement", "ObjInfo");
         loadObjects("Start", "StartInfo");
+        loadObjects("Placement", "PlanetObjInfo");
         loadPaths();
         loadSubZones();
     }
@@ -146,6 +148,10 @@ public class ZoneArchive
             switch (file)
             {
                 case "mappartsinfo":
+                    for (Bcsv.Entry entry : bcsv.entries)
+                        objects.get(layer).add(new MapPartObject(this, filepath, entry));
+                    break;
+                    
                 case "objinfo":
                     for (Bcsv.Entry entry : bcsv.entries)
                         objects.get(layer).add(new GeneralObject(this, filepath, entry));
@@ -154,6 +160,11 @@ public class ZoneArchive
                 case "startinfo":
                     for (Bcsv.Entry entry : bcsv.entries)
                         objects.get(layer).add(new StartObject(this, filepath, entry));
+                    break;
+                    
+                case "planetobjinfo":
+                    for (Bcsv.Entry entry : bcsv.entries)
+                        objects.get(layer).add(new GravityObject(this, filepath, entry));
                     break;
             }
             

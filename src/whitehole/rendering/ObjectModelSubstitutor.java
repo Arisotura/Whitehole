@@ -19,7 +19,9 @@
 package whitehole.rendering;
 
 import java.io.IOException;
+import whitehole.smg.GravityObject;
 import whitehole.smg.LevelObject;
+import whitehole.vectors.Color4;
 import whitehole.vectors.Vector3;
 
 public class ObjectModelSubstitutor 
@@ -61,6 +63,9 @@ public class ObjectModelSubstitutor
     {
         try
         {
+            if (obj.getClass() == GravityObject.class)
+                return new ColorCubeRenderer(100f, new Color4(1f, 0.5f, 0.5f, 1f), new Color4(0.8f, 0f, 0f, 1f), true);
+            
             switch (obj.name)
             {
                 case "Patakuri": return new DoubleBmdRenderer(info, "Kuribo", new Vector3(), "PatakuriWing", new Vector3(0f,15f,-25f));

@@ -19,7 +19,6 @@
 package whitehole.smg;
 
 import whitehole.PropertyPanel;
-import whitehole.rendering.GLRenderer;
 import whitehole.vectors.Vector3;
 
 public class GravityObject extends LevelObject
@@ -65,72 +64,44 @@ public class GravityObject extends LevelObject
         rotation = new Vector3(0f, 0f, 0f);
         scale = new Vector3(1f, 1f, 1f);
         
-        /*data.put("name", name);
+        data.put("name", name);
         data.put("pos_x", position.x); data.put("pos_y", position.y); data.put("pos_z", position.z);
         data.put("dir_x", rotation.x); data.put("dir_y", rotation.y); data.put("dir_z", rotation.z);
         data.put("scale_x", scale.x); data.put("scale_y", scale.y); data.put("scale_z", scale.z);
+        
+        data.put("Range", -1f);
+        data.put("Distant", 0f);
+        data.put("Priority", 0);
+        data.put("Inverse", 0);
+        data.put("Power", "Normal");
+        data.put("Gravity_type", "Normal");
         
         data.put("Obj_arg0", -1);
         data.put("Obj_arg1", -1);
         data.put("Obj_arg2", -1);
         data.put("Obj_arg3", -1);
-        if (file.equalsIgnoreCase("objinfo"))
-        {
-            data.put("Obj_arg4", -1);
-            data.put("Obj_arg5", -1);
-            data.put("Obj_arg6", -1);
-            data.put("Obj_arg7", -1);
-        }
         
-        data.put("l_id", 0);
-        data.put("CameraSetId", -1);
         data.put("SW_APPEAR", -1);
         data.put("SW_DEAD", -1);
         data.put("SW_A",  -1);
         data.put("SW_B", -1);
         if (game == 2)
-        {
             data.put("SW_AWAKE", -1);
-            data.put("SW_PARAM", -1);
-            data.put("ParamScale", 1f);
-        }
         else
-            data.put(0x4F11491C, -1);
-        data.put("CastId", -1);
-        data.put("ViewGroupId", -1);
+            data.put("SW_SLEEP", -1);
+        
+        data.put("l_id", 0);
+        data.put("FollowId", (short)-1);
         data.put("ShapeModelNo", (short)-1);
         data.put("CommonPath_ID", (short)-1);
         data.put("ClippingGroupId", (short)-1);
         data.put("GroupId", (short)-1);
         data.put("DemoGroupId", (short)-1);
-        if (game == 2 || file.equalsIgnoreCase("objinfo"))
-            data.put("MapParts_ID", (short)-1);
-        if (game == 2)
-            data.put("Obj_ID", (short)-1);
         
-        if (file.equalsIgnoreCase("objinfo"))
-        {
-            data.put("MessageId", -1);
-            if (game == 2)
-                data.put("GeneratorID", (short)-1);
-        }
-        
-        if (file.equalsIgnoreCase("mappartsinfo"))
-        {
-            data.put("MoveConditionType", 0);
-            data.put("RotateSpeed", 0);
-            data.put("RotateAngle", 0);
-            data.put("RotateAxis", 0);
-            data.put("RotateAccelType", 0);
-            data.put("RotateStopTime", 0);
-            data.put("RotateType", 0);
-            data.put("ShadowType", 0);
-            data.put("SignMotionType", 0);
-            data.put(0x4137EDFD, -1);
-            data.put("FarClip", -1);
-            if (game == 2)
-                data.put("ParentId", (short)-1);
-        }*/
+        data.put("MapParts_ID", (short)-1);
+        data.put("Obj_ID", (short)-1);
+        if (game == 1) 
+            data.put("ChildObjId", (short)-1);
     }
     
     @Override
@@ -157,20 +128,13 @@ public class GravityObject extends LevelObject
         panel.addField("scale_y", "Y scale", "float", null, scale.y);
         panel.addField("scale_z", "Z scale", "float", null, scale.z);
         
-        /*SMG1: name, l_id, obj_arg0-3, Range, Distant, Priority, Inverse, Power, Gravity_type, SW_APPEAR/DEAD/A/B/SLEEP, 
-         * pos/dir/scale, FollowId, CommonPath_ID, ClippingGroupId, GroupId, DemoGroupId, MapParts_ID, Obj_ID, C6AE1CD6 (-1)
-
-        SMG2: name, l_id, obj_arg0-3, Range, Distant, Priority, Inverse, Power, Gravity_type, SW_APPEAR/DEAD/A/B/AWAKE, 
-        * pos/dir/scale, FollowId, CommonPath_ID, ClippingGroupId, GroupId, DemoGroupId, MapParts_ID, Obj_ID*/
-        
-        
         panel.addCategory("obj_grav", "Gravity parameters");
         panel.addField("Range", "Range", "float", null, data.get("Range"));
         panel.addField("Distant", "Distance", "float", null, data.get("Distant"));
         panel.addField("Priority", "Priority", "int", null, data.get("Priority"));
         panel.addField("Inverse", "Inverse", "int", null, data.get("Inverse"));
-        panel.addField("Power", "Power", "string", null, data.get("Power"));
-        panel.addField("Gravity_type", "Type", "string", null, data.get("Gravity_type"));
+        panel.addField("Power", "Power", "text", null, data.get("Power"));
+        panel.addField("Gravity_type", "Type", "text", null, data.get("Gravity_type"));
 
         // TODO nice object args (ObjectDB integration)
 
@@ -201,14 +165,15 @@ public class GravityObject extends LevelObject
         panel.addCategory("obj_misc", "Misc. settings");
         panel.addField("MapParts_ID", "MapParts_ID", "int", null, data.get("MapParts_ID"));
         panel.addField("Obj_ID", "Obj_ID", "int", null, data.get("Obj_ID"));
-        panel.addField("ChildObjId", "ChildObjId", "int", null, data.get("ChildObjId"));
+        if (zone.gameMask == 1)
+            panel.addField("ChildObjId", "ChildObjId", "int", null, data.get("ChildObjId"));
     }
     
-    @Override
+    /*@Override
     public void render(GLRenderer.RenderInfo info)
     {
         // TODO some good rendering?
-    }
+    }*/
     
     @Override
     public String toString()
