@@ -91,7 +91,7 @@ public class GravityObject extends LevelObject
             data.put("SW_SLEEP", -1);
         
         data.put("l_id", 0);
-        data.put("FollowId", (short)-1);
+        data.put("FollowId", -1);
         data.put("ShapeModelNo", (short)-1);
         data.put("CommonPath_ID", (short)-1);
         data.put("ClippingGroupId", (short)-1);

@@ -27,6 +27,8 @@ import java.util.Map.*;
 import javax.swing.*;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.*;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.tree.*;
 import whitehole.fileio.RarcFilesystem;
 import whitehole.vectors.*;
@@ -207,6 +209,60 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         
         Font bigfont = lbStatusLabel.getFont().deriveFont(Font.BOLD, 12f);
         lbStatusLabel.setFont(bigfont);
+        
+        pmnAddObjects = new JPopupMenu();
+        
+        String[] menuitems = new String[] {"General object", "Map part", "Gravity", "Starting point", "Path", "Path point"};
+        for (String item : menuitems)
+        {
+            JMenuItem mnuitem = new JMenuItem(item);
+            mnuitem.addActionListener(new ActionListener()
+            {
+                @Override
+                public void actionPerformed(ActionEvent e)
+                {
+                    int i = 0;
+                    while (!pmnAddObjects.getComponent(i).equals(e.getSource())) i++;
+                    switch (i)
+                    {
+                        case 0: doAddObject("general"); break;
+                        case 1: doAddObject("mappart"); break;
+                        case 2: doAddObject("gravity"); break;
+                        case 3: doAddObject("start"); break;
+                        case 4: doAddObject("path"); break;
+                        case 5: doAddObject("pathpoint"); break;
+                    }
+                }
+            });
+            pmnAddObjects.add(mnuitem);
+        }
+        pmnAddObjects.addPopupMenuListener(new PopupMenuListener()
+        {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e)
+            {
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e)
+            {
+                if (!objectBeingAdded.isEmpty())
+                {
+                    tgbAddObject.setSelected(false);
+                    setStatusText();
+                }
+            }
+
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent e)
+            {
+                if (!objectBeingAdded.isEmpty())
+                {
+                    tgbAddObject.setSelected(false);
+                    setStatusText();
+                }
+            }
+        });
 
         glCanvas = new GLCanvas(null, null, RendererCache.refContext, null);
         glCanvas.addGLEventListener(renderer = new GalaxyRenderer());
@@ -328,7 +384,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jSplitPane4 = new javax.swing.JSplitPane();
         jPanel3 = new javax.swing.JPanel();
         tbObjToolbar = new javax.swing.JToolBar();
-        tgbAddStart = new javax.swing.JToggleButton();
         tgbAddObject = new javax.swing.JToggleButton();
         tgbDeleteObject = new javax.swing.JToggleButton();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -546,18 +601,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         tbObjToolbar.setFloatable(false);
         tbObjToolbar.setRollover(true);
 
-        tgbAddStart.setText("Add starting point");
-        tgbAddStart.setFocusable(false);
-        tgbAddStart.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        tgbAddStart.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        tgbAddStart.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                tgbAddStartActionPerformed(evt);
-            }
-        });
-        tbObjToolbar.add(tgbAddStart);
-
-        tgbAddObject.setText("Add object");
+        tgbAddObject.setText("Add object...");
         tgbAddObject.setFocusable(false);
         tgbAddObject.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         tgbAddObject.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -758,12 +802,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         ObjListTreeNode objnode;
         
         objnode = new ObjListTreeNode();
-        objnode.setUserObject("Starting points");
-        root.add(objnode);
-        populateObjectSublist(layermask, objnode, StartObject.class);
-        
-        objnode = new ObjListTreeNode();
-        objnode.setUserObject("Objects");
+        objnode.setUserObject("General objects");
         root.add(objnode);
         populateObjectSublist(layermask, objnode, GeneralObject.class);
         
@@ -776,6 +815,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         objnode.setUserObject("Gravity");
         root.add(objnode);
         populateObjectSublist(layermask, objnode, GravityObject.class);
+        
+        objnode = new ObjListTreeNode();
+        objnode.setUserObject("Starting points");
+        root.add(objnode);
+        populateObjectSublist(layermask, objnode, StartObject.class);
         
         objnode = new ObjListTreeNode();
         objnode.setUserObject("Paths");
@@ -973,24 +1017,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
     private void tgbAddObjectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbAddObjectActionPerformed
     {//GEN-HEADEREND:event_tgbAddObjectActionPerformed
-        if (!tgbAddObject.isSelected())
+        if (tgbAddObject.isSelected())
+            pmnAddObjects.show(tgbAddObject, 0, tgbAddObject.getHeight());
+        else
         {
-            objectBeingAdded = "";
+            pmnAddObjects.setVisible(false);
             setStatusText();
-            return;
         }
-
-        ObjectSelectForm form = new ObjectSelectForm(this, curZoneArc.gameMask, null);
-        form.setVisible(true);
-        if (form.selectedObject.isEmpty())
-        {
-            tgbAddObject.setSelected(false);
-            return;
-        }
-
-        lbStatusLabel.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
-        objectBeingAdded = form.selectedObject;
-        addingOnLayer = form.selectedLayer;
     }//GEN-LAST:event_tgbAddObjectActionPerformed
 
     private void lbZoneListValueChanged(javax.swing.event.ListSelectionEvent evt)//GEN-FIRST:event_lbZoneListValueChanged
@@ -1088,20 +1121,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     {//GEN-HEADEREND:event_btnShowFakecolorActionPerformed
         glCanvas.repaint();
     }//GEN-LAST:event_btnShowFakecolorActionPerformed
-
-    private void tgbAddStartActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbAddStartActionPerformed
-    {//GEN-HEADEREND:event_tgbAddStartActionPerformed
-        if (!tgbAddStart.isSelected())
-        {
-            objectBeingAdded = "";
-            setStatusText();
-            return;
-        }
-
-        lbStatusLabel.setText("Click the level view to place your starting point. Hold Shift to place multiple points. Right-click to abort.");
-        objectBeingAdded = "\u0001START";
-        addingOnLayer = "common";
-    }//GEN-LAST:event_tgbAddStartActionPerformed
 
     
     public void applySubzoneRotation(Vector3 delta)
@@ -1224,28 +1243,48 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
         }
         
+        String objtype = objectBeingAdded.substring(0, objectBeingAdded.indexOf('|'));
+        String objname = objectBeingAdded.substring(objectBeingAdded.indexOf('|') + 1);
+        
         String filepath;
-        LevelObject newobj;
-        int pnodeid;
-        if (objectBeingAdded.equals("\u0001START"))
+        LevelObject newobj = null;
+        int pnodeid = -1;
+        if (objtype.equals("path") || objtype.equals("pathpoint"))
         {
-            filepath = "Start/" + addingOnLayer + "/StartInfo";
-            newobj = new StartObject(curZoneArc, filepath, curZoneArc.gameMask, pos);
-            pnodeid = 0;
+            throw new UnsupportedOperationException("ADDING PATHS NOT SUPPORTED YET");
         }
         else
         {
-            if (ObjectDB.objects.containsKey(objectBeingAdded))
+            /*if (ObjectDB.objects.containsKey(objectBeingAdded))
                 filepath = ObjectDB.objects.get(objectBeingAdded).preferredFile.replace("<layer>", addingOnLayer);
             else
-                filepath = "Placement/" + addingOnLayer + "/ObjInfo";
-
-            newobj = new GeneralObject(curZoneArc, filepath, curZoneArc.gameMask, objectBeingAdded, pos);
-            pnodeid = 1;
+                filepath = "Placement/" + addingOnLayer + "/ObjInfo";*/
+            switch (objtype)
+            {
+                case "general": 
+                    newobj = new GeneralObject(curZoneArc, "Placement/" + addingOnLayer + "/ObjInfo", curZoneArc.gameMask, objname, pos);
+                    pnodeid = 0;
+                    break;
+                case "mappart": 
+                    newobj = new MapPartObject(curZoneArc, "MapParts/" + addingOnLayer + "/MapPartsInfo", curZoneArc.gameMask, objname, pos);
+                    pnodeid = 1; 
+                    break;
+                case "gravity": 
+                    newobj = new GravityObject(curZoneArc, "Placement/" + addingOnLayer + "/PlanetObjInfo", curZoneArc.gameMask, objname, pos);
+                    pnodeid = 2;
+                    break;
+                case "start": 
+                    newobj = new StartObject(curZoneArc, "Start/" + addingOnLayer + "/StartInfo", curZoneArc.gameMask, pos);
+                    pnodeid = 3;
+                    break;
+            }
         }
         
         int uid = 0;
-        while (globalObjList.containsKey(uid)) uid++;
+        while (globalObjList.containsKey(uid) 
+                || globalPathList.containsKey(uid)
+                || globalPathPointList.containsKey(uid)) 
+            uid++;
         if (uid > maxUniqueID) maxUniqueID = uid;
         newobj.uniqueID = uid;
         globalObjList.put(uid, newobj);
@@ -1256,11 +1295,42 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(pnodeid);
         TreeNode newnode = listnode.addObject(newobj);
         objlist.nodesWereInserted(listnode, new int[] { listnode.getIndex(newnode) });
+        treeNodeList.put(uid, newnode);
         
-        rerenderTasks.add("addobj:"+new Integer(uid).toString());
+        rerenderTasks.add(String.format("addobj:%1$d", uid));
         rerenderTasks.add("zone:"+curZone);
         glCanvas.repaint();
         unsavedChanges = true;
+    }
+    
+    private void doAddObject(String type)
+    {
+        // "General object", "Map part", "Gravity", "Starting point", "Path", "Path point"
+        
+        if (type.equals("start"))
+        {
+            objectBeingAdded = "start|Mario";
+            addingOnLayer = "common";
+        }
+        else if (type.equals("path"))
+            objectBeingAdded = "path|lol";
+        else if (type.equals("pathpoint"))
+            objectBeingAdded = "pathpoint|lol";
+        else
+        {
+            ObjectSelectForm form = new ObjectSelectForm(this, curZoneArc.gameMask, null);
+            form.setVisible(true);
+            if (form.selectedObject.isEmpty())
+            {
+                tgbAddObject.setSelected(false);
+                return;
+            }
+            
+            objectBeingAdded = type+"|"+form.selectedObject;
+            addingOnLayer = form.selectedLayer;
+        }
+
+        lbStatusLabel.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
     }
     
     private void deleteObject(int uid)
@@ -1274,10 +1344,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
             ObjTreeNode thenode = (ObjTreeNode)treeNodeList.get(uid);
-            ObjListTreeNode listnode = (ObjListTreeNode)thenode.parent;
-            int theid = listnode.getIndex(thenode);
             objlist.removeNodeFromParent(thenode);
-            objlist.nodesWereRemoved(listnode, new int[] { theid }, new Object[] { thenode });
             treeNodeList.remove(uid);
         }
         
@@ -2278,7 +2345,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     {
                         objectBeingAdded = "";
                         tgbAddObject.setSelected(false);
-                        tgbAddStart.setSelected(false);
                         setStatusText();
                     }
                 }
@@ -2494,6 +2560,22 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         @Override
         public void keyReleased(KeyEvent e)
         {
+            if (e.getKeyCode() == KeyEvent.VK_DELETE)
+            {
+                if (selectedObj != null)
+                {
+                    if (tgbDeleteObject.isSelected())
+                    {
+                        deleteObject(selectedObj.uniqueID);
+                        selectedVal = 0xFFFFFF;
+                        selectedObj = null;
+                        selectedPathPoint = null;
+                        selectionChanged();
+                    }
+                    tgbDeleteObject.setSelected(false);
+                } 
+            }
+            
             switch (e.getKeyCode())
             {
                 case KeyEvent.VK_LEFT:
@@ -2589,6 +2671,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     private CheckBoxList lbLayersList;
     private PropertyPanel pnlObjectSettings;
+    private JPopupMenu pmnAddObjects;
     //private PropertyGrid pnlObjectSettings;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -2633,7 +2716,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JScrollPane scpObjSettingsContainer;
     private javax.swing.JToolBar tbObjToolbar;
     private javax.swing.JToggleButton tgbAddObject;
-    private javax.swing.JToggleButton tgbAddStart;
     private javax.swing.JToggleButton tgbDeleteObject;
     private javax.swing.JTabbedPane tpLeftPanel;
     private javax.swing.JTree tvObjectList;
