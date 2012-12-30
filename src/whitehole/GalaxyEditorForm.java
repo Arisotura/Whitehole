@@ -207,6 +207,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         tbObjToolbar.setLayout(new ToolbarFlowLayout(FlowLayout.LEFT, 0, 0));
         tbObjToolbar.validate();
         
+        tgbReverseRot.setSelected(Settings.reverseRot);
+        
         Font bigfont = lbStatusLabel.getFont().deriveFont(Font.BOLD, 12f);
         lbStatusLabel.setFont(bigfont);
         
@@ -358,6 +360,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         jSeparator2 = new javax.swing.JToolBar.Separator();
         btnShowAllPaths = new javax.swing.JToggleButton();
         btnShowFakecolor = new javax.swing.JToggleButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        tgbReverseRot = new javax.swing.JToggleButton();
         lbStatusLabel = new javax.swing.JLabel();
         tpLeftPanel = new javax.swing.JTabbedPane();
         pnlScenarioZonePanel = new javax.swing.JSplitPane();
@@ -469,6 +473,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
         });
         jToolBar2.add(btnShowFakecolor);
+        jToolBar2.add(jSeparator3);
+
+        tgbReverseRot.setText("Reverse rotation");
+        tgbReverseRot.setFocusable(false);
+        tgbReverseRot.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        tgbReverseRot.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        tgbReverseRot.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tgbReverseRotActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(tgbReverseRot);
 
         pnlGLPanel.add(jToolBar2, java.awt.BorderLayout.NORTH);
 
@@ -1121,6 +1137,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     {//GEN-HEADEREND:event_btnShowFakecolorActionPerformed
         glCanvas.repaint();
     }//GEN-LAST:event_btnShowFakecolorActionPerformed
+
+    private void tgbReverseRotActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbReverseRotActionPerformed
+    {//GEN-HEADEREND:event_tgbReverseRotActionPerformed
+        Settings.reverseRot = tgbReverseRot.isSelected();
+        Settings.save();
+    }//GEN-LAST:event_tgbReverseRotActionPerformed
 
     
     public void applySubzoneRotation(Vector3 delta)
@@ -2207,7 +2229,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 {
                     if (upsideDown) xdelta = -xdelta;
                     
-                    //if (underCursor == 0xFFFFFF || depthUnderCursor > camDistance)
+                    if (tgbReverseRot.isSelected())
+                    {
+                        xdelta = -xdelta;
+                        ydelta = -ydelta;
+                    }
+                    
+                    if (underCursor == 0xFFFFFF || depthUnderCursor > camDistance)
                     {
                         xdelta *= 0.002f;
                         ydelta *= 0.002f;
@@ -2215,23 +2243,23 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                         camRotation.x -= xdelta;
                         camRotation.y -= ydelta;
                     }
-                   /* else
+                    else
                     {
-                        xdelta *= Math.min(0.002f, pixelFactorX * depthUnderCursor);
-                        ydelta *= Math.min(0.002f, pixelFactorY * depthUnderCursor);
+                        xdelta *= 0.002f;
+                        ydelta *= 0.002f;
                         
                         float diff = camDistance - depthUnderCursor;
-                        camTarget.x -= diff * Math.cos(camRotation.x) * Math.cos(camRotation.y);
-                        camTarget.y -= diff * Math.sin(camRotation.y);
+                        camTarget.x += diff * Math.cos(camRotation.x) * Math.cos(camRotation.y);
+                        camTarget.y += diff * Math.sin(camRotation.y);
                         camTarget.z += diff * Math.sin(camRotation.x) * Math.cos(camRotation.y);
                         
                         camRotation.x -= xdelta;
                         camRotation.y -= ydelta;
                         
-                        camTarget.x += diff * Math.cos(camRotation.x) * Math.cos(camRotation.y);
-                        camTarget.y += diff * Math.sin(camRotation.y);
+                        camTarget.x -= diff * Math.cos(camRotation.x) * Math.cos(camRotation.y);
+                        camTarget.y -= diff * Math.sin(camRotation.y);
                         camTarget.z -= diff * Math.sin(camRotation.x) * Math.cos(camRotation.y);
-                    }*/
+                    }
                 }
                 else if (mouseButton == MouseEvent.BUTTON1)
                 {
@@ -2697,6 +2725,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane4;
@@ -2717,6 +2746,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private javax.swing.JToolBar tbObjToolbar;
     private javax.swing.JToggleButton tgbAddObject;
     private javax.swing.JToggleButton tgbDeleteObject;
+    private javax.swing.JToggleButton tgbReverseRot;
     private javax.swing.JTabbedPane tpLeftPanel;
     private javax.swing.JTree tvObjectList;
     // End of variables declaration//GEN-END:variables

@@ -28,6 +28,7 @@ public class Settings
         objectDBUpdate = prefs.getBoolean("ObjectDBUpdate", true);
         useShaders = prefs.getBoolean("UseShaders", true);
         fastDrag = prefs.getBoolean("FastDrag", false);
+        reverseRot = prefs.getBoolean("ReverseRot", false);
     }
     
     public static void save()
@@ -36,10 +37,12 @@ public class Settings
         prefs.putBoolean("ObjectDBUpdate", objectDBUpdate);
         prefs.putBoolean("UseShaders", useShaders);
         prefs.putBoolean("FastDrag", fastDrag);
+        prefs.putBoolean("ReverseRot", reverseRot);
     }
     
     
     public static boolean objectDBUpdate;
     public static boolean useShaders;
     public static boolean fastDrag;
+    public static boolean reverseRot;
 }
