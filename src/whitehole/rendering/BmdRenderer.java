@@ -750,7 +750,7 @@ public class BmdRenderer extends GLRenderer
                                             GL2.GL_GREATER, GL2.GL_NOTEQUAL, GL2.GL_GEQUAL, GL2.GL_ALWAYS };
 
                         // texturing -- texture 0 will be used
-                        gl.glActiveTexture(GL2.GL_TEXTURE0);
+                        try { gl.glActiveTexture(GL2.GL_TEXTURE0); } catch (GLException ex) {}
                         if (mat.texStages[0] != (short)0xFFFF)
                         {
                             int texid = TextureCache.getTextureID(textures[mat.texStages[0]]);

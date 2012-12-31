@@ -60,9 +60,14 @@ public class ColorCubeRenderer extends GLRenderer
         {
             for (int i = 0; i < 8; i++)
             {
-                gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
-                gl.glDisable(GL2.GL_TEXTURE_2D);
+                try
+                {
+                    gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
+                    gl.glDisable(GL2.GL_TEXTURE_2D);
+                }
+                catch (GLException ex) {}
             }
+            gl.glDisable(GL2.GL_TEXTURE_2D);
 
             gl.glDepthFunc(GL2.GL_LEQUAL);
             gl.glDepthMask(true);

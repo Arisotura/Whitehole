@@ -147,9 +147,14 @@ public class BtiRenderer extends GLRenderer
         {
             for (int i = 0; i < 8; i++)
             {
-                gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
-                gl.glDisable(GL2.GL_TEXTURE_2D);
+                try
+                {
+                    gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
+                    gl.glDisable(GL2.GL_TEXTURE_2D);
+                }
+                catch (GLException ex) {}
             }
+            gl.glDisable(GL2.GL_TEXTURE_2D);
 
             gl.glDepthFunc(GL2.GL_LEQUAL);
             gl.glDepthMask(true);
@@ -160,7 +165,7 @@ public class BtiRenderer extends GLRenderer
             gl.glDisable(GL2.GL_ALPHA_TEST);
             try { gl.glUseProgram(0); } catch (GLException ex) { }
             
-            gl.glActiveTexture(GL2.GL_TEXTURE0);
+            try { gl.glActiveTexture(GL2.GL_TEXTURE0); } catch (GLException ex) { }
             gl.glEnable(GL2.GL_TEXTURE_2D);
             gl.glBindTexture(GL2.GL_TEXTURE_2D, texID);
         }

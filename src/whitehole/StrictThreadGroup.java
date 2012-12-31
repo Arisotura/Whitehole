@@ -32,6 +32,16 @@ public class StrictThreadGroup extends ThreadGroup
     @Override
     public void uncaughtException(Thread t, Throwable e)
     {
+        if (e.getMessage().contains("Method 'gl") && e.getMessage().contains("' not available"))
+        {
+            JOptionPane.showMessageDialog(null, 
+                    e.getMessage() + "\n\n"
+                    + "This error is likely caused by an outdated video driver. Update it if possible.",
+                    Whitehole.name, JOptionPane.ERROR_MESSAGE);
+            
+            return;
+        }
+        
         JOptionPane.showMessageDialog(null, 
                 "An unhandled exception has occured: " + e.getMessage() + "\n"
                 + "Whitehole may be unstable. It is recommended that you close it now. You can try to save your unsaved work before doing so, but at your own risks.\n\n"

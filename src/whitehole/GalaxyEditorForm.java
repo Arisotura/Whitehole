@@ -1706,9 +1706,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             try { gl.glUseProgram(0); } catch (GLException ex) { }
             for (int i = 0; i < 8; i++)
             {
-                gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
-                gl.glDisable(GL2.GL_TEXTURE_2D);
+                try
+                {
+                    gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
+                    gl.glDisable(GL2.GL_TEXTURE_2D);
+                }
+                catch (GLException ex) {}
             }
+            gl.glDisable(GL2.GL_TEXTURE_2D);
             
             gl.glEnable(GL2.GL_BLEND);
             gl.glBlendEquation(GL2.GL_FUNC_ADD);
@@ -2058,9 +2063,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             for (int i = 0; i < 8; i++)
             {
-                gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
-                gl.glDisable(GL2.GL_TEXTURE_2D);
+                try
+                {
+                    gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
+                    gl.glDisable(GL2.GL_TEXTURE_2D);
+                }
+                catch (GLException ex) {}
             }
+            gl.glDisable(GL2.GL_TEXTURE_2D);
             
             gl.glCallList(zoneDisplayLists.get(curScenarioID)[0]);
             
@@ -2110,9 +2120,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             try { gl.glUseProgram(0); } catch (GLException ex) { }
             for (int i = 0; i < 8; i++)
             {
-                gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
-                gl.glDisable(GL2.GL_TEXTURE_2D);
+                try
+                {
+                    gl.glActiveTexture(GL2.GL_TEXTURE0 + i);
+                    gl.glDisable(GL2.GL_TEXTURE_2D);
+                }
+                catch (GLException ex) {}
             }
+            gl.glDisable(GL2.GL_TEXTURE_2D);
             gl.glDisable(GL2.GL_BLEND);
             gl.glDisable(GL2.GL_ALPHA_TEST);
             
