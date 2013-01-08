@@ -175,7 +175,7 @@ public class RarcFilesystem implements FilesystemBase
         {
             if (fe.data != null) continue;
             file.position(fe.dataOffset);
-            fe.data = file.readBytes((int)fe.dataSize);
+            fe.data = file.readBytes(fe.dataSize);
         }
         
         int dirOffset = 0x40;
@@ -189,7 +189,7 @@ public class RarcFilesystem implements FilesystemBase
         for (FileEntry fe : fileEntries.values())
         {
             dataOffset += fe.name.length() + 1;
-            dataLength += align32(fe.data.length);
+            dataLength += align32(fe.dataSize);
         }
         dataOffset += 5;
         dataOffset = align32(dataOffset);
@@ -275,7 +275,7 @@ public class RarcFilesystem implements FilesystemBase
                 file.writeShort((short)0x1100);
                 file.writeShort((short)stringSubOffset);
                 file.writeInt(dataSubOffset);
-                file.writeInt(cfe.data.length);
+                file.writeInt(cfe.dataSize);
                 file.writeInt(0x00000000);
                 fileSubOffset += 0x14;
                 fileid++;
@@ -285,9 +285,9 @@ public class RarcFilesystem implements FilesystemBase
                 
                 file.position(dataOffset + dataSubOffset);
                 cfe.dataOffset = (int)file.position();
-                cfe.dataSize = cfe.data.length;
-                file.writeBytes(cfe.data);
-                dataSubOffset += align32(cfe.data.length);
+                byte[] thedata = Arrays.copyOf(cfe.data, cfe.dataSize);
+                file.writeBytes(thedata);
+                dataSubOffset += align32(cfe.dataSize);
                 cfe.data = null;
             }
             
@@ -481,6 +481,7 @@ public class RarcFilesystem implements FilesystemBase
     {
         FileEntry fe = fileEntries.get(pathToKey(_file.fileName));
         fe.data = _file.getContents();
+        fe.dataSize = (int)_file.getLength();
 
         save();
     }
