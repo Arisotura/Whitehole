@@ -58,9 +58,7 @@ public class RarcFilesystem implements FilesystemBase
         root.fullName = "/" + root.name;
         root.tempID = 0;
 
-        //dirEntries.put(root.fullName.toLowerCase(), root);
         dirEntries.put("/", root);
-
         for (int i = 0; i < numDirNodes; i++)
         {
             DirEntry parentdir = null;
@@ -77,14 +75,14 @@ public class RarcFilesystem implements FilesystemBase
 
             short numentries = file.readShort();
             int firstentry = file.readInt();
-
             for (int j = 0; j < numentries; j++)
             {
                 int entryoffset = fileEntriesOffset + ((j + firstentry) * 0x14);
                 file.position(entryoffset);
 
                 int fileid = file.readShort() & 0xFFFF;
-                file.skip(4);
+                file.skip(2);
+                int entrytype = file.readShort() & 0xFFFF;
                 int nameoffset = file.readShort() & 0xFFFF;
                 int dataoffset = file.readInt();
                 int datasize = file.readInt();
@@ -92,10 +90,10 @@ public class RarcFilesystem implements FilesystemBase
                 file.position(stringTableOffset + nameoffset);
                 String name = file.readString("ASCII", 0);
                 if (name.equals(".") || name.equals("..")) continue;
-
+                
                 String fullname = parentdir.fullName + "/" + name;
 
-                if (fileid == 0xFFFF)
+                if (entrytype == 0x0200)
                 {
                     DirEntry d = new DirEntry();
                     d.parentDir = parentdir;
