@@ -80,8 +80,7 @@ public class RarcFilesystem implements FilesystemBase
                 int entryoffset = fileEntriesOffset + ((j + firstentry) * 0x14);
                 file.position(entryoffset);
 
-                int fileid = file.readShort() & 0xFFFF;
-                file.skip(2);
+                file.skip(4);
                 int entrytype = file.readShort() & 0xFFFF;
                 int nameoffset = file.readShort() & 0xFFFF;
                 int dataoffset = file.readInt();

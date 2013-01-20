@@ -35,7 +35,7 @@ public class Yaz0File extends MemoryFile
     @Override
     public void save() throws IOException
     {
-        byte[] compbuffer = Yaz0.compress(buffer);
+        byte[] compbuffer = buffer;//Yaz0.compress(buffer);
         
         if (backend != null)
         {
