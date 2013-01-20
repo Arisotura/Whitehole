@@ -40,45 +40,66 @@ public class Whitehole
     
     public static GameArchive game;
     
+    
+    public class UncaughtExceptionHandler
+    {
+        public void handle(Throwable throwable) 
+        {
+            System.out.println(throwable.getMessage());
+        }
+    }
+    
 
     /**
      * @param args the command line arguments
      */
+    public static void dorun()
+    {
+        if (!Charset.isSupported("SJIS"))
+        {
+            if (!Preferences.userRoot().getBoolean("charset-alreadyWarned", false))
+            {
+                JOptionPane.showMessageDialog(null, "Shift-JIS encoding isn't supported.\nWhitehole will default to ASCII, which may cause certain strings to look corrupted.\n\nThis message appears only once.", 
+                        Whitehole.name, JOptionPane.WARNING_MESSAGE);
+                Preferences.userRoot().putBoolean("charset-alreadyWarned", true);
+            }
+        }
+
+        Settings.initialize();
+        Bcsv.populateHashTable();
+        ObjectDB.initialize();
+        TextureCache.initialize();
+        ShaderCache.initialize();
+        RendererCache.initialize();
+
+        try
+        {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        }
+        catch (Exception ex)
+        {
+        }
+
+        GLProfile.initSingleton();
+        new MainFrame().setVisible(true);
+    }
+    
     public static void main(String[] args) 
     {
-        ThreadGroup strictgroup = new StrictThreadGroup();
-        new Thread(strictgroup, "CATCH 'EM ALL")
+        boolean catchemall = true;
+        
+        if (catchemall)
         {
-            public void run() 
+            ThreadGroup strictgroup = new StrictThreadGroup();
+            new Thread(strictgroup, "CATCH 'EM ALL")
             {
-                if (!Charset.isSupported("SJIS"))
+                public void run() 
                 {
-                    if (!Preferences.userRoot().getBoolean("charset-alreadyWarned", false))
-                    {
-                        JOptionPane.showMessageDialog(null, "Shift-JIS encoding isn't supported.\nWhitehole will default to ASCII, which may cause certain strings to look corrupted.\n\nThis message appears only once.", 
-                                Whitehole.name, JOptionPane.WARNING_MESSAGE);
-                        Preferences.userRoot().putBoolean("charset-alreadyWarned", true);
-                    }
+                    dorun();
                 }
-
-                Settings.initialize();
-                Bcsv.populateHashTable();
-                ObjectDB.initialize();
-                TextureCache.initialize();
-                ShaderCache.initialize();
-                RendererCache.initialize();
-
-                try
-                {
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                }
-                catch (Exception ex)
-                {
-                }
-
-                GLProfile.initSingleton();
-                new MainFrame().setVisible(true);
-            }
-        }.start();
+            }.start();
+        }
+        else
+            dorun();
     }
 }

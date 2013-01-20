@@ -19,6 +19,7 @@
 package whitehole.smg;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLException;
@@ -38,17 +39,18 @@ public class PathObject
         index = (int)(short)data.get("no");
         pathID = (int)data.get("l_id");
         
-        int npoints = (int)data.get("num_pnt");
-        points = new LinkedHashMap<>(npoints);
-        
         try
         {
             Bcsv pointsfile = new Bcsv(zone.archive.openFile(String.format("/Stage/jmp/Path/CommonPathPointInfo.%1$d", index)));
+            
+            points = new LinkedHashMap<>(pointsfile.entries.size());
+            
             for (Bcsv.Entry pt : pointsfile.entries)
             {
                 PathPointObject ptobj = new PathPointObject(this, pt);
                 points.put(ptobj.index, ptobj);
             }
+            
             pointsfile.close();
         }
         catch (IOException ex)
@@ -226,43 +228,51 @@ public class PathObject
             gl.glEnd();
         }
         
-        gl.glLineWidth(1.5f);
-        gl.glBegin(GL2.GL_LINE_STRIP);
-        int numpnt = (int)data.get("num_pnt");
-        int end = numpnt;
-        if (((String)data.get("closed")).equals("CLOSE")) end++;
-        
-        Vector3 start = points.get(0).point0;
-        gl.glVertex3f(start.x, start.y, start.z);
-        for (int p = 1; p < end; p++)
+        if (!points.isEmpty())
         {
-            int pid = p;
-            Vector3 p1 = points.get(pid - 1).point0;
-            Vector3 p2 = points.get(pid - 1).point2;
-            if (pid >= numpnt) pid -= numpnt;
-            Vector3 p3 = points.get(pid).point1;
-            Vector3 p4 = points.get(pid).point0;
-            
-            // if the curve control points are stuck together, just draw a straight line
-            if (Vector3.roughlyEqual(p1, p2) && Vector3.roughlyEqual(p3, p4))
-            {
-                gl.glVertex3f(p4.x, p4.y, p4.z);
-            }
-            else
-            {
-                float step = 0.01f;
-                
-                for (float t = step; t < 1f; t += step)
-                {
-                    float p1t = (1f - t) * (1f - t) * (1f - t);
-                    float p2t = 3 * t * (1f - t) * (1f - t);
-                    float p3t = 3 * t * t * (1f - t);
-                    float p4t = t * t * t;
+            gl.glLineWidth(1.5f);
+            gl.glBegin(GL2.GL_LINE_STRIP);
+            int numpnt = points.size();
+            int end = numpnt;
+            if (((String)data.get("closed")).equals("CLOSE")) end++;
 
-                    gl.glVertex3f(
-                            p1.x * p1t + p2.x * p2t + p3.x * p3t + p4.x * p4t,
-                            p1.y * p1t + p2.y * p2t + p3.y * p3t + p4.y * p4t,
-                            p1.z * p1t + p2.z * p2t + p3.z * p3t + p4.z * p4t);
+            Iterator<PathPointObject> thepoints = points.values().iterator();
+            PathPointObject curpoint = thepoints.next();
+            Vector3 start = curpoint.point0;
+            gl.glVertex3f(start.x, start.y, start.z);
+            for (int p = 1; p < end; p++)
+            {
+                Vector3 p1 = curpoint.point0;
+                Vector3 p2 = curpoint.point2;
+                
+                if (!thepoints.hasNext())
+                    thepoints = points.values().iterator();
+                curpoint = thepoints.next();
+                
+                Vector3 p3 = curpoint.point1;
+                Vector3 p4 = curpoint.point0;
+
+                // if the curve control points are stuck together, just draw a straight line
+                if (Vector3.roughlyEqual(p1, p2) && Vector3.roughlyEqual(p3, p4))
+                {
+                    gl.glVertex3f(p4.x, p4.y, p4.z);
+                }
+                else
+                {
+                    float step = 0.01f;
+
+                    for (float t = step; t < 1f; t += step)
+                    {
+                        float p1t = (1f - t) * (1f - t) * (1f - t);
+                        float p2t = 3 * t * (1f - t) * (1f - t);
+                        float p3t = 3 * t * t * (1f - t);
+                        float p4t = t * t * t;
+
+                        gl.glVertex3f(
+                                p1.x * p1t + p2.x * p2t + p3.x * p3t + p4.x * p4t,
+                                p1.y * p1t + p2.y * p2t + p3.y * p3t + p4.y * p4t,
+                                p1.z * p1t + p2.z * p2t + p3.z * p3t + p4.z * p4t);
+                    }
                 }
             }
         }
