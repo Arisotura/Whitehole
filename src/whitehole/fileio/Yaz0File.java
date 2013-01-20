@@ -18,7 +18,7 @@
 
 package whitehole.fileio;
 
-import java.io.*;
+import java.io.IOException;
 
 public class Yaz0File extends MemoryFile
 {
@@ -35,11 +35,11 @@ public class Yaz0File extends MemoryFile
     @Override
     public void save() throws IOException
     {
-        // TODO: recompress here?
+        byte[] compbuffer = Yaz0.compress(buffer);
         
         if (backend != null)
         {
-            backend.setContents(buffer);
+            backend.setContents(compbuffer);
             backend.save();
             backend.releaseStorage();
         }
