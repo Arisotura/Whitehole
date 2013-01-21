@@ -120,6 +120,7 @@ public class Bcsv
             short fieldend = (short)(field.entryOffset + datasizes[field.type]);
             if (fieldend > entrysize) entrysize = fieldend;
         }
+        entrysize = ((entrysize + 3) & ~3);
 
         int dataoffset = (int)(0x10 + (0xC * fields.size()));
         int stringtableoffset = (int)(dataoffset + (entries.size() * entrysize));

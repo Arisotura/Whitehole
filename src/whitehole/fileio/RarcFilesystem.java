@@ -479,8 +479,6 @@ public class RarcFilesystem implements FilesystemBase
         FileEntry fe = fileEntries.get(pathToKey(_file.fileName));
         fe.data = _file.getContents();
         fe.dataSize = (int)_file.getLength();
-
-        save();
     }
 
 
