@@ -41,7 +41,7 @@ import whitehole.smg.*;
  */
 public class GalaxyEditorForm extends javax.swing.JFrame
 {
-    private final void initVariables()
+    private void initVariables()
     {
         maxUniqueID = 0;
         globalObjList = new HashMap<>();
@@ -91,7 +91,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 }
                 
                 int mainlayermask = (int)galaxyArc.scenarioData.get(i).get(galaxyName);
-                for (int l = 0; l < 32; l++)
+                for (int l = 0; l < 16; l++)
                 {
                     if ((mainlayermask & (1 << l)) == 0)
                         continue;
@@ -168,6 +168,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         lbLayersList = new CheckBoxList();
         lbLayersList.setEventListener(new CheckBoxList.EventListener()
         {
+            @Override
             public void checkBoxStatusChanged(int index, boolean status)
             { layerSelectChange(index, status); }
         });
@@ -180,7 +181,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         cblayers[i] = new JCheckBox("Common");
         cblayers[i].setSelected(true);
         i++;
-        for (int l = 0; l < 26; l++)
+        for (int l = 0; l < 16; l++)
         {
             String ls = String.format("Layer%1$c", 'A'+l);
             if (curZoneArc.objects.containsKey(ls.toLowerCase()))
@@ -249,20 +250,18 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             public void popupMenuWillBecomeInvisible(PopupMenuEvent e)
             {
                 if (!objectBeingAdded.isEmpty())
-                {
-                    tgbAddObject.setSelected(false);
                     setStatusText();
-                }
+                else
+                    tgbAddObject.setSelected(false);
             }
 
             @Override
             public void popupMenuCanceled(PopupMenuEvent e)
             {
                 if (!objectBeingAdded.isEmpty())
-                {
-                    tgbAddObject.setSelected(false);
                     setStatusText();
-                }
+                else
+                    tgbAddObject.setSelected(false);
             }
         });
 
@@ -1640,6 +1639,40 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     public class GalaxyRenderer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     {
+        public class AsyncPrerenderer implements Runnable
+        {
+            public AsyncPrerenderer(GL2 gl)
+            {
+                this.gl = gl;
+            }
+            
+            @Override
+            public void run()
+            {
+                gl.getContext().makeCurrent();
+                
+                if (parentForm == null)
+                {
+                    for (LevelObject obj : globalObjList.values())
+                        obj.initRenderer(renderinfo);
+
+                    for (PathObject obj : globalPathList.values())
+                        obj.prerender(renderinfo);
+                }
+                
+                renderinfo.renderMode = GLRenderer.RenderMode.PICKING; renderAllObjects(gl);
+                renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE; renderAllObjects(gl);
+                renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT; renderAllObjects(gl);
+
+                gl.getContext().release();
+                glCanvas.repaint();
+                setStatusText();
+            }
+            
+            private GL2 gl;
+        }
+        
+        
         public GalaxyRenderer()
         {
             super();
@@ -1678,24 +1711,20 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             camPosition = new Vector3(0f, 0f, 0f);
             updateCamera();
             
-            if (parentForm == null)
-            {
-                for (LevelObject obj : globalObjList.values())
-                    obj.initRenderer(renderinfo);
-                
-                for (PathObject obj : globalPathList.values())
-                    obj.prerender(renderinfo);
-            }
-            
             objDisplayLists = new HashMap<>();
             zoneDisplayLists = new HashMap<>();
-            renderinfo.renderMode = GLRenderer.RenderMode.PICKING; renderAllObjects(gl);
-            renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE; renderAllObjects(gl);
-            renderinfo.renderMode = GLRenderer.RenderMode.TRANSLUCENT; renderAllObjects(gl);
-            
             rerenderTasks = new PriorityQueue<>();
             
+            for (int s = 0; s < galaxyArc.scenarioData.size(); s++)
+                zoneDisplayLists.put(s, new int[] {0,0,0});
+            
             gl.glFrontFace(GL2.GL_CW);
+            
+            gl.glClearColor(0f, 0f, 0.125f, 1f);
+            gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
+            lbStatusLabel.setText("Prerendering "+(galaxyMode?"galaxy":"zone")+", please wait...");
+            
+            SwingUtilities.invokeLater(new AsyncPrerenderer(gl));
             
             inited = true;
         }
@@ -1753,8 +1782,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 
                 for (int s = 0; s < galaxyArc.scenarioData.size(); s++)
                 {
-                    if (!zoneDisplayLists.containsKey(s))
-                        zoneDisplayLists.put(s, new int[] {0,0,0});
+                   // if (!zoneDisplayLists.containsKey(s))
+                    //    zoneDisplayLists.put(s, new int[] {0,0,0});
 
                     int dl = zoneDisplayLists.get(s)[mode];
                     if (dl == 0)
@@ -1774,8 +1803,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             {
                 prerenderZone(gl, galaxyName);
                 
-                if (!zoneDisplayLists.containsKey(0))
-                    zoneDisplayLists.put(0, new int[] {0,0,0});
+                //if (!zoneDisplayLists.containsKey(0))
+                 //   zoneDisplayLists.put(0, new int[] {0,0,0});
 
                 int dl = zoneDisplayLists.get(0)[mode];
                 if (dl == 0)
@@ -1849,29 +1878,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                         
                         if (mode == 1 && selectedPathPoint != null && pobj.uniqueID == selectedPathPoint.path.uniqueID)
                         {
-                            gl.glBegin(GL2.GL_POINTS);
-                            gl.glColor4f(1f, 1f, 0f, 1f);
-                            switch (selectedSubVal)
-                            {
-                                case 0: 
-                                    gl.glPointSize(14f);
-                                    gl.glVertex3f(selectedPathPoint.point0.x, selectedPathPoint.point0.y, selectedPathPoint.point0.z);
-                                    gl.glPointSize(12f);
-                                    gl.glVertex3f(selectedPathPoint.point1.x, selectedPathPoint.point1.y, selectedPathPoint.point1.z);
-                                    gl.glVertex3f(selectedPathPoint.point2.x, selectedPathPoint.point2.y, selectedPathPoint.point2.z);
-                                    break;
-                                    
-                                case 1:
-                                    gl.glPointSize(12f);
-                                    gl.glVertex3f(selectedPathPoint.point1.x, selectedPathPoint.point1.y, selectedPathPoint.point1.z);
-                                    break;
-                                    
-                                case 2:
-                                    gl.glPointSize(12f);
-                                    gl.glVertex3f(selectedPathPoint.point2.x, selectedPathPoint.point2.y, selectedPathPoint.point2.z);
-                                    break;
-                            }
-                            gl.glEnd();
+                            Color4 selcolor = new Color4(1f, 1f, 0.5f, 1f);
+                            selectedPathPoint.render(renderinfo, selcolor, selectedSubVal);
                         }
                     }
                 }

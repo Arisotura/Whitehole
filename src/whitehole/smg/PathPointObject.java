@@ -18,6 +18,10 @@
 
 package whitehole.smg;
 
+import javax.media.opengl.GL2;
+import whitehole.rendering.ColorCubeRenderer;
+import whitehole.rendering.GLRenderer;
+import whitehole.vectors.Color4;
 import whitehole.vectors.Vector3;
 
 public class PathPointObject 
@@ -33,6 +37,8 @@ public class PathPointObject
         point0 = new Vector3((float)data.get("pnt0_x"), (float)data.get("pnt0_y"), (float)data.get("pnt0_z"));
         point1 = new Vector3((float)data.get("pnt1_x"), (float)data.get("pnt1_y"), (float)data.get("pnt1_z"));
         point2 = new Vector3((float)data.get("pnt2_x"), (float)data.get("pnt2_y"), (float)data.get("pnt2_z"));
+        
+        displayLists = null;
     }
     
     public void save()
@@ -41,6 +47,36 @@ public class PathPointObject
         data.put("pnt0_x", point0.x); data.put("pnt0_y", point0.y); data.put("pnt0_z", point0.z);
         data.put("pnt1_x", point1.x); data.put("pnt1_y", point1.y); data.put("pnt1_z", point1.z);
         data.put("pnt2_x", point2.x); data.put("pnt2_y", point2.y); data.put("pnt2_z", point2.z);
+    }
+    
+    public void render(GLRenderer.RenderInfo info, Color4 color, int what)
+    {
+        if (info.renderMode == GLRenderer.RenderMode.TRANSLUCENT) return;
+        
+        GL2 gl = info.drawable.getGL().getGL2();
+        
+        Vector3 pt;
+        if (what == 0) pt = point0;
+        else if (what == 1) pt = point1;
+        else pt = point2;
+        
+        if (info.renderMode == GLRenderer.RenderMode.PICKING)
+        {
+            int uniqueid = uniqueID + what;
+            gl.glColor4ub(
+                (byte)(uniqueid >>> 16), 
+                (byte)(uniqueid >>> 8), 
+                (byte)uniqueid, 
+                (byte)0xFF);
+        }
+        
+        gl.glPushMatrix();
+        gl.glTranslatef(pt.x, pt.y, pt.z);
+        
+        ColorCubeRenderer cube = new ColorCubeRenderer(what==0 ? 100f : 50f, new Color4(1f,1f,1f,1f), color, false);
+        cube.render(info);
+        
+        gl.glPopMatrix();
     }
     
     @Override
@@ -57,4 +93,6 @@ public class PathPointObject
     
     public int index;
     public Vector3 point0, point1, point2;
+    
+    public int[] displayLists;
 }

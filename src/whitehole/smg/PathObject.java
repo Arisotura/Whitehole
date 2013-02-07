@@ -146,39 +146,14 @@ public class PathObject
         // DISPLAY LIST 0 -- path rendered in picking mode (just the points)
         
         gl.glNewList(displayLists[0], GL2.GL_COMPILE);
+        info.renderMode = GLRenderer.RenderMode.PICKING;
         
+        Color4 dummy = new Color4();
         for (PathPointObject point : points.values())
         {
-            gl.glBegin(GL2.GL_POINTS);
-
-            int uniqueid = point.uniqueID;
-            gl.glPointSize(12f);
-            
-            uniqueid++;
-            gl.glColor4ub(
-                (byte)(uniqueid >>> 16), 
-                (byte)(uniqueid >>> 8), 
-                (byte)uniqueid, 
-                (byte)0xFF);
-            gl.glVertex3f(point.point1.x, point.point1.y, point.point1.z);
-            
-            uniqueid++;
-            gl.glColor4ub(
-                (byte)(uniqueid >>> 16), 
-                (byte)(uniqueid >>> 8), 
-                (byte)uniqueid, 
-                (byte)0xFF);
-            gl.glVertex3f(point.point2.x, point.point2.y, point.point2.z);
-            
-            uniqueid -= 2;
-            gl.glColor4ub(
-                (byte)(uniqueid >>> 16), 
-                (byte)(uniqueid >>> 8), 
-                (byte)uniqueid, 
-                (byte)0xFF);
-            gl.glVertex3f(point.point0.x, point.point0.y, point.point0.z);
-            
-            gl.glEnd();
+            point.render(info, dummy, 1);
+            point.render(info, dummy, 2);
+            point.render(info, dummy, 0);
         }
         
         gl.glEndList();
@@ -186,6 +161,7 @@ public class PathObject
         // DISPLAY LIST 1 -- shows the path fully
         
         gl.glNewList(displayLists[1], GL2.GL_COMPILE);
+        info.renderMode = GLRenderer.RenderMode.OPAQUE;
         
         for (int i = 0; i < 8; i++)
         {
@@ -205,21 +181,14 @@ public class PathObject
         gl.glHint(GL2.GL_POINT_SMOOTH_HINT, GL2.GL_NICEST);
         
         Color4 pcolor = pathcolors[index % pathcolors.length];
-        gl.glColor4f(pcolor.r, pcolor.g, pcolor.b, pcolor.a);
         
         for (PathPointObject point : points.values())
         {
-            gl.glBegin(GL2.GL_POINTS);
-
-            gl.glPointSize(8f);
-            gl.glVertex3f(point.point0.x, point.point0.y, point.point0.z);
-
-            gl.glPointSize(6f);
-            gl.glVertex3f(point.point1.x, point.point1.y, point.point1.z);
-            gl.glVertex3f(point.point2.x, point.point2.y, point.point2.z);
+            point.render(info, pcolor, 1);
+            point.render(info, pcolor, 2);
+            point.render(info, pcolor, 0);
             
-            gl.glEnd();
-            
+            gl.glColor4f(pcolor.r, pcolor.g, pcolor.b, pcolor.a);
             gl.glLineWidth(1f);
             gl.glBegin(GL2.GL_LINE_STRIP);
             gl.glVertex3f(point.point1.x, point.point1.y, point.point1.z);
@@ -227,6 +196,8 @@ public class PathObject
             gl.glVertex3f(point.point2.x, point.point2.y, point.point2.z);
             gl.glEnd();
         }
+        
+        gl.glColor4f(pcolor.r, pcolor.g, pcolor.b, pcolor.a);
         
         if (!points.isEmpty())
         {

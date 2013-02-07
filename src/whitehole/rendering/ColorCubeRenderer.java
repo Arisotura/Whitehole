@@ -18,7 +18,8 @@
 
 package whitehole.rendering;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLException;
 import whitehole.vectors.*;
 
 public class ColorCubeRenderer extends GLRenderer

@@ -5,6 +5,16 @@ Floor_code
 Wall_code
 Camera_through
 
+# AstroNamePlateData
+ModelName
+OffsetY0
+UpperFlag0
+OffsetY1
+UpperFlag1
+
+# SystemDataTable
+GalaxyName
+
 # GroupInfo
 sx
 sy
@@ -220,3 +230,48 @@ eflag.enableEndErpFrame
 camendint
 evfrm
 evpriority
+
+
+### SMG2 WORLDMAP STUFF ###
+
+# Galaxy
+StageName
+MiniatureName
+PointPosIndex
+StageType
+ScaleMin
+ScaleMax
+PosOffsetX
+PosOffsetY
+PosOffsetZ
+NamePlatePosX
+NamePlatePosY
+NamePlatePosZ
+# two unks
+
+# PointParts
+PartsTypeName
+PointIndex
+PartsIndex
+Param00
+Param01
+Param02
+
+# PointLink
+PointIndexA
+PointIndexB
+CloseStageName
+CloseStageScenarioNo
+CloseGameFlag
+IsSubRoute
+IsColorChange
+
+#PointPos
+Index
+Valid
+SubPoint
+ColorChange
+LayerNo
+PointPosX
+PointPosY
+PointPosZ
