@@ -34,6 +34,8 @@ public class ObjectModelSubstitutor
             case "SplashPieceBlock": return "CoinBlock";
                 
             case "Karikari": return "Karipon";
+                
+            case "JetTurtle": return "Koura";
         }
         
         return modelname;
