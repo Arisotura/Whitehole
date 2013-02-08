@@ -18,21 +18,23 @@
 
 package whitehole;
 
-import java.io.File;
-import java.io.PrintStream;
-import java.lang.Thread.UncaughtExceptionHandler;
-import whitehole.smg.*;
-import whitehole.rendering.*;
-import javax.swing.*;
 import java.nio.charset.Charset;
 import java.util.prefs.Preferences;
 import javax.media.opengl.GLProfile;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import whitehole.rendering.RendererCache;
+import whitehole.rendering.ShaderCache;
+import whitehole.rendering.TextureCache;
+import whitehole.smg.Bcsv;
+import whitehole.smg.GameArchive;
 
 public class Whitehole 
 {
     
     public static final String name = "Whitehole";
-    public static final String version = "v1.1 PRIVATE BETA";
+    public static final String version = "v1.1";
     public static String fullName = name + " " + version;
     //public static boolean isBeta = version.contains("beta");
     
@@ -92,7 +94,7 @@ public class Whitehole
     
     public static void main(String[] args) 
     {
-        boolean catchemall = false;
+        boolean catchemall = true;
         
         if (catchemall)
         {

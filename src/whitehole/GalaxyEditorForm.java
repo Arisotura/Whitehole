@@ -288,6 +288,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         });
         
         glCanvas.requestFocusInWindow();
+        
+        
+        btnShowFakecolor.setVisible(false);
     }
     
     private void loadZone(String zone) throws IOException
@@ -1267,7 +1270,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         String objtype = objectBeingAdded.substring(0, objectBeingAdded.indexOf('|'));
         String objname = objectBeingAdded.substring(objectBeingAdded.indexOf('|') + 1);
         
-        String filepath;
         LevelObject newobj = null;
         int pnodeid = -1;
         if (objtype.equals("path") || objtype.equals("pathpoint"))
@@ -1837,7 +1839,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             zoneDisplayLists = new HashMap<>();
             rerenderTasks = new PriorityQueue<>();
             
-            for (int s = 0; s < galaxyArc.scenarioData.size(); s++)
+            for (int s = 0; s < (galaxyMode ? galaxyArc.scenarioData.size() : 1); s++)
                 zoneDisplayLists.put(s, new int[] {0,0,0});
             
             gl.glFrontFace(GL2.GL_CW);
@@ -2211,6 +2213,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glReadPixels(lastMouseMove.x - 1, glad.getHeight() - lastMouseMove.y + 1, 3, 3, GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV, pickingFrameBuffer);
             gl.glReadPixels(lastMouseMove.x, glad.getHeight() - lastMouseMove.y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, pickingDepthBuffer);
             pickingDepth = -(zFar * zNear / (pickingDepthBuffer.get(0) * (zFar - zNear) - zFar));
+            //lbStatusLabel.setText(String.format("%1$f", pickingDepth));
             
             if (btnShowFakecolor.isSelected())
             {
