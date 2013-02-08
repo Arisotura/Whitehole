@@ -26,6 +26,36 @@ import whitehole.vectors.Vector3;
 
 public class PathPointObject 
 {
+    public PathPointObject(PathObject path, int idx, Vector3 pos)
+    {
+        this.path = path;
+        
+        data = new Bcsv.Entry();
+        uniqueID = -1;
+        
+        index = idx;
+        point0 = pos;
+        point1 = pos;
+        point2 = pos;
+        
+        displayLists = null;
+        
+        data.put("point_arg0", -1);
+        data.put("point_arg1", -1);
+        data.put("point_arg2", -1);
+        data.put("point_arg3", -1);
+        data.put("point_arg4", -1);
+        data.put("point_arg5", -1);
+        data.put("point_arg6", -1);
+        data.put("point_arg7", -1);
+        
+        data.put("pnt0_x", point0.x); data.put("pnt0_y", point0.y); data.put("pnt0_z", point0.z);
+        data.put("pnt1_x", point1.x); data.put("pnt1_y", point1.y); data.put("pnt1_z", point1.z);
+        data.put("pnt2_x", point2.x); data.put("pnt2_y", point2.y); data.put("pnt2_z", point2.z);
+        
+        data.put("id", (short)index);
+    }
+    
     public PathPointObject(PathObject path, Bcsv.Entry entry)
     {
         this.path = path;

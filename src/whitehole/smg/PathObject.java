@@ -29,6 +29,38 @@ import whitehole.vectors.Vector3;
 
 public class PathObject 
 {
+    public PathObject(ZoneArchive zone, int idx)
+    {
+        this.zone = zone;
+        
+        data = new Bcsv.Entry();
+        uniqueID = -1;
+        
+        index = idx;
+        pathID = 0;
+        
+        points = new LinkedHashMap<>();
+        
+        displayLists = null;
+        
+        data.put("name", String.format("Path #%1$d", index));
+        data.put("type", "Bezier");
+        data.put("closed", "OPEN");
+        data.put("num_pnt", 0);
+        data.put("l_id", pathID);
+        data.put("path_arg0", -1);
+        data.put("path_arg1", -1);
+        data.put("path_arg2", -1);
+        data.put("path_arg3", -1);
+        data.put("path_arg4", -1);
+        data.put("path_arg5", -1);
+        data.put("path_arg6", -1);
+        data.put("path_arg7", -1);
+        data.put("usage", "General");
+        data.put("no", (short)index);
+        data.put("Path_ID", (short)-1);
+    }
+    
     public PathObject(ZoneArchive zone, Bcsv.Entry entry)
     {
         this.zone = zone;
@@ -64,7 +96,6 @@ public class PathObject
     
     public void save()
     {
-        // TODO: reallocate no/file IDs and all
         data.put("no", (short)index);
         data.put("l_id", pathID);
         data.put("num_pnt", (int)points.size());
@@ -95,6 +126,7 @@ public class PathObject
         
         try
         {
+            if (zone.gameMask == 1) filename = filename.toLowerCase(); // SMG1 takes lowercase filenames
             zone.archive.createFile(filename.substring(0, filename.lastIndexOf("/")), filename.substring(filename.lastIndexOf("/")+1));
             Bcsv pointsfile = new Bcsv(zone.archive.openFile(filename));
             
@@ -128,7 +160,9 @@ public class PathObject
     
     public void deleteStorage()
     {
-        zone.archive.deleteFile(String.format("/Stage/jmp/Path/CommonPathPointInfo.%1$d", index));
+        String filename = String.format("/Stage/jmp/Path/CommonPathPointInfo.%1$d", index);
+        if (zone.archive.fileExists(filename))
+            zone.archive.deleteFile(filename);
     }
     
     

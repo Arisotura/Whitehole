@@ -469,6 +469,12 @@ public class RarcFilesystem implements FilesystemBase
     public byte[] getFileContents(String fullname) throws IOException
     {
         FileEntry fe = fileEntries.get(pathToKey(fullname));
+        
+        if (fe.data != null)
+        {
+            byte[] thedata = Arrays.copyOf(fe.data, fe.dataSize);
+            return thedata;
+        }
 
         file.position(fe.dataOffset);
         return file.readBytes((int)fe.dataSize);

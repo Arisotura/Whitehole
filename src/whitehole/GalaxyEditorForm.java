@@ -979,7 +979,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 else if (selobj.getClass() == PathPointObject.class || selobj.getClass() == PathObject.class)
                 {
                     if (selobj.getClass() == PathObject.class)
-                        selectedPathPoint = ((PathObject)selobj).points.get(0);
+                        selectedPathPoint = (PathPointObject)(((PathObject)selobj).points.values().toArray()[0]);
                     else
                         selectedPathPoint = (PathPointObject)selobj;
                     
@@ -1272,33 +1272,105 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         int pnodeid = -1;
         if (objtype.equals("path") || objtype.equals("pathpoint"))
         {
-            throw new UnsupportedOperationException("ADDING PATHS NOT SUPPORTED YET");
-        }
-        else
-        {
-            /*if (ObjectDB.objects.containsKey(objectBeingAdded))
-                filepath = ObjectDB.objects.get(objectBeingAdded).preferredFile.replace("<layer>", addingOnLayer);
-            else
-                filepath = "Placement/" + addingOnLayer + "/ObjInfo";*/
-            switch (objtype)
+            PathObject thepath;
+            
+            if (objtype.equals("path"))
             {
-                case "general": 
-                    newobj = new GeneralObject(curZoneArc, "Placement/" + addingOnLayer + "/ObjInfo", curZoneArc.gameMask, objname, pos);
-                    pnodeid = 0;
-                    break;
-                case "mappart": 
-                    newobj = new MapPartObject(curZoneArc, "MapParts/" + addingOnLayer + "/MapPartsInfo", curZoneArc.gameMask, objname, pos);
-                    pnodeid = 1; 
-                    break;
-                case "gravity": 
-                    newobj = new GravityObject(curZoneArc, "Placement/" + addingOnLayer + "/PlanetObjInfo", curZoneArc.gameMask, objname, pos);
-                    pnodeid = 2;
-                    break;
-                case "start": 
-                    newobj = new StartObject(curZoneArc, "Start/" + addingOnLayer + "/StartInfo", curZoneArc.gameMask, pos);
-                    pnodeid = 3;
-                    break;
+                int newid = 0;
+                boolean found;
+                for (;;)
+                {
+                    found = true;
+                    
+                    for (PathObject pobj : curZoneArc.paths)
+                    {
+                        if (pobj.index == newid)
+                        {
+                            found = false;
+                            break;
+                        }
+                    }
+                    
+                    if (found) break;
+                    else newid++;
+                }
+                
+                thepath = new PathObject(curZoneArc, newid);
+                thepath.uniqueID = maxUniqueID++;
+                globalPathList.put(thepath.uniqueID, thepath);
+                curZoneArc.paths.add(thepath);
+                
+                thepath.deleteStorage();
+                thepath.createStorage();
+                
+                DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+                ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(4);
+                ObjListTreeNode tn = (ObjListTreeNode)listnode.addObject(thepath);
+                treeNodeList.put(thepath.uniqueID, tn);
+                objlist.nodesWereInserted(listnode, new int[] { listnode.getIndex(tn) });
             }
+            else
+                thepath = selectedPathPoint.path;
+            
+            int ptindex = 0;
+            if (!thepath.points.isEmpty())
+            {
+                for (PathPointObject pt : thepath.points.values())
+                {
+                    if (pt.index > ptindex)
+                        ptindex = pt.index;
+                }
+                ptindex++;
+            }
+            
+            PathPointObject thepoint = new PathPointObject(thepath, ptindex, pos);
+            thepoint.uniqueID = maxUniqueID;
+            maxUniqueID += 3;
+            globalPathPointList.put(thepoint.uniqueID, thepoint);
+            thepath.points.put(thepoint.index, thepoint);
+            
+            DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+            ObjListTreeNode listnode = (ObjListTreeNode)((DefaultMutableTreeNode)objlist.getRoot()).getChildAt(4);
+            listnode = (ObjListTreeNode)listnode.children.get(thepath.uniqueID);
+            TreeNode newnode = listnode.addObject(thepoint);
+            objlist.nodesWereInserted(listnode, new int[] { listnode.getIndex(newnode) });
+            treeNodeList.put(thepoint.uniqueID, newnode);
+            
+            rerenderTasks.add(String.format("path:%1$d", thepath.uniqueID));
+            rerenderTasks.add("zone:"+curZone);
+            glCanvas.repaint();
+            unsavedChanges = true;
+            
+            if (objtype.equals("path"))
+            {
+                selectedVal = thepoint.uniqueID;
+                selectedSubVal = 0;
+                selectedObj = null;
+                selectedPathPoint = thepoint;
+                objectBeingAdded = "pathpoint|lol";
+            }
+            
+            return;
+        }
+        
+        switch (objtype)
+        {
+            case "general": 
+                newobj = new GeneralObject(curZoneArc, "Placement/" + addingOnLayer + "/ObjInfo", curZoneArc.gameMask, objname, pos);
+                pnodeid = 0;
+                break;
+            case "mappart": 
+                newobj = new MapPartObject(curZoneArc, "MapParts/" + addingOnLayer + "/MapPartsInfo", curZoneArc.gameMask, objname, pos);
+                pnodeid = 1; 
+                break;
+            case "gravity": 
+                newobj = new GravityObject(curZoneArc, "Placement/" + addingOnLayer + "/PlanetObjInfo", curZoneArc.gameMask, objname, pos);
+                pnodeid = 2;
+                break;
+            case "start": 
+                newobj = new StartObject(curZoneArc, "Start/" + addingOnLayer + "/StartInfo", curZoneArc.gameMask, pos);
+                pnodeid = 3;
+                break;
         }
         
         int uid = 0;
@@ -1336,7 +1408,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         else if (type.equals("path"))
             objectBeingAdded = "path|lol";
         else if (type.equals("pathpoint"))
+        {
+            if (selectedPathPoint == null)
+            {
+                JOptionPane.showMessageDialog(this, "Select a path before adding path points.", Whitehole.name, JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             objectBeingAdded = "pathpoint|lol";
+        }
         else
         {
             ObjectSelectForm form = new ObjectSelectForm(this, curZoneArc.gameMask, null);
@@ -1351,22 +1430,65 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             addingOnLayer = form.selectedLayer;
         }
 
-        lbStatusLabel.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
+        if (objectBeingAdded.startsWith("path"))
+            lbStatusLabel.setText("Click the level view to place your path point. Hold Shift to place multiple points. Right-click to abort.");
+        else
+            lbStatusLabel.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
     }
     
     private void deleteObject(int uid)
     {
-        LevelObject obj = globalObjList.get(uid);
-        zoneArcs.get(obj.zone.zoneName).objects.get(obj.layer).remove(obj);
-        rerenderTasks.add(String.format("delobj:%1$d", uid));
-        rerenderTasks.add("zone:"+obj.zone.zoneName);
-
-        if (treeNodeList.containsKey(uid))
+        if (globalObjList.containsKey(uid))
         {
-            DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
-            ObjTreeNode thenode = (ObjTreeNode)treeNodeList.get(uid);
-            objlist.removeNodeFromParent(thenode);
-            treeNodeList.remove(uid);
+            LevelObject obj = globalObjList.get(uid);
+            obj.zone.objects.get(obj.layer).remove(obj);
+            globalObjList.remove(uid);
+            rerenderTasks.add(String.format("delobj:%1$d", uid));
+            rerenderTasks.add("zone:"+obj.zone.zoneName);
+
+            if (treeNodeList.containsKey(uid))
+            {
+                DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+                ObjTreeNode thenode = (ObjTreeNode)treeNodeList.get(uid);
+                objlist.removeNodeFromParent(thenode);
+                treeNodeList.remove(uid);
+            }
+        }
+        else if (globalPathPointList.containsKey(uid))
+        {
+            PathPointObject obj = globalPathPointList.get(uid);
+            obj.path.points.remove(obj.index);
+            globalPathPointList.remove(uid);
+            if (obj.path.points.isEmpty())
+            {
+                obj.path.zone.paths.remove(obj.path);
+                obj.path.deleteStorage();
+                globalPathList.remove(obj.path.uniqueID);
+                
+                rerenderTasks.add("zone:"+obj.path.zone.zoneName);
+
+                if (treeNodeList.containsKey(obj.path.uniqueID))
+                {
+                    DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+                    ObjTreeNode thenode = (ObjTreeNode)treeNodeList.get(obj.path.uniqueID);
+                    objlist.removeNodeFromParent(thenode);
+                    treeNodeList.remove(obj.path.uniqueID);
+                    treeNodeList.remove(uid);
+                }
+            }
+            else
+            {
+                rerenderTasks.add(String.format("path:%1$d", obj.path.uniqueID));
+                rerenderTasks.add("zone:"+obj.path.zone.zoneName);
+
+                if (treeNodeList.containsKey(uid))
+                {
+                    DefaultTreeModel objlist = (DefaultTreeModel)tvObjectList.getModel();
+                    ObjTreeNode thenode = (ObjTreeNode)treeNodeList.get(uid);
+                    objlist.removeNodeFromParent(thenode);
+                    treeNodeList.remove(uid);
+                }
+            }
         }
         
         glCanvas.repaint();
@@ -1536,7 +1658,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     else newid++;
                 }
 
-                path.zone = zoneArcs.get(newzone);
+                path.zone = newzonearc;
                 newzonearc.paths.add(path);
                 
                 path.index = newid;

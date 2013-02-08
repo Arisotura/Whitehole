@@ -92,7 +92,7 @@ public class Whitehole
     
     public static void main(String[] args) 
     {
-        boolean catchemall = true;
+        boolean catchemall = false;
         
         if (catchemall)
         {
