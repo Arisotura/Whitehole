@@ -38,7 +38,7 @@ public class Whitehole
     public static String fullName = name + " " + version;
     //public static boolean isBeta = version.contains("beta");
     
-    public static final String websiteURL = "http://kuribo64.cjb.net/";
+    public static final String websiteURL = "http://kuribo64.net/";
     
     public static GameArchive game;
     

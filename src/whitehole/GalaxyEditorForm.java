@@ -2170,6 +2170,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             GL2 gl = glad.getGL().getGL2();
             renderinfo.drawable = glad;
             
+            //long start = System.currentTimeMillis();
+            
             doRerenderTasks();
             
             // Rendering pass 1 -- fakecolor rendering
@@ -2277,6 +2279,11 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             gl.glEnd();
             
             glad.swapBuffers();
+            
+            /*long end = System.currentTimeMillis();
+            long overhead = end - start;
+            float framerate = 1000f / (float)overhead;
+            System.out.println("time spent rendering: "+overhead + "ms ("+(overhead/1000f)+"s) -- framerate: "+framerate);*/
         }
         @Override
         public void reshape(GLAutoDrawable glad, int x, int y, int width, int height)
