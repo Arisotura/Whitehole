@@ -94,7 +94,11 @@ public class Whitehole
     
     public static void main(String[] args) 
     {
-        boolean catchemall = true;
+        // attempt at catching uncaught exceptions
+        // only half of them will go through the thing
+        // the other half just causing the whole program to freeze forever
+        // this shit sucks
+        boolean catchemall = false;
         
         if (catchemall)
         {

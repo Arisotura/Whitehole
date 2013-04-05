@@ -275,17 +275,17 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         pnlGLPanel.add(glCanvas, BorderLayout.CENTER);
         pnlGLPanel.validate();
         
-        //pnlObjectSettings = new PropertyGrid(this);
-        pnlObjectSettings = new PropertyPanel();
+        pnlObjectSettings = new PropertyGrid(this);
+        //pnlObjectSettings = new PropertyPanel();
         scpObjSettingsContainer.setViewportView(pnlObjectSettings);
         scpObjSettingsContainer.getVerticalScrollBar().setUnitIncrement(16);
         //pnlObjectSettings.setEventListener(this);
-        pnlObjectSettings.setEventListener(new PropertyPanel.EventListener() 
+        /*pnlObjectSettings.setEventListener(new PropertyPanel.EventListener() 
         {
             @Override
             public void propertyChanged(String propname, Object value)
             { propPanelPropertyChanged(propname, value); }
-        });
+        });*/
         
         glCanvas.requestFocusInWindow();
         
@@ -711,8 +711,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 pnlObjectSettings.addField("zone", "Zone", "list", galaxyArc.zoneList, selectedObj.zone.zoneName);
             pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer);
 
-            selectedObj.getProperties(pnlObjectSettings);
-            pnlObjectSettings.addTermination();
+            //selectedObj.getProperties(pnlObjectSettings);
+            //pnlObjectSettings.addTermination();
         }
         else if (selectedPathPoint != null)
         {
@@ -764,7 +764,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             pnlObjectSettings.addField("point_arg6", "point_arg6", "int", null, selectedPathPoint.data.get("point_arg6"));
             pnlObjectSettings.addField("point_arg7", "point_arg7", "int", null, selectedPathPoint.data.get("point_arg7"));
             
-            pnlObjectSettings.addTermination();
+            //pnlObjectSettings.addTermination();
         }
         else
         {
@@ -1206,9 +1206,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             selectedObj.position.y += delta.y;
             selectedObj.position.z += delta.z;
 
-            pnlObjectSettings.setFieldValue("pos_x", selectedObj.position.x);
+            /*pnlObjectSettings.setFieldValue("pos_x", selectedObj.position.x);
             pnlObjectSettings.setFieldValue("pos_y", selectedObj.position.y);
-            pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);
+            pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);*/
             rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
         }
         else if (selectedPathPoint != null)
@@ -1238,7 +1238,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     break;
             }
 
-            pnlObjectSettings.setFieldValue("pnt0_x", selectedPathPoint.point0.x);
+            /*pnlObjectSettings.setFieldValue("pnt0_x", selectedPathPoint.point0.x);
             pnlObjectSettings.setFieldValue("pnt0_y", selectedPathPoint.point0.y);
             pnlObjectSettings.setFieldValue("pnt0_z", selectedPathPoint.point0.z);
             pnlObjectSettings.setFieldValue("pnt1_x", selectedPathPoint.point1.x);
@@ -1246,7 +1246,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             pnlObjectSettings.setFieldValue("pnt1_z", selectedPathPoint.point1.z);
             pnlObjectSettings.setFieldValue("pnt2_x", selectedPathPoint.point2.x);
             pnlObjectSettings.setFieldValue("pnt2_y", selectedPathPoint.point2.y);
-            pnlObjectSettings.setFieldValue("pnt2_z", selectedPathPoint.point2.z);
+            pnlObjectSettings.setFieldValue("pnt2_z", selectedPathPoint.point2.z);*/
             rerenderTasks.add(String.format("path:%1$d", selectedPathPoint.path.uniqueID));
             rerenderTasks.add("zone:"+selectedPathPoint.path.zone.zoneName);
         }
@@ -2853,9 +2853,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private boolean deletingObjects;
     
     private CheckBoxList lbLayersList;
-    private PropertyPanel pnlObjectSettings;
+    //private PropertyPanel pnlObjectSettings;
     private JPopupMenu pmnAddObjects;
-    //private PropertyGrid pnlObjectSettings;
+    private PropertyGrid pnlObjectSettings;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddScenario;
