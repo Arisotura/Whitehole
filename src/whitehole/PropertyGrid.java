@@ -19,33 +19,32 @@
 package whitehole;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.EventObject;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import javax.swing.*;
+import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.basic.BasicTableUI;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
-public class PropertyGrid extends JTable
+public class PropertyGrid extends JTable implements ListSelectionListener
 {
     public PropertyGrid(JFrame parent)
     {
-        labelRenderer = new LabelRenderer();
-        floatRenderer = new FloatCellRenderer();
-        
+        labelRenderer = new LabelCellRenderer();
+        labelEditor = new LabelCellEditor();
+
         fields = new LinkedHashMap<>();
         curRow = 0;
         
@@ -56,12 +55,15 @@ public class PropertyGrid extends JTable
         this.setUI(new PGUI());
         
         this.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+        
+        this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
     
     
     public void clear()
     {
         this.removeAll();
+        this.clearSelection();
         
         fields.clear();
         curRow = 0;
@@ -83,6 +85,8 @@ public class PropertyGrid extends JTable
         field.value = null;
         
         field.label = new JLabel(caption);
+        field.renderer = labelRenderer;
+        field.editor = labelEditor;
         
         fields.put(name, field);
         
@@ -101,6 +105,33 @@ public class PropertyGrid extends JTable
         field.value = val;
         
         field.label = new JLabel(caption);
+        field.renderer = null;
+        
+        switch (type)
+        {
+            case "text":
+            case "int": 
+                field.editor = new TextCellEditor(field); 
+                break;
+                
+            case "float": 
+                field.renderer = new FloatCellRenderer();
+                field.editor = new FloatCellEditor(field); 
+                break;
+                
+            case "list":
+                field.editor = new ListCellEditor(field); 
+                break;
+                
+            case "bool": 
+                field.renderer = new BoolCellRenderer();
+                field.editor = new BoolCellEditor(field); 
+                break;
+                
+            case "objname":
+                field.editor = new ObjectCellEditor(field); 
+                break;
+        }
         
         fields.put(name, field);
     }
@@ -133,11 +164,7 @@ public class PropertyGrid extends JTable
         Field field = (Field)fields.values().toArray()[row];
         
         if (col == 0) return labelRenderer;
-        if (col == 1)
-        {
-            if (field.type.equals("float"))
-                return floatRenderer;
-        }
+        if (col == 1 && field.renderer != null) return field.renderer;
         
         return super.getCellRenderer(row, col);
     }
@@ -147,13 +174,8 @@ public class PropertyGrid extends JTable
     {
         Field field = (Field)fields.values().toArray()[row];
         
-        if (col == 1)
-        {
-            if (field.type.equals("float")) 
-                return new FloatCellEditor(field);
-            if (field.type.equals("int") || field.type.equals("text"))
-                return new TextCellEditor(field);
-        }
+        if (col == 0) return labelEditor;
+        if (col == 1) return field.editor;
         
         return super.getCellEditor(row, col);
     }
@@ -273,7 +295,7 @@ public class PropertyGrid extends JTable
         }
     }
     
-    public class LabelRenderer implements TableCellRenderer
+    public class LabelCellRenderer implements TableCellRenderer
     {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
@@ -286,6 +308,13 @@ public class PropertyGrid extends JTable
     
     public class FloatCellRenderer extends DefaultTableCellRenderer
     {
+        JLabel label;
+        
+        public FloatCellRenderer()
+        {
+            label = new JLabel();
+        }
+        
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
         {
@@ -293,8 +322,47 @@ public class PropertyGrid extends JTable
             DecimalFormat df = (DecimalFormat)DecimalFormat.getInstance(Locale.ENGLISH);
             df.applyPattern("#.###");
             String formattedval = df.format(value);
-            return super.getTableCellRendererComponent(table, formattedval, isSelected, hasFocus, row, col);
+            label.setText(formattedval);
+            //label.setHorizontalAlignment(SwingConstants.RIGHT);
+            return label;
         }
+    }
+    
+    public class BoolCellRenderer extends DefaultTableCellRenderer
+    {
+        JCheckBox cb;
+        
+        public BoolCellRenderer()
+        {
+            cb = new JCheckBox();
+        }
+        
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
+        {
+            cb.setSelected((boolean)value);
+            return cb;
+        }
+    }
+    
+    public class LabelCellEditor implements TableCellEditor
+    {
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) { return null; }
+        @Override
+        public Object getCellEditorValue() { return null; }
+        @Override
+        public boolean isCellEditable(EventObject anEvent) { return false; }
+        @Override
+        public boolean shouldSelectCell(EventObject anEvent) { return false; }
+        @Override
+        public boolean stopCellEditing() { return true; }
+        @Override
+        public void cancelCellEditing() {}
+        @Override
+        public void addCellEditorListener(CellEditorListener l) {}
+        @Override
+        public void removeCellEditorListener(CellEditorListener l) {}
     }
     
     public class FloatCellEditor extends AbstractCellEditor implements TableCellEditor
@@ -307,7 +375,7 @@ public class PropertyGrid extends JTable
             field = f;
             
             spinner = new JSpinner();
-            spinner.setModel(new SpinnerNumberModel(13.37f, -Float.MAX_VALUE, Float.MAX_VALUE, 10f));
+            spinner.setModel(new SpinnerNumberModel(13.37f, -Float.MAX_VALUE, Float.MAX_VALUE, 1f));
             spinner.addChangeListener(new ChangeListener()
             {
                 @Override
@@ -320,24 +388,6 @@ public class PropertyGrid extends JTable
                     eventListener.propertyChanged(field.name, fval);
                 }
             });
-        }
-        
-        @Override
-        public boolean isCellEditable(EventObject evt)
-        {
-            if (evt instanceof MouseEvent)
-            {
-                MouseEvent mevt = (MouseEvent)evt;
-                return mevt.getClickCount() > 1;
-            }
-            
-            if (evt instanceof KeyEvent)
-            {
-                KeyEvent kevt = (KeyEvent)evt;
-                return !kevt.isActionKey();
-            }
-            
-            return false;
         }
 
         @Override
@@ -391,24 +441,6 @@ public class PropertyGrid extends JTable
                 }
             });
         }
-        
-        @Override
-        public boolean isCellEditable(EventObject evt)
-        {
-            if (evt instanceof MouseEvent)
-            {
-                MouseEvent mevt = (MouseEvent)evt;
-                return mevt.getClickCount() > 1;
-            }
-            
-            if (evt instanceof KeyEvent)
-            {
-                KeyEvent kevt = (KeyEvent)evt;
-                return !kevt.isActionKey();
-            }
-            
-            return false;
-        }
 
         @Override
         public Object getCellEditorValue() 
@@ -424,6 +456,161 @@ public class PropertyGrid extends JTable
         }
     }
     
+    public class ListCellEditor extends AbstractCellEditor implements TableCellEditor
+    {
+        JComboBox combo;
+        Field field;
+
+        public ListCellEditor(Field f) 
+        {
+            field = f;
+            
+            combo = new JComboBox(f.choices.toArray());
+            combo.addActionListener(new ActionListener()
+            {
+                @Override
+                public void actionPerformed(ActionEvent evt)
+                {
+                    Object val = combo.getSelectedItem();
+                    
+                    if (!field.value.equals(val))
+                    {
+                        field.value = val;
+                        eventListener.propertyChanged(field.name, val);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public Object getCellEditorValue() 
+        {
+            return combo.getSelectedItem();
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) 
+        {
+            combo.setSelectedItem(value);
+            return combo;
+        }
+    }
+    
+    public class BoolCellEditor extends AbstractCellEditor implements TableCellEditor
+    {
+        JCheckBox checkbox;
+        Field field;
+
+        public BoolCellEditor(Field f) 
+        {
+            field = f;
+            
+            checkbox = new JCheckBox();
+            checkbox.addActionListener(new ActionListener()
+            {
+                @Override
+                public void actionPerformed(ActionEvent evt)
+                {
+                    boolean val = checkbox.isSelected();
+                    
+                    field.value = val;
+                    eventListener.propertyChanged(field.name, val);
+                }
+            });
+        }
+
+        @Override
+        public Object getCellEditorValue() 
+        {
+            return checkbox.isSelected();
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) 
+        {
+            checkbox.setSelected((boolean)value);
+            return checkbox;
+        }
+    }
+    
+    public class ObjectCellEditor extends AbstractCellEditor implements TableCellEditor
+    {
+        JPanel container;
+        JTextField textfield;
+        JButton button;
+        Field field;
+
+        public ObjectCellEditor(Field f) 
+        {
+            field = f;
+            
+            container = new JPanel();
+            container.setLayout(new BorderLayout());
+            
+            textfield = new JTextField(f.value.toString());
+            container.add(textfield, BorderLayout.CENTER);
+            textfield.addKeyListener(new KeyListener()
+            {
+                @Override
+                public void keyPressed(KeyEvent evt) {}
+                @Override
+                public void keyTyped(KeyEvent evt) {}
+                @Override
+                public void keyReleased(KeyEvent evt)
+                {
+                    String val = textfield.getText();
+                    
+                    textfield.setForeground(ObjectDB.objects.containsKey(val) 
+                            ? Color.getColor("text") : new Color(0xFF4040));
+                        
+                    field.value = val;
+                    eventListener.propertyChanged(field.name, val);
+                }
+            });
+            
+            button = new JButton("...");
+            container.add(button, BorderLayout.EAST);
+            button.addActionListener(new ActionListener() 
+            {
+                @Override
+                public void actionPerformed(ActionEvent evt) 
+                {
+                    GalaxyEditorForm gform = (GalaxyEditorForm)parent;
+                    
+                    ObjectSelectForm objsel = new ObjectSelectForm(gform, gform.zoneArcs.get(gform.galaxyName).gameMask, textfield.getText());
+                    objsel.setVisible(true);
+
+                    String val = objsel.selectedObject;
+                    textfield.setText(val);
+                    textfield.setForeground(ObjectDB.objects.containsKey(val) 
+                            ? Color.getColor("text") : new Color(0xFF4040));
+                    
+                    field.value = val;
+                    eventListener.propertyChanged(field.name, val);
+                }
+            });
+            
+            int btnheight = button.getPreferredSize().height;
+            button.setPreferredSize(new Dimension(btnheight, btnheight));
+            
+            textfield.setForeground(ObjectDB.objects.containsKey((String)field.value) 
+                    ? Color.getColor("text") : new Color(0xFF4040));
+        }
+
+        @Override
+        public Object getCellEditorValue() 
+        {
+            return textfield.getText();
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) 
+        {
+            textfield.setText(value.toString());
+            return container;
+        }
+    }
+    
     public class Field
     {
         String name;
@@ -434,6 +621,8 @@ public class PropertyGrid extends JTable
         Object value;
         
         JLabel label;
+        TableCellRenderer renderer;
+        TableCellEditor editor;
     }
     
     public interface EventListener 
@@ -449,6 +638,6 @@ public class PropertyGrid extends JTable
     
     private JFrame parent;
     
-    private LabelRenderer labelRenderer;
-    private FloatCellRenderer floatRenderer;
+    private LabelCellRenderer labelRenderer;
+    private LabelCellEditor labelEditor;
 }
