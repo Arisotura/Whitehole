@@ -280,12 +280,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         scpObjSettingsContainer.setViewportView(pnlObjectSettings);
         scpObjSettingsContainer.getVerticalScrollBar().setUnitIncrement(16);
         //pnlObjectSettings.setEventListener(this);
-        /*pnlObjectSettings.setEventListener(new PropertyPanel.EventListener() 
+        pnlObjectSettings.setEventListener(new PropertyGrid.EventListener() 
         {
             @Override
             public void propertyChanged(String propname, Object value)
             { propPanelPropertyChanged(propname, value); }
-        });*/
+        });
         
         glCanvas.requestFocusInWindow();
         
@@ -711,8 +711,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 pnlObjectSettings.addField("zone", "Zone", "list", galaxyArc.zoneList, selectedObj.zone.zoneName);
             pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer);
 
-            //selectedObj.getProperties(pnlObjectSettings);
-            //pnlObjectSettings.addTermination();
+            selectedObj.getProperties(pnlObjectSettings);
         }
         else if (selectedPathPoint != null)
         {
@@ -763,8 +762,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             pnlObjectSettings.addField("point_arg5", "point_arg5", "int", null, selectedPathPoint.data.get("point_arg5"));
             pnlObjectSettings.addField("point_arg6", "point_arg6", "int", null, selectedPathPoint.data.get("point_arg6"));
             pnlObjectSettings.addField("point_arg7", "point_arg7", "int", null, selectedPathPoint.data.get("point_arg7"));
-            
-            //pnlObjectSettings.addTermination();
         }
         else
         {
@@ -1206,9 +1203,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             selectedObj.position.y += delta.y;
             selectedObj.position.z += delta.z;
 
-            /*pnlObjectSettings.setFieldValue("pos_x", selectedObj.position.x);
+            pnlObjectSettings.setFieldValue("pos_x", selectedObj.position.x);
             pnlObjectSettings.setFieldValue("pos_y", selectedObj.position.y);
-            pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);*/
+            pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);
+            pnlObjectSettings.repaint();
             rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
         }
         else if (selectedPathPoint != null)
@@ -1569,15 +1567,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             {
                 switch (propname)
                 {
-                    case "pos_x": selectedObj.position.x = (float)(double)value; break;
-                    case "pos_y": selectedObj.position.y = (float)(double)value; break;
-                    case "pos_z": selectedObj.position.z = (float)(double)value; break;
-                    case "dir_x": selectedObj.rotation.x = (float)(double)value; break;
-                    case "dir_y": selectedObj.rotation.y = (float)(double)value; break;
-                    case "dir_z": selectedObj.rotation.z = (float)(double)value; break;
-                    case "scale_x": selectedObj.scale.x = (float)(double)value; break;
-                    case "scale_y": selectedObj.scale.y = (float)(double)value; break;
-                    case "scale_z": selectedObj.scale.z = (float)(double)value; break;
+                    case "pos_x": selectedObj.position.x = (float)value; break;
+                    case "pos_y": selectedObj.position.y = (float)value; break;
+                    case "pos_z": selectedObj.position.z = (float)value; break;
+                    case "dir_x": selectedObj.rotation.x = (float)value; break;
+                    case "dir_y": selectedObj.rotation.y = (float)value; break;
+                    case "dir_z": selectedObj.rotation.z = (float)value; break;
+                    case "scale_x": selectedObj.scale.x = (float)value; break;
+                    case "scale_y": selectedObj.scale.y = (float)value; break;
+                    case "scale_z": selectedObj.scale.z = (float)value; break;
                 }
 
                 if (propname.startsWith("scale_") && selectedObj.renderer.hasSpecialScaling())
@@ -1588,24 +1586,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
             else
             {
-                Object val = -1;
-                if (value.getClass() == String.class)
-                {
-                    try { val = Integer.parseInt((String)value); }
-                    catch (NumberFormatException ex) {}
-                }
-                else if (value.getClass() == Double.class)
-                    val = value;
-
                 Object oldval = selectedObj.data.get(propname);
                 if (oldval.getClass() == String.class)
                     selectedObj.data.put(propname, value);
                 else if (oldval.getClass() == Integer.class)
-                    selectedObj.data.put(propname, (int)val);
+                    selectedObj.data.put(propname, (int)value);
                 else if (oldval.getClass() == Short.class)
-                    selectedObj.data.put(propname, (short)(int)val);
+                    selectedObj.data.put(propname, (short)(int)value);
                 else if (oldval.getClass() == Float.class)
-                    selectedObj.data.put(propname, (float)(double)val);
+                    selectedObj.data.put(propname, (float)value);
                 else
                     throw new UnsupportedOperationException("UNSUPPORTED PROP TYPE: "+oldval.getClass().getName());
                 
@@ -1708,15 +1697,15 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             {
                 switch (propname)
                 {
-                    case "pnt0_x": selectedPathPoint.point0.x = (float)(double)value; break;
-                    case "pnt0_y": selectedPathPoint.point0.y = (float)(double)value; break;
-                    case "pnt0_z": selectedPathPoint.point0.z = (float)(double)value; break;
-                    case "pnt1_x": selectedPathPoint.point1.x = (float)(double)value; break;
-                    case "pnt1_y": selectedPathPoint.point1.y = (float)(double)value; break;
-                    case "pnt1_z": selectedPathPoint.point1.z = (float)(double)value; break;
-                    case "pnt2_x": selectedPathPoint.point2.x = (float)(double)value; break;
-                    case "pnt2_y": selectedPathPoint.point2.y = (float)(double)value; break;
-                    case "pnt2_z": selectedPathPoint.point2.z = (float)(double)value; break;
+                    case "pnt0_x": selectedPathPoint.point0.x = (float)value; break;
+                    case "pnt0_y": selectedPathPoint.point0.y = (float)value; break;
+                    case "pnt0_z": selectedPathPoint.point0.z = (float)value; break;
+                    case "pnt1_x": selectedPathPoint.point1.x = (float)value; break;
+                    case "pnt1_y": selectedPathPoint.point1.y = (float)value; break;
+                    case "pnt1_z": selectedPathPoint.point1.z = (float)value; break;
+                    case "pnt2_x": selectedPathPoint.point2.x = (float)value; break;
+                    case "pnt2_y": selectedPathPoint.point2.y = (float)value; break;
+                    case "pnt2_z": selectedPathPoint.point2.z = (float)value; break;
                 }
                 
                 rerenderTasks.add(String.format("path:%1$d", path.uniqueID));
@@ -1725,18 +1714,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
             else
             {
-                int intval = -1;
-                try { intval = Integer.parseInt((String)value); }
-                catch (NumberFormatException ex) {}
-                
                 if (propname.startsWith("[P]"))
                 {
                     propname = propname.substring(3);
                     Object oldval = path.data.get(propname);
                     if (oldval.getClass() == Integer.class)
-                        path.data.put(propname, intval);
+                        path.data.put(propname, (int)value);
                     else if (oldval.getClass() == Short.class)
-                        path.data.put(propname, (short)intval);
+                        path.data.put(propname, (short)(int)value);
                     else if (oldval.getClass() == String.class)
                         path.data.put(propname, value);
                     else
@@ -1746,7 +1731,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 {
                     Object oldval = selectedPathPoint.data.get(propname);
                     if (oldval.getClass() == Integer.class)
-                        selectedPathPoint.data.put(propname, intval);
+                        selectedPathPoint.data.put(propname, (int)value);
                     else
                         throw new UnsupportedOperationException("UNSUPPORTED PROP TYPE: "+oldval.getClass().getName());
                 }

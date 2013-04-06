@@ -20,7 +20,7 @@ package whitehole.smg;
 
 import javax.media.opengl.GL2;
 import whitehole.ObjectDB;
-import whitehole.PropertyPanel;
+import whitehole.PropertyGrid;
 import whitehole.rendering.GLRenderer;
 import whitehole.rendering.RendererCache;
 import whitehole.vectors.Vector3;
@@ -85,7 +85,7 @@ public class LevelObject
         gl.glPopMatrix();
     }
     
-    public void getProperties(PropertyPanel panel) {}
+    public void getProperties(PropertyGrid panel) {}
     
     @Override
     public String toString()

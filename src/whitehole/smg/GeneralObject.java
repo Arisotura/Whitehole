@@ -18,7 +18,7 @@
 
 package whitehole.smg;
 
-import whitehole.PropertyPanel;
+import whitehole.PropertyGrid;
 import whitehole.vectors.Vector3;
 
 public class GeneralObject extends LevelObject
@@ -120,7 +120,7 @@ public class GeneralObject extends LevelObject
 
     
     @Override
-    public void getProperties(PropertyPanel panel)
+    public void getProperties(PropertyGrid panel)
     {
         panel.addCategory("obj_position", "Position");
         panel.addField("pos_x", "X position", "float", null, position.x);

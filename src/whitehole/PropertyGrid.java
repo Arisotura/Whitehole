@@ -19,12 +19,23 @@
 package whitehole;
 
 import java.awt.*;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JTable;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.EventObject;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.plaf.basic.BasicTableUI;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
@@ -32,65 +43,101 @@ public class PropertyGrid extends JTable
 {
     public PropertyGrid(JFrame parent)
     {
+        labelRenderer = new LabelRenderer();
+        floatRenderer = new FloatCellRenderer();
+        
+        fields = new LinkedHashMap<>();
+        curRow = 0;
+        
+        eventListener = null;
+        
         this.parent = parent;
         this.setModel(new PGModel());
         this.setUI(new PGUI());
+        
+        this.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
     }
     
     
     public void clear()
     {
-        //this.removeAll();
+        this.removeAll();
         
-        /*categories.clear();
         fields.clear();
-        
-        curRow = 0; curIndex = 0;
-        curCategory = null;*/
+        curRow = 0;
+    }
+    
+    public void setEventListener(EventListener listener)
+    {
+        eventListener = listener;
     }
     
     public void addCategory(String name, String caption)
     {
+        Field field = new Field();
+        field.name = name;
+        
+        field.row = curRow++;
+        field.type = "category";
+        field.choices = null;
+        field.value = null;
+        
+        field.label = new JLabel(caption);
+        
+        fields.put(name, field);
+        
+        field.label.setFont(field.label.getFont().deriveFont(Font.BOLD));
+        field.label.setHorizontalAlignment(SwingConstants.CENTER);
     }
     
     public void addField(String name, String caption, String type, java.util.List choices, Object val)
     {
+        Field field = new Field();
+        field.name = name;
+        
+        field.row = curRow++;
+        field.type = type;
+        field.choices = choices;
+        field.value = val;
+        
+        field.label = new JLabel(caption);
+        
+        fields.put(name, field);
+    }
+    
+    public void setFieldValue(String field, Object value)
+    {
+        fields.get(field).value = value;
     }
     
     @Override
     public Rectangle getCellRect(int row, int col, boolean includeSpacing)
     {
-        Rectangle lolrect = super.getCellRect(row, col, includeSpacing);
-        System.out.println("macarena "+col+" - "+row);
-        if (row == 0 && col == 0)
-            lolrect.width *= 2;
-        else if (row == 0 && col == 1)
-            lolrect.width = 0;
+        Rectangle rect = super.getCellRect(row, col, includeSpacing);
+        Field field = (Field)fields.values().toArray()[row];
+
+        if (field.type.equals("category"))
+        {
+            if (col == 0)
+                rect.width = this.getBounds().width;
+            else
+                rect.width = 0;
+        }
         
-        return lolrect;
+        return rect;
     }
     
     @Override
     public TableCellRenderer getCellRenderer(int row, int col)
     {
-        /*if (row == 0)
+        Field field = (Field)fields.values().toArray()[row];
+        
+        if (col == 0) return labelRenderer;
+        if (col == 1)
         {
-            return new TableCellRenderer()
-            {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
-                {
-                    if (column == 1) return null;
-                    
-                    JLabel lol =  new JLabel("this is a label");
-                    
-                    lol.setSize(200, lol.getSize().height);
-                    lol.setMinimumSize(new Dimension(200, lol.getSize().height));
-                    
-                    return lol;
-                }
-            };
-        }*/
+            if (field.type.equals("float"))
+                return floatRenderer;
+        }
         
         return super.getCellRenderer(row, col);
     }
@@ -98,6 +145,16 @@ public class PropertyGrid extends JTable
     @Override
     public TableCellEditor getCellEditor(int row, int col)
     {
+        Field field = (Field)fields.values().toArray()[row];
+        
+        if (col == 1)
+        {
+            if (field.type.equals("float")) 
+                return new FloatCellEditor(field);
+            if (field.type.equals("int") || field.type.equals("text"))
+                return new TextCellEditor(field);
+        }
+        
         return super.getCellEditor(row, col);
     }
     
@@ -107,7 +164,7 @@ public class PropertyGrid extends JTable
         @Override
         public int getRowCount()
         {
-            return 10;
+            return fields.size();
         }
 
         @Override
@@ -117,9 +174,22 @@ public class PropertyGrid extends JTable
         }
 
         @Override
-        public Object getValueAt(int rowIndex, int columnIndex)
+        public Object getValueAt(int row, int col)
         {
-            return "lol"+rowIndex;
+            Field field = (Field)fields.values().toArray()[row];
+            
+            if (col == 0)
+                return field.label.getText();
+            else
+            {
+                if (!field.type.equals("category"))
+                {
+                    if (field.value == null) return "";
+                    return field.value;
+                }
+            }
+            
+            return null;
         }
         
         @Override
@@ -143,68 +213,242 @@ public class PropertyGrid extends JTable
         @Override
         public void paint(Graphics g, JComponent c) 
         {
-                Rectangle r = g.getClipBounds();
-                int firstRow = table.rowAtPoint(new Point(r.x, r.y));
-                int lastRow = table.rowAtPoint(new Point(r.x, r.y + r.height));
-                // -1 is a flag that the ending point is outside the table:
-                if (lastRow < 0)
-                        lastRow = table.getRowCount() - 1;
-                for (int row = firstRow; row <= lastRow; row++)
-                        paintRow(row, g);
+            Rectangle r = g.getClipBounds();
+            int firstRow = table.rowAtPoint(new Point(r.x, r.y));
+            int lastRow = table.rowAtPoint(new Point(r.x, r.y + r.height));
+            // -1 is a flag that the ending point is outside the table:
+            if (lastRow < 0)
+                lastRow = table.getRowCount() - 1;
+            for (int row = firstRow; row <= lastRow; row++)
+                paintRow(row, g);
         }
 
         private void paintRow(int row, Graphics g) 
         {
-                Rectangle clipRect = g.getClipBounds();
-                for (int col = 0; col < table.getColumnCount(); col++) 
+            Rectangle clipRect = g.getClipBounds();
+            for (int col = 0; col < table.getColumnCount(); col++) 
+            {
+                Rectangle cellRect = table.getCellRect(row, col, true);
+                if (cellRect.width == 0) continue;
+                if (cellRect.intersects(clipRect)) 
                 {
-                        Rectangle cellRect = table.getCellRect(row, col, true);
-                        if (cellRect.intersects(clipRect)) 
-                        {
-                                // If a span is defined, only paint the active (top-left) cell. Otherwise paint the cell.
-                                /*Span span = ((SpanTableModel)table.getModel()).getSpanModel().getDefinedSpan(row, col);
-                                if ((span != null && span.isActive(row, col)) || span == null)*/ {
-                                        // At least a part is visible.
-                                        paintCell(row, col, g, cellRect);
-                                }
-                        }
+                    paintCell(row, col, g, cellRect);
                 }
+            }
         }
 
         private void paintCell(int row, int column, Graphics g, Rectangle area) 
         {
-                int verticalMargin = table.getRowMargin();
-                int horizontalMargin = table.getColumnModel().getColumnMargin();
+            int verticalMargin = table.getRowMargin();
+            int horizontalMargin = table.getColumnModel().getColumnMargin();
 
-                Color c = g.getColor();
-                g.setColor(table.getGridColor());
-                // Acmlmboard border method
-                g.drawLine(area.x+area.width-1, area.y, area.x+area.width-1, area.y+area.height-1);
-                g.drawLine(area.x, area.y+area.height-1, area.x+area.width-1, area.y+area.height-1);
-                g.setColor(c);
+            Color c = g.getColor();
+            g.setColor(table.getGridColor());
+            // Acmlmboard border method
+            g.drawLine(area.x+area.width-1, area.y, area.x+area.width-1, area.y+area.height-1);
+            g.drawLine(area.x, area.y+area.height-1, area.x+area.width-1, area.y+area.height-1);
+            g.setColor(c);
 
-                area.setBounds(area.x + horizontalMargin / 2, area.y + verticalMargin / 2, 
-                        area.width - horizontalMargin, area.height - verticalMargin);
+            area.setBounds(area.x + horizontalMargin / 2, area.y + verticalMargin / 2, 
+                area.width - horizontalMargin, area.height - verticalMargin);
 
-                if (table.isEditing() && table.getEditingRow() == row && table.getEditingColumn() == column) 
+            if (table.isEditing() && table.getEditingRow() == row && table.getEditingColumn() == column) 
+            {
+                Component component = table.getEditorComponent();
+                component.setBounds(area);
+                component.validate();
+            } 
+            else 
+            {
+                TableCellRenderer renderer = table.getCellRenderer(row, column);
+                Component component = table.prepareRenderer(renderer, row, column);
+                if (renderer != null && component != null)
                 {
-                        Component component = table.getEditorComponent();
-                        component.setBounds(area);
-                        component.validate();
-                } 
-                else 
-                {
-                        TableCellRenderer renderer = table.getCellRenderer(row, column);
-                        Component component = table.prepareRenderer(renderer, row, column);
-                        if (component.getParent() == null)
-                                rendererPane.add(component);
-                        rendererPane.paintComponent(g, component, table, area.x, area.y,
-                                area.width, area.height, true);
+                    if (component.getParent() == null)
+                        rendererPane.add(component);
+                    rendererPane.paintComponent(g, component, table, area.x, area.y,
+                        area.width, area.height, true);
                 }
+            }
         }
     }
-
     
+    public class LabelRenderer implements TableCellRenderer
+    {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
+        {
+            Field field = (Field)fields.values().toArray()[row];
+            if (col == 0) return field.label;
+            return null;
+        }
+    }
+    
+    public class FloatCellRenderer extends DefaultTableCellRenderer
+    {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
+        {
+            // make float rendering consistent with JSpinner's display
+            DecimalFormat df = (DecimalFormat)DecimalFormat.getInstance(Locale.ENGLISH);
+            df.applyPattern("#.###");
+            String formattedval = df.format(value);
+            return super.getTableCellRendererComponent(table, formattedval, isSelected, hasFocus, row, col);
+        }
+    }
+    
+    public class FloatCellEditor extends AbstractCellEditor implements TableCellEditor
+    {
+        JSpinner spinner;
+        Field field;
+
+        public FloatCellEditor(Field f) 
+        {
+            field = f;
+            
+            spinner = new JSpinner();
+            spinner.setModel(new SpinnerNumberModel(13.37f, -Float.MAX_VALUE, Float.MAX_VALUE, 10f));
+            spinner.addChangeListener(new ChangeListener()
+            {
+                @Override
+                public void stateChanged(ChangeEvent evt)
+                {
+                    // guarantee the value we're giving out is a Float. herp derp
+                    Object val = spinner.getValue();
+                    float fval = (val instanceof Double) ? (float)(double)val : (float)val;
+                    field.value = fval;
+                    eventListener.propertyChanged(field.name, fval);
+                }
+            });
+        }
+        
+        @Override
+        public boolean isCellEditable(EventObject evt)
+        {
+            if (evt instanceof MouseEvent)
+            {
+                MouseEvent mevt = (MouseEvent)evt;
+                return mevt.getClickCount() > 1;
+            }
+            
+            if (evt instanceof KeyEvent)
+            {
+                KeyEvent kevt = (KeyEvent)evt;
+                return !kevt.isActionKey();
+            }
+            
+            return false;
+        }
+
+        @Override
+        public Object getCellEditorValue() 
+        {
+            return spinner.getValue();
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) 
+        {
+            spinner.setValue(value);
+            return spinner;
+        }
+    }
+    
+    public class TextCellEditor extends AbstractCellEditor implements TableCellEditor
+    {
+        JTextField textfield;
+        Field field;
+        boolean isInt;
+
+        public TextCellEditor(Field f) 
+        {
+            field = f;
+            isInt = f.type.equals("int");
+            
+            textfield = new JTextField(f.value.toString());
+            textfield.addKeyListener(new KeyListener()
+            {
+                @Override
+                public void keyPressed(KeyEvent evt) {}
+                @Override
+                public void keyTyped(KeyEvent evt) {}
+                @Override
+                public void keyReleased(KeyEvent evt)
+                {
+                    Object val = textfield.getText();
+                    try
+                    {
+                        if (isInt) val = Integer.parseInt((String)val);
+                        textfield.setForeground(Color.getColor("text"));
+                        
+                        field.value = val;
+                        eventListener.propertyChanged(field.name, val);
+                    }
+                    catch (NumberFormatException ex)
+                    {
+                        textfield.setForeground(new Color(0xFF4040));
+                    }
+                }
+            });
+        }
+        
+        @Override
+        public boolean isCellEditable(EventObject evt)
+        {
+            if (evt instanceof MouseEvent)
+            {
+                MouseEvent mevt = (MouseEvent)evt;
+                return mevt.getClickCount() > 1;
+            }
+            
+            if (evt instanceof KeyEvent)
+            {
+                KeyEvent kevt = (KeyEvent)evt;
+                return !kevt.isActionKey();
+            }
+            
+            return false;
+        }
+
+        @Override
+        public Object getCellEditorValue() 
+        {
+            return textfield.getText();
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) 
+        {
+            textfield.setText(value.toString());
+            return textfield;
+        }
+    }
+    
+    public class Field
+    {
+        String name;
+        
+        String type;
+        int row;
+        java.util.List choices;
+        Object value;
+        
+        JLabel label;
+    }
+    
+    public interface EventListener 
+    {
+        public void propertyChanged(String propname, Object value);
+    }
+    
+    
+    public LinkedHashMap<String, PropertyGrid.Field> fields;
+    private int curRow;
+    
+    private EventListener eventListener;
     
     private JFrame parent;
+    
+    private LabelRenderer labelRenderer;
+    private FloatCellRenderer floatRenderer;
 }
