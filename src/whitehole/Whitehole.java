@@ -82,14 +82,14 @@ public class Whitehole
         {
         }
 
-        SwingUtilities.invokeLater(new Runnable()
+        /*SwingUtilities.invokeLater(new Runnable()
         {
             public void run()
-            {
+            {*/
                 GLProfile.initSingleton();
                 new MainFrame().setVisible(true);
-            }
-        });
+            /*}
+        });*/
     }
     
     public static void main(String[] args) 

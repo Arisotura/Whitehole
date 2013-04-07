@@ -24,17 +24,19 @@ import whitehole.rendering.GLRenderer;
 import whitehole.vectors.Color4;
 import whitehole.vectors.Vector3;
 
-public class PathPointObject 
+public class PathPointObject extends LevelObject
 {
     public PathPointObject(PathObject path, int idx, Vector3 pos)
     {
         this.path = path;
         
+        zone = path.zone;
+        
         data = new Bcsv.Entry();
         uniqueID = -1;
         
         index = idx;
-        point0 = pos;
+        position = pos;
         point1 = pos;
         point2 = pos;
         
@@ -49,7 +51,7 @@ public class PathPointObject
         data.put("point_arg6", -1);
         data.put("point_arg7", -1);
         
-        data.put("pnt0_x", point0.x); data.put("pnt0_y", point0.y); data.put("pnt0_z", point0.z);
+        data.put("pnt0_x", position.x); data.put("pnt0_y", position.y); data.put("pnt0_z", position.z);
         data.put("pnt1_x", point1.x); data.put("pnt1_y", point1.y); data.put("pnt1_z", point1.z);
         data.put("pnt2_x", point2.x); data.put("pnt2_y", point2.y); data.put("pnt2_z", point2.z);
         
@@ -60,21 +62,24 @@ public class PathPointObject
     {
         this.path = path;
         
+        zone = path.zone;
+        
         data = entry;
         uniqueID = -1;
         
         index = (int)(short)data.get("id");
-        point0 = new Vector3((float)data.get("pnt0_x"), (float)data.get("pnt0_y"), (float)data.get("pnt0_z"));
+        position = new Vector3((float)data.get("pnt0_x"), (float)data.get("pnt0_y"), (float)data.get("pnt0_z"));
         point1 = new Vector3((float)data.get("pnt1_x"), (float)data.get("pnt1_y"), (float)data.get("pnt1_z"));
         point2 = new Vector3((float)data.get("pnt2_x"), (float)data.get("pnt2_y"), (float)data.get("pnt2_z"));
         
         displayLists = null;
     }
     
+    @Override
     public void save()
     {
         data.put("id", (short)index);
-        data.put("pnt0_x", point0.x); data.put("pnt0_y", point0.y); data.put("pnt0_z", point0.z);
+        data.put("pnt0_x", position.x); data.put("pnt0_y", position.y); data.put("pnt0_z", position.z);
         data.put("pnt1_x", point1.x); data.put("pnt1_y", point1.y); data.put("pnt1_z", point1.z);
         data.put("pnt2_x", point2.x); data.put("pnt2_y", point2.y); data.put("pnt2_z", point2.z);
     }
@@ -86,13 +91,13 @@ public class PathPointObject
         GL2 gl = info.drawable.getGL().getGL2();
         
         Vector3 pt;
-        if (what == 0) pt = point0;
+        if (what == 0) pt = position;
         else if (what == 1) pt = point1;
         else pt = point2;
         
         if (info.renderMode == GLRenderer.RenderMode.PICKING)
         {
-            int uniqueid = uniqueID + what;
+            int uniqueid = (uniqueID << 3) + what;
             gl.glColor4ub(
                 (byte)(uniqueid >>> 16), 
                 (byte)(uniqueid >>> 8), 
@@ -110,6 +115,31 @@ public class PathPointObject
     }
     
     @Override
+    public void offsetBy(Vector3 offset, int what)
+    {
+        if (what == 0)
+        {
+            position.x += offset.x;
+            position.y += offset.y;
+            position.z += offset.z;
+        }
+        
+        if (what == 0 || what == 1)
+        {
+            point1.x += offset.x;
+            point1.y += offset.y;
+            point1.z += offset.z;
+        }
+        
+        if (what == 0 || what == 2)
+        {
+            point2.x += offset.x;
+            point2.y += offset.y;
+            point2.z += offset.z;
+        }
+    }
+    
+    @Override
     public String toString()
     {
         return String.format("Point %1$d", index);
@@ -117,12 +147,9 @@ public class PathPointObject
     
     
     public PathObject path;
-    public Bcsv.Entry data;
-    
-    public int uniqueID;
     
     public int index;
-    public Vector3 point0, point1, point2;
+    public Vector3 point1, point2;
     
     public int[] displayLists;
 }

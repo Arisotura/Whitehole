@@ -226,7 +226,7 @@ public class PathObject
             gl.glLineWidth(1f);
             gl.glBegin(GL2.GL_LINE_STRIP);
             gl.glVertex3f(point.point1.x, point.point1.y, point.point1.z);
-            gl.glVertex3f(point.point0.x, point.point0.y, point.point0.z);
+            gl.glVertex3f(point.position.x, point.position.y, point.position.z);
             gl.glVertex3f(point.point2.x, point.point2.y, point.point2.z);
             gl.glEnd();
         }
@@ -243,11 +243,11 @@ public class PathObject
 
             Iterator<PathPointObject> thepoints = points.values().iterator();
             PathPointObject curpoint = thepoints.next();
-            Vector3 start = curpoint.point0;
+            Vector3 start = curpoint.position;
             gl.glVertex3f(start.x, start.y, start.z);
             for (int p = 1; p < end; p++)
             {
-                Vector3 p1 = curpoint.point0;
+                Vector3 p1 = curpoint.position;
                 Vector3 p2 = curpoint.point2;
                 
                 if (!thepoints.hasNext())
@@ -255,7 +255,7 @@ public class PathObject
                 curpoint = thepoints.next();
                 
                 Vector3 p3 = curpoint.point1;
-                Vector3 p4 = curpoint.point0;
+                Vector3 p4 = curpoint.position;
 
                 // if the curve control points are stuck together, just draw a straight line
                 if (Vector3.roughlyEqual(p1, p2) && Vector3.roughlyEqual(p3, p4))

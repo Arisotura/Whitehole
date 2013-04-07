@@ -686,7 +686,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     {
         pnlObjectSettings.clear();
         
-        if (selectedObj != null)
+        /*if (selectedObj != null)
         {
             String layer = selectedObj.layer.equals("common") ? "Common" : "Layer"+selectedObj.layer.substring(5).toUpperCase();
             lbSelected.setText(String.format("%1$s (%2$s, %3$s)", selectedObj.dbInfo.name, selectedObj.zone.zoneName, layer));
@@ -769,7 +769,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         
         pnlObjectSettings.validate();
-        pnlObjectSettings.repaint();
+        pnlObjectSettings.repaint();*/
         
         glCanvas.requestFocusInWindow();
     }
@@ -864,12 +864,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     private void btnDeselectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnDeselectActionPerformed
     {//GEN-HEADEREND:event_btnDeselectActionPerformed
-        rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
+        /*rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
         selectedVal = 0xFFFFFF;
         selectedObj = null;
         selectedPathPoint = null;
         selectionChanged();
-        glCanvas.repaint();
+        glCanvas.repaint();*/
     }//GEN-LAST:event_btnDeselectActionPerformed
 
     private void saveChanges()
@@ -929,79 +929,40 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
     private void tpLeftPanelStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_tpLeftPanelStateChanged
     {//GEN-HEADEREND:event_tpLeftPanelStateChanged
-        int tab = tpLeftPanel.getSelectedIndex();
-        // todo: do shit
+        // useless
     }//GEN-LAST:event_tpLeftPanelStateChanged
 
     private void tvObjectListValueChanged(javax.swing.event.TreeSelectionEvent evt)//GEN-FIRST:event_tvObjectListValueChanged
     {//GEN-HEADEREND:event_tvObjectListValueChanged
-        String lastzone = "";
-        if (selectedObj != null)
+        TreePath[] paths = evt.getPaths();
+        for (TreePath path : paths)
         {
-            rerenderTasks.add("zone:" + selectedObj.zone.zoneName);
-            lastzone = selectedObj.zone.zoneName;
-        }
-        else if (selectedPathPoint != null)
-        {
-            rerenderTasks.add("zone:" + selectedPathPoint.path.zone.zoneName);
-            lastzone = selectedPathPoint.path.zone.zoneName;
-        }
-        
-        selectedSubVal = 0;
-
-        if (evt.getNewLeadSelectionPath() == null)
-        {
-            selectedVal = 0xFFFFFF;
-            selectedObj = null;
-            selectedPathPoint = null;
-        } 
-        else
-        {
-            TreeNode selnode = (TreeNode) evt.getNewLeadSelectionPath().getLastPathComponent();
-            Object selobj = null;
-            if (selnode.getClass() == ObjTreeNode.class)
-                selobj = ((ObjTreeNode)selnode).object;
-            else if (selnode.getClass() == ObjListTreeNode.class)
-                selobj = ((ObjListTreeNode)selnode).object;
+            TreeNode node = (TreeNode)path.getLastPathComponent();
+            if (!(node instanceof ObjTreeNode))
+                continue;
             
-            if (selobj != null)
+            LevelObject obj = (LevelObject)((ObjTreeNode)node).object;
+            
+            if (evt.isAddedPath(path))
             {
-                if (selobj.getClass().getSuperclass() == LevelObject.class)
-                {
-                    selectedPathPoint = null;
-                    selectedObj = (LevelObject) ((ObjTreeNode) selnode).object;
-                    selectedVal = selectedObj.uniqueID;
-                    if (!lastzone.equals(selectedObj.zone.zoneName))
-                        rerenderTasks.add("zone:" + selectedObj.zone.zoneName);
-                }
-                else if (selobj.getClass() == PathPointObject.class || selobj.getClass() == PathObject.class)
-                {
-                    if (selobj.getClass() == PathObject.class)
-                        selectedPathPoint = (PathPointObject)(((PathObject)selobj).points.values().toArray()[0]);
-                    else
-                        selectedPathPoint = (PathPointObject)selobj;
-                    
-                    selectedObj = null;
-                    selectedVal = selectedPathPoint.uniqueID;
-                    if (!lastzone.equals(selectedPathPoint.path.zone.zoneName))
-                        rerenderTasks.add("zone:" + selectedPathPoint.path.zone.zoneName);
-                }
+                selectedObjs.put(obj.uniqueID, obj);
+                addRerenderTask("zone:"+obj.zone.zoneName);
             }
             else
             {
-                selectedVal = 0xFFFFFF;
-                selectedObj = null;
-                selectedPathPoint = null;
+                selectedObjs.remove(obj.uniqueID);
+                addRerenderTask("zone:"+obj.zone.zoneName);
             }
         }
-
+        
+        selectionArg = 0;
         selectionChanged();
         glCanvas.repaint();
     }//GEN-LAST:event_tvObjectListValueChanged
 
     private void tgbDeleteObjectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbDeleteObjectActionPerformed
     {//GEN-HEADEREND:event_tgbDeleteObjectActionPerformed
-        if (selectedObj != null)
+        /*if (selectedObj != null)
         {
             if (tgbDeleteObject.isSelected())
             {
@@ -1025,7 +986,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 deletingObjects = true;
                 lbStatusLabel.setText("Click the object you want to delete. Hold Shift to delete multiple objects. Right-click to abort.");
             }
-        }
+        }*/
     }//GEN-LAST:event_tgbDeleteObjectActionPerformed
 
     private void tgbAddObjectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbAddObjectActionPerformed
@@ -1142,6 +1103,13 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     }//GEN-LAST:event_tgbReverseRotActionPerformed
 
     
+    public void addRerenderTask(String task)
+    {
+        if (!rerenderTasks.contains(task))
+            rerenderTasks.add(task);
+    }
+    
+    
     public void applySubzoneRotation(Vector3 delta)
     {
         if (!galaxyMode) return;
@@ -1195,7 +1163,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     private void offsetSelectionBy(Vector3 delta)
     {
-        if (selectedObj != null)
+        for (LevelObject selectedObj : selectedObjs.values())
         {
             selectedObj.position.x += delta.x;
             selectedObj.position.y += delta.y;
@@ -1205,9 +1173,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             pnlObjectSettings.setFieldValue("pos_y", selectedObj.position.y);
             pnlObjectSettings.setFieldValue("pos_z", selectedObj.position.z);
             pnlObjectSettings.repaint();
-            rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
+            addRerenderTask("zone:"+selectedObj.zone.zoneName);
         }
-        else if (selectedPathPoint != null)
+        /*else if (selectedPathPoint != null)
         {
             switch (selectedSubVal)
             {
@@ -1246,12 +1214,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             pnlObjectSettings.repaint();
             rerenderTasks.add(String.format("path:%1$d", selectedPathPoint.path.uniqueID));
             rerenderTasks.add("zone:"+selectedPathPoint.path.zone.zoneName);
-        }
+        }*/
     }
     
     private void addObject(Point where)
     {
-        Vector3 pos = get3DCoords(where, Math.min(pickingDepth, 1f));
+        /*Vector3 pos = get3DCoords(where, Math.min(pickingDepth, 1f));
         
         if (galaxyMode)
         {
@@ -1392,14 +1360,14 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         rerenderTasks.add(String.format("addobj:%1$d", uid));
         rerenderTasks.add("zone:"+curZone);
         glCanvas.repaint();
-        unsavedChanges = true;
+        unsavedChanges = true;*/
     }
     
     private void doAddObject(String type)
     {
         // "General object", "Map part", "Gravity", "Starting point", "Path", "Path point"
         
-        if (type.equals("start"))
+        /*if (type.equals("start"))
         {
             objectBeingAdded = "start|Mario";
             addingOnLayer = "common";
@@ -1432,7 +1400,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         if (objectBeingAdded.startsWith("path"))
             lbStatusLabel.setText("Click the level view to place your path point. Hold Shift to place multiple points. Right-click to abort.");
         else
-            lbStatusLabel.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");
+            lbStatusLabel.setText("Click the level view to place your object. Hold Shift to place multiple objects. Right-click to abort.");*/
     }
     
     private void deleteObject(int uid)
@@ -1497,7 +1465,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     public void propPanelPropertyChanged(String propname, Object value)
     {
-        if (selectedObj != null)
+        /*if (selectedObj != null)
         {
             if (propname.equals("name"))
             {
@@ -1739,7 +1707,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         else
             throw new UnsupportedOperationException("oops, bug. Tell Mega-Mario.");
         
-        unsavedChanges = true;
+        unsavedChanges = true;*/
     }
     
     
@@ -1801,10 +1769,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             isDragging = false;
             pickingCapture = false;
             underCursor = 0xFFFFFF;
-            selectedVal = 0xFFFFFF;
-            selectedObj = null;
-            selectedPathPoint = null;
-            selectedSubVal = 0;
+            //selectedVal = 0xFFFFFF;
+            //selectedObj = null;
+            //selectedPathPoint = null;
+            //selectedSubVal = 0;
+            selectedObjs = new LinkedHashMap<>();
+            selectionArg = 0;
             objectBeingAdded = "";
             addingOnLayer = "";
             deletingObjects = false;
@@ -1838,8 +1808,19 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         }
         
         
-        private void renderSelectHighlight(GL2 gl)
+        private void renderSelectHighlight(GL2 gl, String zone)
         {
+            boolean gotany = false;
+            for (LevelObject obj : selectedObjs.values())
+            {
+                if (obj.zone.zoneName.equals(zone))
+                {
+                    gotany = true;
+                    break;
+                }
+            }
+            if (!gotany) return;
+            
             try { gl.glUseProgram(0); } catch (GLException ex) { }
             for (int i = 0; i < 8; i++)
             {
@@ -1867,7 +1848,12 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             GLRenderer.RenderMode oldmode = renderinfo.renderMode;
             renderinfo.renderMode = GLRenderer.RenderMode.PICKING;
             gl.glColor4f(1f, 1f, 0.75f, 0.3f);
-            selectedObj.render(renderinfo);
+            
+            for (LevelObject obj : selectedObjs.values())
+            {
+                if (obj.zone.zoneName.equals(zone))
+                    obj.render(renderinfo);
+            }
             
             gl.glDisable(GL2.GL_POLYGON_OFFSET_FILL);
             renderinfo.renderMode = oldmode;
@@ -1959,23 +1945,24 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 {
                     if (mode == 0) 
                     {
+                        int uniqueid = obj.uniqueID << 3;
                         // set color to the object's uniqueID (RGB)
                         gl.glColor4ub(
-                                (byte)(obj.uniqueID >>> 16), 
-                                (byte)(obj.uniqueID >>> 8), 
-                                (byte)obj.uniqueID, 
+                                (byte)(uniqueid >>> 16), 
+                                (byte)(uniqueid >>> 8), 
+                                (byte)uniqueid, 
                                 (byte)0xFF);
                     }
                     obj.render(renderinfo);
                 }
                 
-                if (mode == 2 && selectedObj != null && selectedObj.zone.zoneName.equals(zone))
-                    renderSelectHighlight(gl);
+                if (mode == 2 && !selectedObjs.isEmpty())
+                    renderSelectHighlight(gl, zone);
                 
                 // path rendering -- be lazy and hijack the display lists used for the Common objects
                 if (layer.equalsIgnoreCase("common"))
                 {
-                    for (PathObject pobj : zonearc.paths)
+                    /*for (PathObject pobj : zonearc.paths)
                     {
                         if (!btnShowAllPaths.isSelected() && // isSelected? intuitive naming ftw :/
                                 (selectedObj == null || !selectedObj.data.containsKey("CommonPath_ID") || pobj.pathID != (short)selectedObj.data.get("CommonPath_ID")) &&
@@ -1989,7 +1976,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                             Color4 selcolor = new Color4(1f, 1f, 0.5f, 1f);
                             selectedPathPoint.render(renderinfo, selcolor, selectedSubVal);
                         }
-                    }
+                    }*/
                 }
 
                 gl.glEndList();
@@ -2343,7 +2330,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             lastMouseMove = e.getPoint();
             
-            if ((selectedObj != null || selectedPathPoint != null) && selectedVal == (underCursor - selectedSubVal))
+            /*if ((selectedObj != null || selectedPathPoint != null) && selectedVal == (underCursor - selectedSubVal))
             {
                 if (mouseButton == MouseEvent.BUTTON1)
                 {
@@ -2362,7 +2349,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                     unsavedChanges = true;
                 }
             }
-            else
+            else*/
             {
                 if (mouseButton == MouseEvent.BUTTON3)
                 {
@@ -2461,7 +2448,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             
             mouseButton = MouseEvent.NOBUTTON;
             lastMouseMove = e.getPoint();
-            boolean shiftpressed = (e.getModifiers() & 1) != 0;
+            boolean shiftpressed = e.isShiftDown();
+            boolean ctrlpressed = e.isControlDown();
             
             if (isDragging)
             {
@@ -2470,22 +2458,26 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 return;
             }
             
-            int objid = pickingFrameBuffer.get(4);
-            if (    objid != pickingFrameBuffer.get(1) ||
-                    objid != pickingFrameBuffer.get(3) ||
-                    objid != pickingFrameBuffer.get(5) ||
-                    objid != pickingFrameBuffer.get(7))
+            int val = pickingFrameBuffer.get(4);
+            if (    val != pickingFrameBuffer.get(1) ||
+                    val != pickingFrameBuffer.get(3) ||
+                    val != pickingFrameBuffer.get(5) ||
+                    val != pickingFrameBuffer.get(7))
                 return;
             
-            objid &= 0xFFFFFF;
-            //if (objid != 0xFFFFFF && !globalObjList.containsKey(objid))
-             //   return;
+            val &= 0xFFFFFF;
+            int objid = val >>> 3;
+            int arg = val & 0x7;
+            if (objid != 0xFFFFFF && !globalObjList.containsKey(objid))
+                return;
             
-            // no need to handle rerendering here: changing the treeview's selection
-            // will trigger it
+            LevelObject theobject = globalObjList.get(objid);
+            selectionArg = 0;
             
             if (e.getButton() == MouseEvent.BUTTON3)
             {
+                // right click: cancels current add/delete command
+                
                 if (!objectBeingAdded.isEmpty())
                 {
                     objectBeingAdded = "";
@@ -2501,11 +2493,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
             else
             {
-                if (objid == (selectedVal + selectedSubVal) || objid == 0xFFFFFF)
-                {
-                    tvObjectList.setSelectionPath(null);
-                }
-                else if (!objectBeingAdded.isEmpty())
+                // left click: places/deletes objects or selects shit
+                
+                if (!objectBeingAdded.isEmpty())
                 {
                     addObject(lastMouseMove);
                     if (!shiftpressed)
@@ -2527,57 +2517,87 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 }
                 else
                 {
-                    String oldzone = "";
-                    if (selectedObj != null)
-                        oldzone = selectedObj.zone.zoneName;
-                    else if (selectedPathPoint != null)
-                        oldzone = selectedPathPoint.path.zone.zoneName;
-                       
-                    selectedVal = objid;
-                    selectedObj = null;
-                    selectedPathPoint = null;
+                    // multiselect behavior
+                    // Ctrl not pressed:
+                    // * clicking an object selects/deselects it
+                    // * selecting an object deselects the previous selection
+                    // Ctrl pressed:
+                    // * clicking an object adds it to the selection
+                    // * or removes it if it's already selected
                     
-                    String newzone = "";
-                    int uid = -1;
-                    if (globalObjList.containsKey(objid))
-                    {
-                        selectedObj = globalObjList.get(objid);
-                        newzone = selectedObj.zone.zoneName;
-                        uid = selectedObj.uniqueID;
-                        selectedSubVal = 0;
-                    }
-                    else if (globalPathPointList.containsKey(objid))
-                    {
-                        selectedPathPoint = globalPathPointList.get(objid);
-                        newzone = selectedPathPoint.path.zone.zoneName;
-                        uid = selectedPathPoint.uniqueID;
-                    }
+                    boolean wasselected = false;
                     
-                    if (!oldzone.isEmpty() && !oldzone.equals(newzone))
-                        rerenderTasks.add("zone:"+oldzone);
-                       
-                    if (galaxyMode)
+                    if (ctrlpressed)
                     {
-                        for (int z = 0; z < galaxyArc.zoneList.size(); z++)
+                        if (selectedObjs.containsKey(objid))
+                            selectedObjs.remove(objid);
+                        else
                         {
-                            if (!galaxyArc.zoneList.get(z).equals(newzone))
-                                continue;
-                            lbZoneList.setSelectedIndex(z);
-                            break;
+                            selectedObjs.put(objid, theobject);
+                            wasselected = true;
                         }
                     }
-                    tpLeftPanel.setSelectedIndex(1);
-                    
-                    if (treeNodeList.containsKey(uid))
+                    else
                     {
-                        TreeNode tn = treeNodeList.get(uid);
-                        TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(tn));
-                        tvObjectList.setSelectionPath(tp);
-                        tvObjectList.scrollPathToVisible(tp);
+                        if (selectedObjs.size() == 1)
+                        {
+                            LevelObject oldobj = (LevelObject)selectedObjs.values().toArray()[0];
+                            addRerenderTask("zone:"+oldobj.zone.zoneName);
+                            selectedObjs.clear();
+                        }
+                        else
+                        {
+                            selectedObjs.put(theobject.uniqueID, theobject);
+                            wasselected = true;
+                        }
                     }
                     
-                    if (selectedPathPoint != null)
-                        selectedSubVal = objid - uid;
+                    addRerenderTask("zone:"+theobject.zone.zoneName);
+                    
+                    if (wasselected)
+                    {
+                        if (selectedObjs.size() == 1)
+                        {
+                            if (galaxyMode)
+                            {
+                                String zone = selectedObjs.values().iterator().next().zone.zoneName;
+                                lbZoneList.setSelectedValue(zone, true);
+                            }
+                        }
+                        tpLeftPanel.setSelectedIndex(1);
+
+                        // if the object is in the TreeView, all we have to do is tell the TreeView to select it
+                        // and the rest will be handled there
+                        if (treeNodeList.containsKey(objid))
+                        {
+                            TreeNode tn = treeNodeList.get(objid);
+                            TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(tn));
+                            if (ctrlpressed) tvObjectList.addSelectionPath(tp);
+                            else tvObjectList.setSelectionPath(tp);
+                            tvObjectList.scrollPathToVisible(tp);
+                        }
+                        else
+                        {
+                            addRerenderTask("zone:"+theobject.zone.zoneName);
+                            selectionChanged();
+                        }
+                        
+                        selectionArg = arg;
+                    }
+                    else
+                    {
+                        if (treeNodeList.containsKey(objid))
+                        {
+                            TreeNode tn = treeNodeList.get(objid);
+                            TreePath tp = new TreePath(((DefaultTreeModel)tvObjectList.getModel()).getPathToRoot(tn));
+                            tvObjectList.removeSelectionPath(tp);
+                        }
+                        else
+                        {
+                            addRerenderTask("zone:"+theobject.zone.zoneName);
+                            selectionChanged();
+                        }
+                    }
                 }
             }
             
@@ -2599,7 +2619,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             if (!inited) return;
             
-            if (mouseButton == MouseEvent.BUTTON1 && (selectedObj != null || selectedPathPoint != null) && selectedVal == (underCursor - selectedSubVal))
+            /*if (mouseButton == MouseEvent.BUTTON1 && (selectedObj != null || selectedPathPoint != null) && selectedVal == (underCursor - selectedSubVal))
             {
                 float delta = (float)e.getPreciseWheelRotation();
                 delta = ((delta < 0f) ? -1f:1f) * (float)Math.pow(delta, 2f) * 0.05f * scaledown;
@@ -2620,7 +2640,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 
                 unsavedChanges = true;
             }
-            else
+            else*/
             {
                 float delta = (float)(e.getPreciseWheelRotation() * Math.min(0.1f, pickingDepth / 10f));
                 
@@ -2709,9 +2729,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                             + (delta.z * Math.sin(camRotation.x) * Math.cos(camRotation.y)));
                 }
                 
-                if (selectedObj != null || selectedPathPoint != null)
+                /*if (selectedObj != null || selectedPathPoint != null)
                     offsetSelectionBy(finaldelta);
-                else
+                else*/
                 {
                     camTarget.x += finaldelta.x * 0.005f;
                     camTarget.y += finaldelta.y * 0.005f;
@@ -2729,7 +2749,8 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             if (e.getKeyCode() == KeyEvent.VK_DELETE)
             {
-                if (selectedObj != null)
+                // this doesn't work for some reason
+                /*if (selectedObj != null)
                 {
                     if (tgbDeleteObject.isSelected())
                     {
@@ -2740,7 +2761,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                         selectionChanged();
                     }
                     tgbDeleteObject.setSelected(false);
-                } 
+                } */
             }
             
             switch (e.getKeyCode())
@@ -2829,10 +2850,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
     private int underCursor;
     private float depthUnderCursor;
-    private int selectedVal;
-    private LevelObject selectedObj;
-    private PathPointObject selectedPathPoint;
-    private int selectedSubVal;
+    //private int selectedVal;
+    private LinkedHashMap<Integer, LevelObject> selectedObjs;
+    //private PathPointObject selectedPathPoint;
+    private int selectionArg;
     private String objectBeingAdded, addingOnLayer;
     private boolean deletingObjects;
     

@@ -87,6 +87,13 @@ public class LevelObject
     
     public void getProperties(PropertyGrid panel) {}
     
+    public void offsetBy(Vector3 offset, int what)
+    {
+        position.x += offset.x;
+        position.y += offset.y;
+        position.z += offset.z;
+    }
+    
     @Override
     public String toString()
     {
