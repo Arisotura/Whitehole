@@ -75,6 +75,9 @@ public class PropertyGrid extends JTable
     
     public void addCategory(String name, String caption)
     {
+        if (fields.containsKey(name))
+            return;
+        
         Field field = new Field();
         field.name = name;
         
@@ -95,6 +98,14 @@ public class PropertyGrid extends JTable
     
     public void addField(String name, String caption, String type, java.util.List choices, Object val)
     {
+        if (fields.containsKey(name))
+        {
+            if (!val.equals(fields.get(name).value))
+                fields.get(name).value = null;
+            
+            return;
+        }
+        
         Field field = new Field();
         field.name = name;
         
@@ -132,6 +143,9 @@ public class PropertyGrid extends JTable
                 break;
         }
         
+        if (field.renderer == null)
+            field.renderer = new GeneralCellRenderer();
+        
         fields.put(name, field);
     }
     
@@ -140,19 +154,34 @@ public class PropertyGrid extends JTable
         fields.get(field).value = value;
     }
     
+    public void removeField(String field)
+    {
+        if (!fields.containsKey(field))
+            return;
+        
+        Field f = fields.get(field);
+        f.renderer = null;
+        f.editor = null;
+        fields.remove(field);
+    }
+    
     @Override
     public Rectangle getCellRect(int row, int col, boolean includeSpacing)
     {
         Rectangle rect = super.getCellRect(row, col, includeSpacing);
-        Field field = (Field)fields.values().toArray()[row];
-
-        if (field.type.equals("category"))
+        try
         {
-            if (col == 0)
-                rect.width = this.getBounds().width;
-            else
-                rect.width = 0;
+            Field field = (Field)fields.values().toArray()[row];
+
+            if (field.type.equals("category"))
+            {
+                if (col == 0)
+                    rect.width = this.getBounds().width;
+                else
+                    rect.width = 0;
+            }
         }
+        catch (ArrayIndexOutOfBoundsException ex) {}
         
         return rect;
     }
@@ -205,7 +234,7 @@ public class PropertyGrid extends JTable
             {
                 if (!field.type.equals("category"))
                 {
-                    if (field.value == null) return "";
+                    //if (field.value == null) return "<multiple>";
                     return field.value;
                 }
             }
@@ -305,6 +334,16 @@ public class PropertyGrid extends JTable
         }
     }
     
+    public class GeneralCellRenderer extends DefaultTableCellRenderer
+    {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
+        {
+            if (value == null) value = "<multiple>";
+            return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+        }
+    }
+    
     public class FloatCellRenderer extends DefaultTableCellRenderer
     {
         JLabel label;
@@ -317,6 +356,12 @@ public class PropertyGrid extends JTable
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
         {
+            if (value == null)
+            {
+                label.setText("<multiple>");
+                return label;
+            }
+            
             // make float rendering consistent with JSpinner's display
             DecimalFormat df = (DecimalFormat)DecimalFormat.getInstance(Locale.ENGLISH);
             df.applyPattern("#.###");
@@ -339,7 +384,13 @@ public class PropertyGrid extends JTable
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
         {
-            cb.setSelected((boolean)value);
+            if (value == null)
+            {
+                cb.getModel().setSelected(true);
+                cb.getModel().setArmed(true);
+            }
+            else
+                cb.setSelected((boolean)value);
             return cb;
         }
     }
@@ -398,7 +449,7 @@ public class PropertyGrid extends JTable
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) 
         {
-            spinner.setValue(value);
+            spinner.setValue(value == null ? 0f : value);
             return spinner;
         }
     }
@@ -450,6 +501,7 @@ public class PropertyGrid extends JTable
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) 
         {
+            if (value == null) value = isInt ? "0" : "<multiple>";
             textfield.setText(value.toString());
             return textfield;
         }
@@ -490,7 +542,10 @@ public class PropertyGrid extends JTable
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) 
         {
-            combo.setSelectedItem(value);
+            if (value == null)
+                combo.setSelectedIndex(0);
+            else
+                combo.setSelectedItem(value);
             return combo;
         }
     }
@@ -527,7 +582,7 @@ public class PropertyGrid extends JTable
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) 
         {
-            checkbox.setSelected((boolean)value);
+            checkbox.setSelected(value == null ? false : (boolean)value);
             return checkbox;
         }
     }
@@ -605,7 +660,7 @@ public class PropertyGrid extends JTable
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) 
         {
-            textfield.setText(value.toString());
+            textfield.setText(value == null ? "<multiple>" : value.toString());
             return container;
         }
     }

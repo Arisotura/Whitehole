@@ -686,90 +686,116 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     {
         pnlObjectSettings.clear();
         
-        /*if (selectedObj != null)
+        Class cls = null; boolean allthesame = true;
+        if (selectedObjs.size() > 1)
         {
-            String layer = selectedObj.layer.equals("common") ? "Common" : "Layer"+selectedObj.layer.substring(5).toUpperCase();
-            lbSelected.setText(String.format("%1$s (%2$s, %3$s)", selectedObj.dbInfo.name, selectedObj.zone.zoneName, layer));
-            btnDeselect.setEnabled(true);
-            tgbDeleteObject.setText("Delete");
-            
-            LinkedList layerlist = new LinkedList();
-            layerlist.add("Common");
-            for (int l = 0; l < 26; l++)
+            for (LevelObject selectedObj : selectedObjs.values())
             {
-                String ls = String.format("Layer%1$c", 'A'+l);
-                if (curZoneArc.objects.containsKey(ls.toLowerCase()))
-                    layerlist.add(ls);
+                if (cls != null && cls != selectedObj.getClass())
+                {
+                    allthesame = false;
+                    break;
+                }
+                else if (cls == null)
+                    cls = selectedObj.getClass();
             }
-            
-            pnlObjectSettings.addCategory("obj_general", "General settings");
-            if (selectedObj.name != null && selectedObj.getClass() != StartObject.class)
-                pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name);
-            if (galaxyMode)
-                pnlObjectSettings.addField("zone", "Zone", "list", galaxyArc.zoneList, selectedObj.zone.zoneName);
-            pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer);
+        }
+        
+        if (allthesame)
+        {
+            for (LevelObject selectedObj : selectedObjs.values())
+            {
+                String layer = selectedObj.layer.equals("common") ? "Common" : "Layer"+selectedObj.layer.substring(5).toUpperCase();
+                lbSelected.setText(String.format("%1$s (%2$s, %3$s)", selectedObj.dbInfo.name, selectedObj.zone.zoneName, layer));
+                btnDeselect.setEnabled(true);
+                tgbDeleteObject.setText("Delete");
 
-            selectedObj.getProperties(pnlObjectSettings);
-        }
-        else if (selectedPathPoint != null)
-        {
-            PathObject path = selectedPathPoint.path;
-            LinkedList<String> usagelist = new LinkedList<>();
-            usagelist.add("General");
-            usagelist.add("Camera");
-            
-            lbSelected.setText(String.format("[%3$d] %1$s (%2$s), point %4$d", path.data.get("name"), path.zone.zoneName, path.pathID, selectedPathPoint.index));
-            btnDeselect.setEnabled(true);
-            tgbDeleteObject.setText("Delete");
-            
-            pnlObjectSettings.addCategory("path_settings", "Path settings");
-            if (galaxyMode)
-                pnlObjectSettings.addField("[P]zone", "Zone", "list", galaxyArc.zoneList, selectedPathPoint.path.zone.zoneName);
-            pnlObjectSettings.addField("[P]l_id", "Path ID", "int", null, path.pathID);
-            pnlObjectSettings.addField("[P]closed", "Closed", "bool", null, ((String)path.data.get("closed")).equals("CLOSE"));
-            pnlObjectSettings.addField("[P]usage", "Usage", "list", usagelist, path.data.get("usage"));
-            pnlObjectSettings.addField("[P]name", "Name", "text", null, path.data.get("name"));
-            
-            pnlObjectSettings.addCategory("path_args", "Path arguments");
-            pnlObjectSettings.addField("[P]path_arg0", "path_arg0", "int", null, path.data.get("path_arg0"));
-            pnlObjectSettings.addField("[P]path_arg1", "path_arg1", "int", null, path.data.get("path_arg1"));
-            pnlObjectSettings.addField("[P]path_arg2", "path_arg2", "int", null, path.data.get("path_arg2"));
-            pnlObjectSettings.addField("[P]path_arg3", "path_arg3", "int", null, path.data.get("path_arg3"));
-            pnlObjectSettings.addField("[P]path_arg4", "path_arg4", "int", null, path.data.get("path_arg4"));
-            pnlObjectSettings.addField("[P]path_arg5", "path_arg5", "int", null, path.data.get("path_arg5"));
-            pnlObjectSettings.addField("[P]path_arg6", "path_arg6", "int", null, path.data.get("path_arg6"));
-            pnlObjectSettings.addField("[P]path_arg7", "path_arg7", "int", null, path.data.get("path_arg7"));
-            
-            pnlObjectSettings.addCategory("point_coords", "Point coordinates");
-            pnlObjectSettings.addField("pnt0_x", "X", "float", null, selectedPathPoint.point0.x);
-            pnlObjectSettings.addField("pnt0_y", "Y", "float", null, selectedPathPoint.point0.y);
-            pnlObjectSettings.addField("pnt0_z", "Z", "float", null, selectedPathPoint.point0.z);
-            pnlObjectSettings.addField("pnt1_x", "Control 1 X", "float", null, selectedPathPoint.point1.x);
-            pnlObjectSettings.addField("pnt1_y", "Control 1 Y", "float", null, selectedPathPoint.point1.y);
-            pnlObjectSettings.addField("pnt1_z", "Control 1 Z", "float", null, selectedPathPoint.point1.z);
-            pnlObjectSettings.addField("pnt2_x", "Control 2 X", "float", null, selectedPathPoint.point2.x);
-            pnlObjectSettings.addField("pnt2_y", "Control 2 Y", "float", null, selectedPathPoint.point2.y);
-            pnlObjectSettings.addField("pnt2_z", "Control 2 Z", "float", null, selectedPathPoint.point2.z);
-            
-            pnlObjectSettings.addCategory("point_args", "Point arguments");
-            pnlObjectSettings.addField("point_arg0", "point_arg0", "int", null, selectedPathPoint.data.get("point_arg0"));
-            pnlObjectSettings.addField("point_arg1", "point_arg1", "int", null, selectedPathPoint.data.get("point_arg1"));
-            pnlObjectSettings.addField("point_arg2", "point_arg2", "int", null, selectedPathPoint.data.get("point_arg2"));
-            pnlObjectSettings.addField("point_arg3", "point_arg3", "int", null, selectedPathPoint.data.get("point_arg3"));
-            pnlObjectSettings.addField("point_arg4", "point_arg4", "int", null, selectedPathPoint.data.get("point_arg4"));
-            pnlObjectSettings.addField("point_arg5", "point_arg5", "int", null, selectedPathPoint.data.get("point_arg5"));
-            pnlObjectSettings.addField("point_arg6", "point_arg6", "int", null, selectedPathPoint.data.get("point_arg6"));
-            pnlObjectSettings.addField("point_arg7", "point_arg7", "int", null, selectedPathPoint.data.get("point_arg7"));
-        }
-        else
-        {
-            lbSelected.setText("none");
-            btnDeselect.setEnabled(false);
-            tgbDeleteObject.setText("Delete...");
+                LinkedList layerlist = new LinkedList();
+                layerlist.add("Common");
+                for (int l = 0; l < 26; l++)
+                {
+                    String ls = String.format("Layer%1$c", 'A'+l);
+                    if (curZoneArc.objects.containsKey(ls.toLowerCase()))
+                        layerlist.add(ls);
+                }
+
+                pnlObjectSettings.addCategory("obj_general", "General settings");
+                if (selectedObj.name != null && selectedObj.getClass() != StartObject.class)
+                    pnlObjectSettings.addField("name", "Object", "objname", null, selectedObj.name);
+                if (galaxyMode)
+                    pnlObjectSettings.addField("zone", "Zone", "list", galaxyArc.zoneList, selectedObj.zone.zoneName);
+                pnlObjectSettings.addField("layer", "Layer", "list", layerlist, layer);
+
+                selectedObj.getProperties(pnlObjectSettings);
+            }
+            /*else if (selectedPathPoint != null)
+            {
+                PathObject path = selectedPathPoint.path;
+                LinkedList<String> usagelist = new LinkedList<>();
+                usagelist.add("General");
+                usagelist.add("Camera");
+
+                lbSelected.setText(String.format("[%3$d] %1$s (%2$s), point %4$d", path.data.get("name"), path.zone.zoneName, path.pathID, selectedPathPoint.index));
+                btnDeselect.setEnabled(true);
+                tgbDeleteObject.setText("Delete");
+
+                pnlObjectSettings.addCategory("path_settings", "Path settings");
+                if (galaxyMode)
+                    pnlObjectSettings.addField("[P]zone", "Zone", "list", galaxyArc.zoneList, selectedPathPoint.path.zone.zoneName);
+                pnlObjectSettings.addField("[P]l_id", "Path ID", "int", null, path.pathID);
+                pnlObjectSettings.addField("[P]closed", "Closed", "bool", null, ((String)path.data.get("closed")).equals("CLOSE"));
+                pnlObjectSettings.addField("[P]usage", "Usage", "list", usagelist, path.data.get("usage"));
+                pnlObjectSettings.addField("[P]name", "Name", "text", null, path.data.get("name"));
+
+                pnlObjectSettings.addCategory("path_args", "Path arguments");
+                pnlObjectSettings.addField("[P]path_arg0", "path_arg0", "int", null, path.data.get("path_arg0"));
+                pnlObjectSettings.addField("[P]path_arg1", "path_arg1", "int", null, path.data.get("path_arg1"));
+                pnlObjectSettings.addField("[P]path_arg2", "path_arg2", "int", null, path.data.get("path_arg2"));
+                pnlObjectSettings.addField("[P]path_arg3", "path_arg3", "int", null, path.data.get("path_arg3"));
+                pnlObjectSettings.addField("[P]path_arg4", "path_arg4", "int", null, path.data.get("path_arg4"));
+                pnlObjectSettings.addField("[P]path_arg5", "path_arg5", "int", null, path.data.get("path_arg5"));
+                pnlObjectSettings.addField("[P]path_arg6", "path_arg6", "int", null, path.data.get("path_arg6"));
+                pnlObjectSettings.addField("[P]path_arg7", "path_arg7", "int", null, path.data.get("path_arg7"));
+
+                pnlObjectSettings.addCategory("point_coords", "Point coordinates");
+                pnlObjectSettings.addField("pnt0_x", "X", "float", null, selectedPathPoint.point0.x);
+                pnlObjectSettings.addField("pnt0_y", "Y", "float", null, selectedPathPoint.point0.y);
+                pnlObjectSettings.addField("pnt0_z", "Z", "float", null, selectedPathPoint.point0.z);
+                pnlObjectSettings.addField("pnt1_x", "Control 1 X", "float", null, selectedPathPoint.point1.x);
+                pnlObjectSettings.addField("pnt1_y", "Control 1 Y", "float", null, selectedPathPoint.point1.y);
+                pnlObjectSettings.addField("pnt1_z", "Control 1 Z", "float", null, selectedPathPoint.point1.z);
+                pnlObjectSettings.addField("pnt2_x", "Control 2 X", "float", null, selectedPathPoint.point2.x);
+                pnlObjectSettings.addField("pnt2_y", "Control 2 Y", "float", null, selectedPathPoint.point2.y);
+                pnlObjectSettings.addField("pnt2_z", "Control 2 Z", "float", null, selectedPathPoint.point2.z);
+
+                pnlObjectSettings.addCategory("point_args", "Point arguments");
+                pnlObjectSettings.addField("point_arg0", "point_arg0", "int", null, selectedPathPoint.data.get("point_arg0"));
+                pnlObjectSettings.addField("point_arg1", "point_arg1", "int", null, selectedPathPoint.data.get("point_arg1"));
+                pnlObjectSettings.addField("point_arg2", "point_arg2", "int", null, selectedPathPoint.data.get("point_arg2"));
+                pnlObjectSettings.addField("point_arg3", "point_arg3", "int", null, selectedPathPoint.data.get("point_arg3"));
+                pnlObjectSettings.addField("point_arg4", "point_arg4", "int", null, selectedPathPoint.data.get("point_arg4"));
+                pnlObjectSettings.addField("point_arg5", "point_arg5", "int", null, selectedPathPoint.data.get("point_arg5"));
+                pnlObjectSettings.addField("point_arg6", "point_arg6", "int", null, selectedPathPoint.data.get("point_arg6"));
+                pnlObjectSettings.addField("point_arg7", "point_arg7", "int", null, selectedPathPoint.data.get("point_arg7"));
+            }
+            else
+            {
+                lbSelected.setText("none");
+                btnDeselect.setEnabled(false);
+                tgbDeleteObject.setText("Delete...");
+            }*/
+
+            if (selectedObjs.size() > 1)
+            {
+                pnlObjectSettings.removeField("pos_x"); pnlObjectSettings.removeField("pos_y"); pnlObjectSettings.removeField("pos_z");
+                pnlObjectSettings.removeField("pnt0_x"); pnlObjectSettings.removeField("pnt0_y"); pnlObjectSettings.removeField("pnt0_z");
+                pnlObjectSettings.removeField("pnt1_x"); pnlObjectSettings.removeField("pnt1_y"); pnlObjectSettings.removeField("pnt1_z");
+                pnlObjectSettings.removeField("pnt2_x"); pnlObjectSettings.removeField("pnt2_y"); pnlObjectSettings.removeField("pnt2_z");
+            }
         }
         
         pnlObjectSettings.validate();
-        pnlObjectSettings.repaint();*/
+        pnlObjectSettings.repaint();
         
         glCanvas.requestFocusInWindow();
     }
@@ -1465,7 +1491,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     public void propPanelPropertyChanged(String propname, Object value)
     {
-        /*if (selectedObj != null)
+        for (LevelObject selectedObj : selectedObjs.values())
         {
             if (propname.equals("name"))
             {
@@ -1582,7 +1608,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 }
             }
         }
-        else if (selectedPathPoint != null)
+        /*else if (selectedPathPoint != null)
         {
             PathObject path = selectedPathPoint.path;
             
@@ -1705,9 +1731,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
         }
         else
-            throw new UnsupportedOperationException("oops, bug. Tell Mega-Mario.");
+            throw new UnsupportedOperationException("oops, bug. Tell Mega-Mario.");*/
         
-        unsavedChanges = true;*/
+        unsavedChanges = true;
     }
     
     
@@ -1783,10 +1809,35 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             renderinfo.drawable = glad;
             renderinfo.renderMode = GLRenderer.RenderMode.OPAQUE;
             
+            // place the camera behind the first entrance
             camDistance = 1f;
             camRotation = new Vector2(0f, 0f);
-            camTarget = new Vector3(0f, 0f, 0f);
             camPosition = new Vector3(0f, 0f, 0f);
+            camTarget = new Vector3(0f, 0f, 0f);
+            
+            ZoneArchive firstzone = zoneArcs.get(galaxyName);
+            StartObject start = null;
+            for (LevelObject obj : firstzone.objects.get("common"))
+            {
+                if (obj instanceof StartObject)
+                {
+                    start = (StartObject)obj;
+                    break;
+                }
+            }
+            
+            if (start != null)
+            {
+                camDistance = 0.1f;
+                
+                camTarget.x = start.position.x / scaledown;
+                camTarget.y = start.position.y / scaledown;
+                camTarget.z = start.position.z / scaledown;
+                
+                camRotation.y = (float)Math.PI / 8f;
+                camRotation.x = (-start.rotation.y - 90f) * (float)Math.PI / 180f;
+            }
+            
             updateCamera();
             
             objDisplayLists = new HashMap<>();
