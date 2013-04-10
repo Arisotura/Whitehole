@@ -23,6 +23,7 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.zip.CRC32;
 import java.nio.charset.*;
+import java.util.zip.GZIPInputStream;
 import javax.swing.JLabel;
 
 public class ObjectDBUpdater extends Thread
@@ -38,7 +39,7 @@ public class ObjectDBUpdater extends Thread
         try
         {
             String ts = String.format("&ts=%1$d", ObjectDB.timestamp);
-            URL url = new URL(Whitehole.websiteURL + "whitehole/objectdb.php?whitehole" + ts);
+            URL url = new URL(Whitehole.websiteURL + "whitehole/objectdb.php?whitehole&gzip" + ts);
             URLConnection conn = url.openConnection();
             DataInputStream dis = new DataInputStream(conn.getInputStream());
             
@@ -90,11 +91,21 @@ public class ObjectDBUpdater extends Thread
                     odb.delete();
                 }
                 
+                ByteArrayInputStream compstream = new ByteArrayInputStream(data, 9, data.length-9);
+                GZIPInputStream gzstream = new GZIPInputStream(compstream);
+                
                 odb.createNewFile();
                 FileOutputStream odbstream = new FileOutputStream(odb);
-                odbstream.write(data, 9, data.length-9);
+                
+                int curbyte;
+                while ((curbyte = gzstream.read()) != -1)
+                    odbstream.write(curbyte);
+                
                 odbstream.flush();
                 odbstream.close();
+                
+                gzstream.close();
+                compstream.close();
                 
                 if (odbbkp.exists())
                     odbbkp.delete();
