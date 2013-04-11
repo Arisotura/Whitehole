@@ -31,6 +31,7 @@ public class PathPointObject extends LevelObject
         this.path = path;
         
         zone = path.zone;
+        layer = "common";
         
         data = new Bcsv.Entry();
         uniqueID = -1;
@@ -63,6 +64,7 @@ public class PathPointObject extends LevelObject
         this.path = path;
         
         zone = path.zone;
+        layer = "common";
         
         data = entry;
         uniqueID = -1;
@@ -82,6 +84,16 @@ public class PathPointObject extends LevelObject
         data.put("pnt0_x", position.x); data.put("pnt0_y", position.y); data.put("pnt0_z", position.z);
         data.put("pnt1_x", point1.x); data.put("pnt1_y", point1.y); data.put("pnt1_z", point1.z);
         data.put("pnt2_x", point2.x); data.put("pnt2_y", point2.y); data.put("pnt2_z", point2.z);
+    }
+    
+    @Override
+    public void initRenderer(GLRenderer.RenderInfo info)
+    {
+    }
+    
+    @Override
+    public void closeRenderer(GLRenderer.RenderInfo info)
+    {
     }
     
     public void render(GLRenderer.RenderInfo info, Color4 color, int what)
@@ -112,31 +124,6 @@ public class PathPointObject extends LevelObject
         cube.render(info);
         
         gl.glPopMatrix();
-    }
-    
-    @Override
-    public void offsetBy(Vector3 offset, int what)
-    {
-        if (what == 0)
-        {
-            position.x += offset.x;
-            position.y += offset.y;
-            position.z += offset.z;
-        }
-        
-        if (what == 0 || what == 1)
-        {
-            point1.x += offset.x;
-            point1.y += offset.y;
-            point1.z += offset.z;
-        }
-        
-        if (what == 0 || what == 2)
-        {
-            point2.x += offset.x;
-            point2.y += offset.y;
-            point2.z += offset.z;
-        }
     }
     
     @Override

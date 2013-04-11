@@ -151,7 +151,11 @@ public class PropertyGrid extends JTable
     
     public void setFieldValue(String field, Object value)
     {
-        fields.get(field).value = value;
+        if (!fields.containsKey(field)) return;
+        
+        Field f = fields.get(field);
+        if (f.value == null) return;
+        f.value = value;
     }
     
     public void removeField(String field)
