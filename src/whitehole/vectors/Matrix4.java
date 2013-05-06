@@ -155,5 +155,109 @@ public class Matrix4
     }
     
     
+    // taken from OpenTK
+    public static Matrix4 invert(Matrix4 mat)
+    {
+        int[] colIdx = { 0, 0, 0, 0 };
+        int[] rowIdx = { 0, 0, 0, 0 };
+        int[] pivotIdx = { -1, -1, -1, -1 };
+
+        // convert the matrix to an array for easy looping
+        Matrix4 inverse = new Matrix4(
+                mat.m[0], mat.m[1], mat.m[2], mat.m[3],
+                mat.m[4], mat.m[5], mat.m[6], mat.m[7],
+                mat.m[8], mat.m[9], mat.m[10], mat.m[11],
+                mat.m[12], mat.m[13], mat.m[14], mat.m[15]);
+        
+        int icol = 0;
+        int irow = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            // Find the largest pivot value
+            float maxPivot = 0.0f;
+            for (int j = 0; j < 4; j++)
+            {
+                if (pivotIdx[j] != 0)
+                {
+                    for (int k = 0; k < 4; ++k)
+                    {
+                        if (pivotIdx[k] == -1)
+                        {
+                            float absVal = Math.abs(inverse.m[j*4 + k]);
+                            if (absVal > maxPivot)
+                            {
+                                maxPivot = absVal;
+                                irow = j;
+                                icol = k;
+                            }
+                        }
+                        else if (pivotIdx[k] > 0)
+                        {
+                            return mat;
+                        }
+                    }
+                }
+            }
+
+            ++(pivotIdx[icol]);
+
+            // Swap rows over so pivot is on diagonal
+            if (irow != icol)
+            {
+                for (int k = 0; k < 4; ++k)
+                {
+                    float f = inverse.m[irow*4 + k];
+                    inverse.m[irow*4 + k] = inverse.m[icol*4 + k];
+                    inverse.m[icol*4 + k] = f;
+                }
+            }
+
+            rowIdx[i] = irow;
+            colIdx[i] = icol;
+
+            float pivot = inverse.m[icol*4 + icol];
+            // check for singular matrix
+            if (pivot == 0.0f)
+            {
+                throw new RuntimeException("Matrix is singular and cannot be inverted.");
+                //return mat;
+            }
+
+            // Scale row so it has a unit diagonal
+            float oneOverPivot = 1.0f / pivot;
+            inverse.m[icol*4 + icol] = 1.0f;
+            for (int k = 0; k < 4; ++k)
+                inverse.m[icol*4 + k] *= oneOverPivot;
+
+            // Do elimination of non-diagonal elements
+            for (int j = 0; j < 4; ++j)
+            {
+                // check this isn't on the diagonal
+                if (icol != j)
+                {
+                    float f = inverse.m[j*4 + icol];
+                    inverse.m[j*4 + icol] = 0.0f;
+                    for (int k = 0; k < 4; ++k)
+                        inverse.m[j*4 + k] -= inverse.m[icol*4 + k] * f;
+                }
+            }
+        }
+
+        for (int j = 3; j >= 0; --j)
+        {
+            int ir = rowIdx[j];
+            int ic = colIdx[j];
+            for (int k = 0; k < 4; ++k)
+            {
+                float f = inverse.m[k*4 + ir];
+                inverse.m[k*4 + ir] = inverse.m[k*4 + ic];
+                inverse.m[k*4 + ic] = f;
+            }
+        }
+
+        return inverse;
+    }
+    
+    
     public float m[];
 }

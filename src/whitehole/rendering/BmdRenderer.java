@@ -208,7 +208,7 @@ public class BmdRenderer extends GLRenderer
         
         Locale usa = new Locale("en-US");
         
-        String[] texgensrc = { "normalize(gl_Vertex)", "vec4(gl_Normal,1.0)", "argh", "argh",
+        String[] texgensrc = { "gl_Vertex", "normal", "argh", "argh",
                                     "gl_MultiTexCoord0", "gl_MultiTexCoord1", "gl_MultiTexCoord2", "gl_MultiTexCoord3",
                                     "gl_MultiTexCoord4", "gl_MultiTexCoord5", "gl_MultiTexCoord6", "gl_MultiTexCoord7" };
 
@@ -259,29 +259,42 @@ public class BmdRenderer extends GLRenderer
         vert.append("void main()\n");
         vert.append("{\n");
         vert.append("    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n");
-        //vert.append("    gl_Normal = vec3(gl_ModelViewMatrix * vec4(gl_Normal,0.0)) * vec3(10000.0,10000.0,10000.0);\n");
+        vert.append("    vec4 normal = normalize(gl_ModelViewMatrix * vec4(gl_Normal,1));\n");
         vert.append("    gl_FrontColor = gl_Color;\n");
         vert.append("    gl_FrontSecondaryColor = gl_SecondaryColor;\n");
+        vert.append("    vec4 texcoord;\n");
         for (int i = 0; i < mat.numTexgens; i++)
         {
+            vert.append(String.format("    texcoord = %1$s;\n", texgensrc[mat.texGen[i].src]));
+            
             // TODO matrices
             int mtxid = mat.texGen[i].matrix;
             
             String thematrix = "";
-            /*if (mtxid >= 30 && mtxid <= 57)
+            if (mtxid >= 30 && mtxid <= 57)
             {
-                thematrix = "* mat4(";
+                Bmd.Material.TexMtxInfo texmtx = mat.texMtx[(mtxid - 30) / 3];
+                
+                //thematrix += " * mat4(";
+                vert.append("    texcoord *= mat4(");
                 for (int j = 0; j < 16; j++)
                 {
-                    if (j > 0) thematrix += ",";
-                    thematrix += String.format(usa, "%1$f", mat.texMtx[(mtxid - 30) / 3].unkf3[j]);
+                    //if (j > 0) thematrix += ",";
+                   // thematrix += String.format(usa, "%1$f", texmtx.basicMatrix.m[j]);
+                    vert.append(String.format(usa, "%2$s%1$f", texmtx.basicMatrix.m[j], (j>0)?",":""));
                 }
-                thematrix += ") * (1.0/4.0)";
-            }*/
+                //thematrix += ")";
+                vert.append(");\n");
+                vert.append("texcoord*=0.000001;");
+                
+                //if (texmtx.proj == 1)
+                //    vert.append("    texcoord = vec4(texcoord.st,1,0);\n");
+            }
             
             // 0.5^8
             //vec4(gl_Vertex.x*(-0.00390625),gl_Vertex.z*(-0.00390625),1.0,0.0);// %3$s * %2$s;
-            vert.append(String.format("    gl_TexCoord[%1$d] = %2$s;// %3$s;\n", i, texgensrc[mat.texGen[i].src], thematrix));
+            //vert.append(String.format("    gl_TexCoord[%1$d] = %2$s%3$s;\n", i, texgensrc[mat.texGen[i].src], thematrix));
+            vert.append(String.format("    gl_TexCoord[%1$d] = texcoord;\n", i));
         }
         vert.append("}\n");
 
@@ -534,8 +547,6 @@ public class BmdRenderer extends GLRenderer
     
     protected final void ctor_loadModel(RenderInfo info, String modelname) throws GLException
     {
-        GL2 gl = info.drawable.getGL().getGL2();
-        
         container = null;
         model = null;
         

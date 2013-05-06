@@ -37,7 +37,7 @@ public class ObjectModelSubstitutor
                 
             case "JetTurtle": return "Koura";
         }
-        
+        //modelname="VROrbit";//"CollapsePlane";
         return modelname;
     }
     
@@ -57,7 +57,7 @@ public class ObjectModelSubstitutor
             case "AstroDomeSky":
             case "AstroStarPlate": objectkey += String.format("_%1$d", obj.data.get("Obj_arg0")); break;
         }
-        
+        //objectkey = "CollapsePlane";
         return objectkey;
     }
     

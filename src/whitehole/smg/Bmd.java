@@ -739,38 +739,111 @@ public class Bmd
             mat.texMtx = new Material.TexMtxInfo[10];
             for (int j = 0; j < 10; j++)
             {
-                mat.texMtx[j] = mat.new TexMtxInfo();
+                Material.TexMtxInfo texmtx = mat.new TexMtxInfo();
+                mat.texMtx[j] = texmtx;
                 
                 if (texmtx_id[j] == (short)0xFFFF)
                 {
                     // invalid texmtx -- todo
                     
-                    mat.texMtx[j].finalMatrix = new Matrix4();
+                    texmtx.basicMatrix = new Matrix4();
                 }
                 else
                 {
                     file.position(sectionstart + offsets[13] + (texmtx_id[j] * 100));
-                    //System.out.println(String.format("MATRIX %1$d @ %2$08X", texmtx_id[j], file.position()));
                     // CollapsePlane:
                     // 0: 1EC8
                     // 1: 1F2C
                     
-                    mat.texMtx[j].unks1 = file.readShort();
-                    mat.texMtx[j].unks2 = file.readShort();
+                    texmtx.proj = file.readByte();
+                    texmtx.type = file.readByte();
+                    texmtx.padding = file.readShort();
                     
-                    mat.texMtx[j].unkf1 = new float[5];
-                    for (int k = 0; k < 5; k++) mat.texMtx[j].unkf1[k] = file.readFloat();
+                    System.out.println(String.format("MATRIX %1$d @ %2$08X :: %3$02X %4$02X", 
+                            texmtx_id[j], file.position()-4, texmtx.proj, texmtx.type));
                     
-                    mat.texMtx[j].unks3 = file.readShort();
-                    mat.texMtx[j].unks4 = file.readShort();
+                    texmtx.centerS = file.readFloat();
+                    texmtx.centerT = file.readFloat();
+                    texmtx.unkf0 = file.readFloat();
+                    texmtx.scaleS = file.readFloat();
+                    texmtx.scaleT = file.readFloat();
                     
-                    mat.texMtx[j].unkf2 = new float[2];
-                    for (int k = 0; k < 2; k++) mat.texMtx[j].unkf2[k] = file.readFloat();
-                    mat.texMtx[j].unkf3 = new float[16];
-                    for (int k = 0; k < 16; k++) mat.texMtx[j].unkf3[k] = file.readFloat();
+                    texmtx.rotate = file.readShort();
+                    texmtx.padding2 = file.readShort();
                     
-                    mat.texMtx[j].finalMatrix = new Matrix4();
-                    mat.texMtx[j].finalMatrix.m = mat.texMtx[j].unkf3;
+                    texmtx.transS = file.readFloat();
+                    texmtx.transT = file.readFloat();
+                    
+                    texmtx.preMatrix = new Matrix4();
+                    for (int k = 0; k < 16; k++) texmtx.preMatrix.m[k] = file.readFloat();
+                    
+                    float rotate = ((float)texmtx.rotate * (float)Math.PI) / 32768f;
+                    
+                    // be lazy and use a 4x4 matrix, who cares
+                    
+                    // http://kuribo64.net/?page=post&id=20293
+                    Matrix4 R = Matrix4.createRotationZ(rotate);
+                    Matrix4 S = Matrix4.scale(new Vector3(texmtx.scaleS, texmtx.scaleT, 1f));
+                    Matrix4 C = Matrix4.createTranslation(new Vector3(texmtx.centerS, texmtx.centerT, 0f));
+                    Matrix4 CI = Matrix4.invert(C);
+                    Matrix4 T = Matrix4.createTranslation(new Vector3(texmtx.transS, texmtx.transT, 0f));
+                    Matrix4 P;
+                    
+                    switch ((int)texmtx.type)
+                    {
+                        case 0x00:
+                        case 0x80:
+                            P = new Matrix4(1,0,0,0, 0,1,0,0, 0,0,0,0, 0,0,1,0);
+                            break;
+                        case 0x06:
+                            P = new Matrix4(0.5f,0,0,0, 0,0.5f,0,0, 0,0,0,0, 0.5f,0.5f,1,0);
+                            break;
+                        case 0x07:
+                            P = new Matrix4(0.5f,0,0,0, 0,0.5f,0,0, -0.5f,-0.5f,-1,0, 0,0,0,0);
+                            break;
+                        case 0x08:
+                        case 0x09:
+                            P = new Matrix4(0.5f,0,0,0, 0,-0.5f,0,0, 0.5f,0.5f,1,0, 0,0,0,0);
+                            break;
+                        default:
+                            P = new Matrix4();
+                            break;
+                    }
+                    
+                    Matrix4 resmat = new Matrix4();
+                    /*Matrix4.mult(C, T, resmat);
+                    Matrix4.mult(S, resmat, resmat);
+                    Matrix4.mult(R, resmat, resmat);
+                    Matrix4.mult(CI, resmat, resmat);
+                    Matrix4.mult(P, resmat, resmat);
+                    Matrix4.mult(texmtx.preMatrix, resmat, resmat);*/
+                    Matrix4.mult(T, C, resmat);
+                    Matrix4.mult(resmat, S, resmat);
+                    Matrix4.mult(resmat, R, resmat);
+                    Matrix4.mult(resmat, CI, resmat);
+                    Matrix4.mult(resmat, P, resmat);
+                    Matrix4.mult(resmat, texmtx.preMatrix, resmat);
+                    
+                    /*resmat.m[3] = 0f; resmat.m[7] = 0f;
+                    resmat.m[11] = 0f; resmat.m[15] = 1f;
+                    if (texmtx.proj == 0)
+                    {
+                        resmat.m[2] = 0f; resmat.m[6] = 0f;
+                        resmat.m[10] = 1f; resmat.m[14] = 0f;
+                    }*/
+                    
+                    texmtx.basicMatrix = resmat;
+                    
+                    /*for (int z = 0; z < 16; z += 4)
+                        System.out.println(String.format("%1$f %2$f %3$f %4$f",
+                                texmtx.basicMatrix.m[z], texmtx.basicMatrix.m[z+1], 
+                                texmtx.basicMatrix.m[z+2], texmtx.basicMatrix.m[z+3]));*/
+                    
+                    /*Matrix4 mtx = Matrix4.createTranslation(new Vector3(texmtx.centerS * (1f - texmtx.scaleS), texmtx.centerT * (1f - texmtx.scaleT), 0f));
+                    Matrix4.mult(Matrix4.createRotationZ(rotate), mtx, mtx);
+                    Matrix4.mult(Matrix4.scale(new Vector3(texmtx.scaleS, texmtx.scaleT, 1f)), mtx, mtx);
+                    Matrix4.mult(Matrix4.createTranslation(new Vector3(texmtx.transS, texmtx.transT, 0f)), mtx, mtx);
+                    texmtx.basicMatrix = mtx;*/
                 }
             }
 
@@ -1097,12 +1170,17 @@ public class Bmd
         
         public class TexMtxInfo
         {
-            public short unks1, unks2;
-            public float[] unkf1;
-            public short unks3, unks4;
-            public float[] unkf2, unkf3;
+            public byte proj, type;
+            public short padding;
+            public float centerS, centerT;
+            public float unkf0;
+            public float scaleS, scaleT;
+            public short rotate;
+            public short padding2;
+            public float transS, transT;
+            public Matrix4 preMatrix;
             
-            public Matrix4 finalMatrix;
+            public Matrix4 basicMatrix;
         }
 
         public class TevStageInfo

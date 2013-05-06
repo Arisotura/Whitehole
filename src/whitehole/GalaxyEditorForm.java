@@ -1023,14 +1023,16 @@ public class GalaxyEditorForm extends javax.swing.JFrame
 
     private void tgbDeleteObjectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbDeleteObjectActionPerformed
     {//GEN-HEADEREND:event_tgbDeleteObjectActionPerformed
-        /*if (selectedObj != null)
+        if (!selectedObjs.isEmpty())
         {
             if (tgbDeleteObject.isSelected())
             {
-                deleteObject(selectedObj.uniqueID);
-                selectedVal = 0xFFFFFF;
-                selectedObj = null;
-                selectedPathPoint = null;
+                Collection<LevelObject> templist = ((HashMap)selectedObjs.clone()).values();
+                for (LevelObject selectedObj : templist)
+                {
+                    selectedObjs.remove(selectedObj.uniqueID);
+                    deleteObject(selectedObj.uniqueID);
+                }
                 selectionChanged();
             }
             tgbDeleteObject.setSelected(false);
@@ -1047,7 +1049,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 deletingObjects = true;
                 lbStatusLabel.setText("Click the object you want to delete. Hold Shift to delete multiple objects. Right-click to abort.");
             }
-        }*/
+        }
     }//GEN-LAST:event_tgbDeleteObjectActionPerformed
 
     private void tgbAddObjectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tgbAddObjectActionPerformed
@@ -1475,7 +1477,6 @@ public class GalaxyEditorForm extends javax.swing.JFrame
         {
             LevelObject obj = globalObjList.get(uid);
             obj.zone.objects.get(obj.layer).remove(obj);
-            globalObjList.remove(uid);
             rerenderTasks.add(String.format("delobj:%1$d", uid));
             rerenderTasks.add("zone:"+obj.zone.zoneName);
 
