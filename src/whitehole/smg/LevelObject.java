@@ -96,7 +96,7 @@ public class LevelObject
     
     public ZoneArchive zone;
     public String directory, layer, file;
-    public String name;
+    public String name, oldname;
     public Bcsv.Entry data;
     public ObjectDB.Object dbInfo;
     public GLRenderer renderer;

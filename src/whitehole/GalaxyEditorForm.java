@@ -1797,7 +1797,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                 if (parentForm == null)
                 {
                     for (LevelObject obj : globalObjList.values())
+                    {
                         obj.initRenderer(renderinfo);
+                        obj.oldname = obj.name;
+                    }
 
                     for (PathObject obj : globalPathList.values())
                         obj.prerender(renderinfo);
@@ -2190,6 +2193,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                             LevelObject obj = globalObjList.get(objid);
                             obj.closeRenderer(renderinfo);
                             obj.initRenderer(renderinfo);
+                            obj.oldname = obj.name;
                         }
                         break;
                         
@@ -2198,6 +2202,7 @@ public class GalaxyEditorForm extends javax.swing.JFrame
                             int objid = Integer.parseInt(task[1]);
                             LevelObject obj = globalObjList.get(objid);
                             obj.initRenderer(renderinfo);
+                            obj.oldname = obj.name;
                         }
                         break;
                         
