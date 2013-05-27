@@ -36,9 +36,6 @@ public class RendererCache
         contextCount = 0;
         
         planetList = null;
-        
-        //cubeRenderer = null;
-        //cubeRendererCount = 0;
     }
     
     public static void loadPlanetList()
@@ -105,14 +102,7 @@ public class RendererCache
         
         // if everything else failed, load the failsafe colorcube renderer
         if (entry.renderer == null)
-        {
-            /*if (cubeRenderer == null)
-                cubeRenderer = new ColorCubeRenderer(100f, new Color4(1f, 1f, 1f, 1f), new Color4(0f, 0f, 1f, 1f), true);
-            
-            entry.renderer = cubeRenderer;
-            cubeRendererCount++;*/
             entry.renderer = new ColorCubeRenderer(100f, new Color4(0.5f, 0.5f, 1f, 1f), new Color4(0f, 0f, 0.8f, 1f), true);
-        }
         
         cache.put(key, entry);
         return entry.renderer;
@@ -128,17 +118,7 @@ public class RendererCache
         entry.refCount--;
         if (entry.refCount > 0) return;
         
-        /*if (entry.renderer.equals(cubeRenderer))
-        {System.out.println(cubeRendererCount);
-            cubeRendererCount--;
-            if (cubeRendererCount == 0)
-            {
-                cubeRenderer.close(info);
-                cubeRenderer = null;
-            }
-        }
-        else*/
-            entry.renderer.close(info);
+        entry.renderer.close(info);
         
         cache.remove(key);
     }
@@ -167,7 +147,4 @@ public class RendererCache
     public static int contextCount;
     
     private static List<String> planetList;
-    
-    //private static GLRenderer cubeRenderer;
-    //private static int cubeRendererCount;
 }
