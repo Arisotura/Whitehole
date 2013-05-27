@@ -19,13 +19,16 @@
 package whitehole.rendering;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
-import whitehole.*;
+import whitehole.Whitehole;
 import whitehole.fileio.RarcFilesystem;
-import whitehole.smg.*;
-import whitehole.vectors.*;
+import whitehole.smg.Bcsv;
+import whitehole.smg.LevelObject;
+import whitehole.vectors.Color4;
 
 public class RendererCache 
 {
