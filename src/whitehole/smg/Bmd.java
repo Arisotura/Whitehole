@@ -80,11 +80,7 @@ public class Bmd
     {
         file.close();
     }
-
-
-    // wee
-    //private delegate float ReadArrayValueFunc(byte fixedpoint);
-    //private delegate Vector4 ReadColorValueFunc();
+    
 
     private float readArrayValue_s16(int fixedpoint) throws IOException
     {

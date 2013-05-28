@@ -37,7 +37,7 @@ public class ObjectModelSubstitutor
                 
             case "JetTurtle": return "Koura";
         }
-        //modelname="VROrbit";//"CollapsePlane";
+        //modelname="TicoCoin";//"VROrbit";//"CollapsePlane";
         return modelname;
     }
     

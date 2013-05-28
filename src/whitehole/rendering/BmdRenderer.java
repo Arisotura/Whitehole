@@ -285,7 +285,7 @@ public class BmdRenderer extends GLRenderer
                 }
                 //thematrix += ")";
                 vert.append(");\n");
-                vert.append("texcoord*=0.000001;");
+                //vert.append("texcoord*=0.000001;");
                 
                 //if (texmtx.proj == 1)
                 //    vert.append("    texcoord = vec4(texcoord.st,1,0);\n");
@@ -566,6 +566,16 @@ public class BmdRenderer extends GLRenderer
             
             throw new GLException("Failed to load model "+modelname+": "+ex.getMessage());
         }
+        
+        bva = null;
+        try
+        {
+            if (container.fileExists("/" + modelname + "/Wait.bva"))
+                bva = new Bva(container.openFile("/" + modelname + "/Wait.bva"));
+            else if (container.fileExists("/" + modelname + "/Normal.bva"))
+                bva = new Bva(container.openFile("/" + modelname + "/Normal.bva"));
+        }
+        catch (IOException ex) {}
     }
     
     protected final void ctor_uploadData(RenderInfo info) throws GLException
@@ -709,6 +719,12 @@ public class BmdRenderer extends GLRenderer
         {
             if (node.nodeType != 0) continue;
             int shape = node.nodeID;
+            
+            if (bva != null)
+            {
+                if (!bva.animData.get(shape).get(0))
+                    continue;
+            }
             
             // Pole:
             // 0 - (joint)
@@ -986,4 +1002,6 @@ public class BmdRenderer extends GLRenderer
     protected int[] textures;
     protected boolean hasShaders;
     protected Shader[] shaders;
+    
+    protected Bva bva;
 }
