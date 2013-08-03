@@ -259,7 +259,7 @@ public class BmdRenderer extends GLRenderer
         vert.append("void main()\n");
         vert.append("{\n");
         vert.append("    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n");
-        vert.append("    vec4 normal = normalize(gl_ModelViewMatrix * vec4(gl_Normal,1));\n");
+        vert.append("    vec4 normal = normalize(gl_ModelViewMatrixInverseTranspose * vec4(gl_Normal,0));\n");
         vert.append("    gl_FrontColor = gl_Color;\n");
         vert.append("    gl_FrontSecondaryColor = gl_SecondaryColor;\n");
         vert.append("    vec4 texcoord;\n");
@@ -383,8 +383,11 @@ public class BmdRenderer extends GLRenderer
             // TODO: tex/ras swizzle? (important or not?)
             //mat.TevSwapMode[0].
 
-            //if (mat.tevOrder[i].chanID != 4)
-            //    throw new GLException(String.format("!UNSUPPORTED CHANID %1$d", mat.tevOrder[i].chanID));
+            if (mat.tevOrder[i].chanID != 4)
+            {
+                System.out.println("unsupported chanid "+mat.tevOrder[i].chanID);
+                throw new GLException(String.format("!UNSUPPORTED CHANID %1$d", mat.tevOrder[i].chanID));
+            }
 
             rout = outputregs[mat.tevStage[i].colorRegID] + ".rgb";
             a = c_inputregs[mat.tevStage[i].colorIn[0]];
@@ -574,6 +577,8 @@ public class BmdRenderer extends GLRenderer
                 bva = new Bva(container.openFile("/" + modelname + "/Wait.bva"));
             else if (container.fileExists("/" + modelname + "/Normal.bva"))
                 bva = new Bva(container.openFile("/" + modelname + "/Normal.bva"));
+            else if (container.fileExists("/" + modelname + "/" + modelname + ".bva"))
+                bva = new Bva(container.openFile("/" + modelname + "/" + modelname + ".bva"));
         }
         catch (IOException ex) {}
     }
@@ -983,6 +988,28 @@ public class BmdRenderer extends GLRenderer
                     }
 
                     gl.glEnd();
+                    
+                    // debug: show normals
+                    /*gl.glBegin(GL2.GL_LINES);
+                    gl.glColor4f(1f, 0f, 0f, 1f);
+                    for (int i = 0; i < prim.numIndices; i++)
+                    {
+                        if ((prim.arrayMask & (1 << 10)) != 0) 
+                        { 
+                            Vector3 n = model.normalArray[prim.normalIndices[i]];
+                            
+                            Vector3 pos = new Vector3(model.positionArray[prim.positionIndices[i]]);
+                            if ((prim.arrayMask & 1) != 0) Vector3.transform(pos, mtxtable[prim.posMatrixIndices[i]], pos);
+                            else Vector3.transform(pos, mtxtable[0], pos);
+                            
+                            gl.glVertex3f(pos.x, pos.y, pos.z);
+                            gl.glVertex3f(
+                                    pos.x + n.x*100, 
+                                    pos.y + n.y*100, 
+                                    pos.z + n.z*100); 
+                        }
+                    }
+                    gl.glEnd();*/
                 }
             }
 

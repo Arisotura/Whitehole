@@ -651,6 +651,39 @@ public class Bmd
 
             file.position(sectionstart + offsets[1] + (i * 2));
             short matindex = file.readShort();
+            
+            // offsets[3] -> ind texturing
+            /*file.position(sectionstart + offsets[3] + (i * 312));
+            System.out.println("INDTEX FOR MAT "+i+" -- "+mat.name);
+            {
+                String lolz = "UNK1: ";
+                for (int j = 0; j < 10; j++)
+                    lolz += String.format("%1$04X ", file.readShort());
+                System.out.println(lolz);
+                
+                for (int crapo = 0; crapo < 3; crapo++)
+                {
+                    lolz = "UNK2 "+crapo+": ";
+                    for (int j = 0; j < 6; j++)
+                        lolz += String.format("%1$f ", file.readFloat());
+                    for (int j = 0; j < 4; j++)
+                        lolz += String.format("%1$02X ", file.readByte());
+                    System.out.println(lolz);
+                }
+                
+                lolz = "UNK3: ";
+                for (int j = 0; j < 4; j++)
+                    lolz += String.format("%1$08X ", file.readInt());
+                System.out.println(lolz);
+                
+                for (int tev = 0; tev < 16; tev++)
+                {
+                    lolz = "TEV"+tev+" UNK: ";
+                    for (int j = 0; j < 6; j++)
+                        lolz += String.format("%1$04X ", file.readShort());
+                    System.out.println(lolz);
+                }
+            }*/
 
             file.position(sectionstart + offsets[0] + (matindex * 0x14C));
 
@@ -671,7 +704,9 @@ public class Bmd
             file.skip(16); // lights -- 9
             short[] texgen_id = new short[8];
             for (int j = 0; j < 8; j++) texgen_id[j] = file.readShort();
-            file.skip(16); // texGenInfo2 -- 12
+            short[] texgen2_id = new short[8];
+            for (int j = 0; j < 8; j++) texgen2_id[j] = file.readShort();
+            //file.skip(16); // texGenInfo2 -- 12
             short[] texmtx_id = new short[10];
             for (int j = 0; j < 10; j++) texmtx_id[j] = file.readShort();
             file.skip(40); // dttMatrices -- 14?
@@ -727,10 +762,19 @@ public class Bmd
                 mat.texGen[j].type = file.readByte();
                 mat.texGen[j].src = file.readByte();
                 mat.texGen[j].matrix = file.readByte();
+                
+                /*if (mat.texGen[j].type == 10 || mat.texGen[j].src >= 19)
+                    System.out.println("SRTG TEXTURING -- "+mat.texGen[j].src+" -- "+mat.texGen[j].matrix);
+                else if (mat.texGen[j].type >= 2)*/
+                    System.out.println("TEXTURING -- TYPE "+mat.texGen[j].type+" -- SRC "+mat.texGen[j].src+" -- MTX "+mat.texGen[j].matrix);
             }
 
             // with some luck we don't need to support texgens2
             // SMG models don't seem to use it
+            /*String lolz = "TEXGEN2: ";
+            for (int j = 0; j < 8; j++)
+                lolz += String.format("%1$04X ", texgen2_id[j]);
+            System.out.println(lolz);*/
 
             mat.texMtx = new Material.TexMtxInfo[10];
             for (int j = 0; j < 10; j++)

@@ -36,8 +36,36 @@ public class ObjectModelSubstitutor
             case "Karikari": return "Karipon";
                 
             case "JetTurtle": return "Koura";
+                
+            case "BenefitItemInvincible": return "PowerUpInvincible";                
+            case "BenefitItemLifeUp": return "KinokoLifeUp";              
+            case "MorphItemNeoBee": return "PowerUpBee";                
+            case "MorphItemNeoFire": return "PowerUpFire";    
+            case "MorphItemNeoHopper": return "PowerUpHopper";
+            case "MorphItemNeoIce": return "PowerUpIce";
+            case "MorphItemNeoTeresa": return "PowerUpTeresa";
+            case "SpinCloudItem": return "PowerUpCloud";
+            case "MorphItemRock": return "PowerUpRock";
+            case "YoshiCapture": return "YCaptureTarget";
+            case "WingBlockStarPiece": return "WingBlock";
+            case "WingBlockCoin": return "WingBlock";
+            case "HanachanBig": return "HanachanHeadBig";    
+            case "TreasureBoxEmpty": return "TreasureBox";
+            case "TreasureBoxKinokoOneUp": return "TreasureBox";    
+            case "TreasureBoxBlueChip": return "TreasureBox";
+            case "TreasureBoxCoin": return "TreasureBox";
+            case "TreasureBoxCrackedAirBubble": return "TreasureBoxCracked";
+            case "TreasureBoxCrackedEmpty": return "TreasureBoxCracked";
+            case "TreasureBoxCrackedKinokoLifeUp": return "TreasureBoxCracked";                
+            case "TreasureBoxCrackedKinokoOneUp": return "TreasureBoxCracked";  
+            case "TreasureBoxGoldEmpty": return "TreasureBoxGold";                
+            case "TreasureBoxYellowChip": return "TreasureBox";                              
+            case "GhostPlayer": return "GhostMario";    
+            case "CutBushGroup": return "CutBush";
+                
+            //case "HanachanBig": return "HanachanHeadBig";
         }
-        //modelname="TicoCoin";//"VROrbit";//"CollapsePlane";
+        //modelname="PeachCastlePlanet";//"CrystalCageL";//"VROrbit";//"CollapsePlane";
         return modelname;
     }
     
@@ -71,6 +99,7 @@ public class ObjectModelSubstitutor
             switch (obj.name)
             {
                 case "Patakuri": return new DoubleBmdRenderer(info, "Kuribo", new Vector3(), "PatakuriWing", new Vector3(0f,15f,-25f));
+                case "PatakuriBig": return new DoubleBmdRenderer(info, "KuriboChief", new Vector3(), "PatakuriWingBig", new Vector3(0f,15f,-25f));
                 case "Kinopio": 
                 case "KinopioAstro": return new ObjRenderer_Kinopio(info, (int)obj.data.get("Obj_arg1"));
                     

@@ -824,6 +824,9 @@ public class GalaxyEditorForm extends javax.swing.JFrame
             }
         }
         
+        if (selectedObjs.size() > 1)
+            lbSelected.setText("multiple objects");
+        
         pnlObjectSettings.doLayout();
         pnlObjectSettings.validate();
         pnlObjectSettings.repaint();
@@ -921,16 +924,24 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     
     private void btnDeselectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btnDeselectActionPerformed
     {//GEN-HEADEREND:event_btnDeselectActionPerformed
-        /*rerenderTasks.add("zone:"+selectedObj.zone.zoneName);
-        selectedVal = 0xFFFFFF;
-        selectedObj = null;
-        selectedPathPoint = null;
+        for (LevelObject obj : selectedObjs.values())
+            addRerenderTask("zone:"+obj.zone.zoneName);
+        
+        selectedObjs.clear();
         selectionChanged();
-        glCanvas.repaint();*/
+        glCanvas.repaint();
     }//GEN-LAST:event_btnDeselectActionPerformed
 
     private void saveChanges()
     {
+        // TODO: check for errors in the level
+        /*
+         *  [16:29:18] <MrRean> SW_DEAD doesn't have a SW_AWAKE reciever
+            [16:29:32] <MrRean> So it doesn't find the switch, and crashes.
+         */
+        // event interconnection and/or whatever MrRean meant
+        // also certain objects require paths/messages/shit
+        
         try
         {
             for (ZoneArchive zonearc : zoneArcs.values())

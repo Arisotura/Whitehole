@@ -37,7 +37,11 @@ AppearPowerStarObj
 Comet
 LuigiModeTimer
 IsHidden
+Hidden
 # TODO: D6C80400
+
+# GalaxyInfo
+WorldNo
 
 # ChangeSceneListInfo
 SceneNo
@@ -91,6 +95,10 @@ ForceLowScenarioName4
 ForceLowScenarioName5
 ForceLowScenarioName6
 ForceLowScenarioName7
+
+# ProductObjMapDataTable
+# ModelName
+ClassName
 
 # ObjNameTable
 en_name
