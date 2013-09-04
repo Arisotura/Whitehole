@@ -316,6 +316,8 @@ public class PathObject
         new Color4(1f, 1f, 0.3f, 1f),
         new Color4(0.3f, 1f, 1f, 1f),
         new Color4(1f, 0.3f, 1f, 1f),
+        new Color4(0.8f, 0.5f, 0.1f, 1f),
+        new Color4(0.9f, 0.4f, 0.7f, 1f),           
     };
     
     public ZoneArchive zone;
