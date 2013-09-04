@@ -106,7 +106,6 @@ public class ObjectModelSubstitutor
             switch (obj.name)
             {
                 case "Patakuri": return new DoubleBmdRenderer(info, "Kuribo", new Vector3(), "PatakuriWing", new Vector3(0f,15f,-25f));               
-                case "PatakuriBig": return new DoubleBmdRenderer(info, "KuriboChief", new Vector3(), "PatakuriWingBig", new Vector3(0f,15f,-25f));               
                 case "Kinopio": 
                 
                 
