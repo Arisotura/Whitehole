@@ -45,7 +45,7 @@ public class StrictThreadGroup extends ThreadGroup
         JOptionPane.showMessageDialog(null, 
                 "An unhandled exception has occured: " + e.getMessage() + "\n"
                 + "Whitehole may be unstable. It is recommended that you close it now. You can try to save your unsaved work before doing so, but at your own risks.\n\n"
-                + "You should report this crash at Kuribo64 ("+Whitehole.websiteURL+"), providing the detailed report found in whiteholeCrash.txt.",
+                + "You should report this crash at Kuribo64 ("+Whitehole.crashReportURL+"), providing the detailed report found in whiteholeCrash.txt.",
                 Whitehole.name, JOptionPane.ERROR_MESSAGE);
 
         try
