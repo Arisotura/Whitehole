@@ -20,7 +20,9 @@ package whitehole.rendering;
 
 import java.io.IOException;
 import whitehole.smg.GravityObject;
+import whitehole.smg.AreaObject;
 import whitehole.smg.LevelObject;
+import whitehole.smg.CameraObject;
 import whitehole.vectors.Color4;
 import whitehole.vectors.Vector3;
 
@@ -31,41 +33,39 @@ public class ObjectModelSubstitutor
         switch (obj.name)
         {
             case "BenefitItemOneUp": return "KinokoOneUp";
-            case "SplashPieceBlock": return "CoinBlock";
-                
-            case "Karikari": return "Karipon";
-                
-            case "JetTurtle": return "Koura";
-                
+            case "SplashPieceBlock": return "CoinBlock";                
+            case "Karikari": return "Karipon";                
+            case "JetTurtle": return "Koura";           
             case "BenefitItemInvincible": return "PowerUpInvincible";                
-            case "BenefitItemLifeUp": return "KinokoLifeUp";              
+            case "BenefitItemLifeUp": return "KinokoLifeUp";               
             case "MorphItemNeoBee": return "PowerUpBee";                
             case "MorphItemNeoFire": return "PowerUpFire";    
             case "MorphItemNeoHopper": return "PowerUpHopper";
-            case "MorphItemNeoIce": return "PowerUpIce";
-            case "MorphItemNeoTeresa": return "PowerUpTeresa";
+            case "MorphItemNeoIce": return "PowerUpIce"; 
+            case "MorphItemNeoTeresa": return "PowerUpTeresa"; 
             case "SpinCloudItem": return "PowerUpCloud";
-            case "MorphItemRock": return "PowerUpRock";
+            case "MorphItemRock": return "PowerUpRock"; 
+            case "MorphItemNeoFoo": return "PowerUpFoo";                
             case "YoshiCapture": return "YCaptureTarget";
             case "WingBlockStarPiece": return "WingBlock";
             case "WingBlockCoin": return "WingBlock";
-            case "HanachanBig": return "HanachanHeadBig";    
+            case "HanachanBig": return "HanachanHeadBig";     
             case "TreasureBoxEmpty": return "TreasureBox";
             case "TreasureBoxKinokoOneUp": return "TreasureBox";    
-            case "TreasureBoxBlueChip": return "TreasureBox";
-            case "TreasureBoxCoin": return "TreasureBox";
-            case "TreasureBoxCrackedAirBubble": return "TreasureBoxCracked";
-            case "TreasureBoxCrackedEmpty": return "TreasureBoxCracked";
-            case "TreasureBoxCrackedKinokoLifeUp": return "TreasureBoxCracked";                
-            case "TreasureBoxCrackedKinokoOneUp": return "TreasureBoxCracked";  
+            case "TreasureBoxBlueChip": return "TreasureBox"; 
+            case "TreasureBoxCoin": return "TreasureBox"; 
+            case "TreasureBoxCrackedAirBubble": return "TreasureBoxCracked"; 
+            case "TreasureBoxCrackedEmpty": return "TreasureBoxCracked"; 
+            case "TreasureBoxCrackedKinokoLifeUp": return "TreasureBoxCracked";                 
+            case "TreasureBoxCrackedKinokoOneUp": return "TreasureBoxCracked";   
             case "TreasureBoxGoldEmpty": return "TreasureBoxGold";                
-            case "TreasureBoxYellowChip": return "TreasureBox";                              
+            case "TreasureBoxYellowChip": return "TreasureBox";                               
             case "GhostPlayer": return "GhostMario";    
-            case "CutBushGroup": return "CutBush";
-                
-            //case "HanachanBig": return "HanachanHeadBig";
+            case "CutBushGroup": return "CutBush"; 
+            case "Rabbit": return "TrickRabbit";
         }
-        //modelname="PeachCastlePlanet";//"CrystalCageL";//"VROrbit";//"CollapsePlane";
+       
+        //modelname="TicoCoin";//"VROrbit";//"CollapsePlane";
         return modelname;
     }
     
@@ -79,7 +79,8 @@ public class ObjectModelSubstitutor
             case "KinopioAstro": objectkey = String.format("object_Kinopio_%1$d", obj.data.get("Obj_arg1")); break;
                 
             case "UFOKinoko": objectkey = String.format("object_UFOKinoko_%1$d", obj.data.get("Obj_arg0")); break;
-                
+                                  
+                    
             case "AstroDome":
             case "AstroDomeEntrance":
             case "AstroDomeSky":
@@ -96,30 +97,53 @@ public class ObjectModelSubstitutor
             if (obj.getClass() == GravityObject.class)
                 return new ColorCubeRenderer(100f, new Color4(1f, 0.5f, 0.5f, 1f), new Color4(0.8f, 0f, 0f, 1f), true);
             
+            if (obj.getClass() == AreaObject.class)
+                return new AreaCubeRenderer(100f, new Color4(1f, 0.5f, 0.5f, 1f), new Color4(0.7f, 0.6f, 0.9f, 0.0f), true);                
+ 
+            if (obj.getClass() == CameraObject.class)
+                return new AreaCubeRenderer(100f, new Color4(0.3f, 0f, 1f, 1f), new Color4(0.8f, 0f, 0f, 1f), true);                
+            
             switch (obj.name)
             {
-                case "Patakuri": return new DoubleBmdRenderer(info, "Kuribo", new Vector3(), "PatakuriWing", new Vector3(0f,15f,-25f));
-                case "PatakuriBig": return new DoubleBmdRenderer(info, "KuriboChief", new Vector3(), "PatakuriWingBig", new Vector3(0f,15f,-25f));
+                case "Patakuri": return new DoubleBmdRenderer(info, "Kuribo", new Vector3(), "PatakuriWing", new Vector3(0f,15f,-25f));               
+                case "PatakuriBig": return new DoubleBmdRenderer(info, "KuriboChief", new Vector3(), "PatakuriWingBig", new Vector3(0f,15f,-25f));               
                 case "Kinopio": 
+                
+                
                 case "KinopioAstro": return new ObjRenderer_Kinopio(info, (int)obj.data.get("Obj_arg1"));
                     
                 case "UFOKinoko": return new ObjRenderer_UFOKinoko(info, (int)obj.data.get("Obj_arg0"));
+                                      
                     
                 case "Pole": return new ObjRenderer_Pole(info, obj.scale);
                     
                 case "FlagKoopaA": return new BtiRenderer(info, "FlagKoopaA", new Vector3(0f,150f,0f), new Vector3(0f,-150f,600f), true);
+              
+                case "FlagPeachCastleA": return new BtiRenderer(info, "FlagPeachCastleA", new Vector3(0f,150f,0f), new  Vector3(0f,-150f,600f), true);     
+                case "FlagPeachCastleB": return new BtiRenderer(info, "FlagPeachCastleB", new Vector3(0f,150f,0f), new  Vector3(0f,-150f,600f), true);
+                case "FlagPeachCastleC": return new BtiRenderer(info, "FlagPeachCastleC", new Vector3(0f,150f,0f), new  Vector3(0f,-150f,600f), true);                    
+                    
                     
                 case "AstroDome":
                 case "AstroDomeEntrance":
                 case "AstroDomeSky":
                 case "AstroStarPlate":
                     return new ObjRenderer_AstroPart(info, obj.name, (int)obj.data.get("Obj_arg0"));
+                                     
+                    
                     
                 case "RedBlueTurnBlock": return new DoubleBmdRenderer(info, "RedBlueTurnBlock", new Vector3(), "RedBlueTurnBlockBase", new Vector3());
+                
+                case "BegomanSpike": return new DoubleBmdRenderer(info, "BegomanSpikeHead", new Vector3(), "BegomanSpike", new Vector3());
+                    
+                case "BegomanSpring": return new DoubleBmdRenderer(info, "BegomanSpringHead", new Vector3(), "BegomanSpike", new Vector3());            
             }
         }
         catch (IOException ex) {}
         
         return null;
+        
+        
+        
     }
 }
