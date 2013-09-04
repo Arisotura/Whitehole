@@ -43,7 +43,7 @@ public class PathObject
         
         displayLists = null;
         
-        data.put("name", String.format("Path #%1$d", index));
+        data.put("name", String.format("未入力%1$d", index));
         data.put("type", "Bezier");
         data.put("closed", "OPEN");
         data.put("num_pnt", 0);
