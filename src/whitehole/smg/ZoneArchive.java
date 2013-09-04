@@ -36,7 +36,7 @@ public class ZoneArchive
         if (filesystem.fileExists("/StageData/" + zoneName + "/" + zoneName + "Map.arc"))
         {
             // SMG2-style zone
-            // * /StageData/<zoneName>/<zoneName>Design.arc -> ???
+            // * /StageData/<zoneName>/<zoneName>Design.arc -> Lighting information
             // * /StageData/<zoneName>/<zoneName>Map.arc -> holds map objects
             // * /StageData/<zoneName>/<zoneName>Sound.arc -> seems to hold sound-related objects
             
@@ -66,14 +66,31 @@ public class ZoneArchive
         // try SMG2-style first, then SMG1
         if (filesystem.fileExists("/StageData/" + zoneName + "/" + zoneName + "Map.arc"))
         {
+            
+                      
             // SMG2-style zone
-            // * /StageData/<zoneName>/<zoneName>Design.arc -> ???
+            // * /StageData/<zoneName>/<zoneName>Design.arc -> Lighting stuff. 
             // * /StageData/<zoneName>/<zoneName>Map.arc -> holds map objects
             // * /StageData/<zoneName>/<zoneName>Sound.arc -> seems to hold sound-related objects
+            // * /StageData/<zonename/<zonename>Demo.arc -> Demo Cutscene stuff. Listed below. 
+            // * /StageData/<zonename/<zonename>Ghost.arc -> Ghost race stuff.            
             
             gameMask = 2;
             zonefile = "/StageData/" + zoneName + "/" + zoneName + "Map.arc";
+                        
+           
         }
+        
+        if (filesystem.fileExists("/StageData/" + zoneName + "/" + zoneName + "Demo.arc"))
+        {
+            
+            // AsdfGalaxyDemo.arc loading system. Nothing too special.
+            
+            gameMask = 2;
+            zonefile = "/StageData/" + zoneName + "/" + zoneName + "Demo.arc";
+                        
+           
+        }        
         else
         {
             // SMG1-style zone
@@ -92,6 +109,16 @@ public class ZoneArchive
         saveObjects("Placement", "ObjInfo");
         saveObjects("Start", "StartInfo");
         saveObjects("Placement", "PlanetObjInfo");
+        saveObjects("Placement", "AreaObjInfo");
+        saveObjects("Placement", "CameraCubeInfo");
+        saveObjects("Placement", "DemoObjInfo");
+        //saveObjects("Placement", "soundinfo");        
+        //saveObjects("childobj", "childobjinfo");        
+        saveObjects("Debug", "DebugMoveInfo");
+        //saveObjects("GeneralPos", "GeneralPosInfo");        
+        //saveObjects("List", "ChangeSceneListInfo");
+        //saveObjects("List", "StageInfo");        
+        
         savePaths();
         
         archive.save();
@@ -114,32 +141,46 @@ public class ZoneArchive
         loadObjects("Placement", "ObjInfo");
         loadObjects("Start", "StartInfo");
         loadObjects("Placement", "PlanetObjInfo");
+        loadObjects("Placement", "AreaObjInfo");
+        loadObjects("Placement", "CameraCubeInfo");  
+        loadObjects("Placement", "DemoObjInfo");
+        //loadObjects("Placement", "soundinfo");  // Make this, and ChildObjInfo load only for SMG1.      
+        loadObjects("Debug", "DebugMoveInfo");
+        //loadObjects("GeneralPos", "GeneralPosInfo"); Breaks. Shit scale.
+        
+        // SMG1 Stuff. TODO: Make it load for game 1 only.
+       
+
         loadPaths();
         loadSubZones();
     }
+
     
     private void loadObjects(String dir, String file)
     {
         List<String> layers = archive.getDirectories("/Stage/Jmp/" + dir);
-        for (String layer : layers)
+        for (String layer : layers) {
             addObjectsToList(dir + "/" + layer + "/" + file);
+        }
     }
     
     private void saveObjects(String dir, String file)
     {
         List<String> layers = archive.getDirectories("/Stage/Jmp/" + dir);
-        for (String layer : layers)
+        for (String layer : layers) {
             saveObjectList(dir + "/" + layer + "/" + file);
+        }
     }
-    
+ 
     private void addObjectsToList(String filepath)
     {
         String[] stuff = filepath.split("/");
         String layer = stuff[1].toLowerCase();
         String file = stuff[2].toLowerCase();
         
-        if (!objects.containsKey(layer))
+        if (!objects.containsKey(layer)) {
             objects.put(layer, new ArrayList<LevelObject>());
+        }
         
         try
         {
@@ -148,24 +189,46 @@ public class ZoneArchive
             switch (file)
             {
                 case "mappartsinfo":
-                    for (Bcsv.Entry entry : bcsv.entries)
-                        objects.get(layer).add(new MapPartObject(this, filepath, entry));
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new MapPartObject(this, filepath, entry));
+            }
                     break;
                     
                 case "objinfo":
-                    for (Bcsv.Entry entry : bcsv.entries)
-                        objects.get(layer).add(new GeneralObject(this, filepath, entry));
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new GeneralObject(this, filepath, entry));
+            }
                     break;
+                
                     
                 case "startinfo":
-                    for (Bcsv.Entry entry : bcsv.entries)
-                        objects.get(layer).add(new StartObject(this, filepath, entry));
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new StartObject(this, filepath, entry));
+            }
                     break;
                     
                 case "planetobjinfo":
-                    for (Bcsv.Entry entry : bcsv.entries)
-                        objects.get(layer).add(new GravityObject(this, filepath, entry));
+                    for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new GravityObject(this, filepath, entry));
+            }
                     break;
+                    
+                case "areaobjinfo":
+                   for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new AreaObject(this, filepath, entry));
+            }
+                    break;
+                    
+                case "cameracubeinfo":
+                   for (Bcsv.Entry entry : bcsv.entries) {
+                objects.get(layer).add(new CameraObject(this, filepath, entry));
+            }
+                    break; 
+                   
+                case "debugmoveinfo":
+                   for (Bcsv.Entry entry : bcsv.entries)
+                        objects.get(layer).add(new DebugObject(this, filepath, entry));
+                    break;                    
             }
             
             bcsv.close();
@@ -210,6 +273,10 @@ public class ZoneArchive
         }
     }
     
+
+   
+   
+    
     private void loadPaths()
     {
         try
@@ -226,11 +293,13 @@ public class ZoneArchive
         }
     }
     
+    
     private void savePaths()
     {
         try
         {
             Bcsv bcsv = new Bcsv(archive.openFile("/Stage/jmp/Path/CommonPathInfo"));
+
             bcsv.entries.clear();
             for (PathObject pobj : paths)
             {

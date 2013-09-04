@@ -139,4 +139,5 @@ public class PathPointObject extends LevelObject
     public Vector3 point1, point2;
     
     public int[] displayLists;
+
 }
