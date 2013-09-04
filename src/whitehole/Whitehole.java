@@ -34,11 +34,12 @@ public class Whitehole
 {
     
     public static final String name = "Whitehole";
-    public static final String version = "v1.1";
+    public static final String version = "v1.2";
     public static String fullName = name + " " + version;
     //public static boolean isBeta = version.contains("beta");
     
     public static final String websiteURL = "http://kuribo64.net/";
+    public static final String crashReportURL = "http://kuribo64.net/?page=thread&id=901";
     
     public static GameArchive game;
     

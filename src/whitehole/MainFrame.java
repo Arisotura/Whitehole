@@ -72,6 +72,7 @@ public class MainFrame extends javax.swing.JFrame {
         jToolBar1.setRollover(true);
 
         btnOpenGame.setText("Select game folder");
+        btnOpenGame.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         btnOpenGame.setFocusable(false);
         btnOpenGame.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnOpenGame.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -237,7 +238,7 @@ public class MainFrame extends javax.swing.JFrame {
             "Main coding: Mega-Mario\n" +
             "Credits: \n" +
             " * Phantom Wings, Treeki, yaz0r, thakis, groepaz/hitmen\n" + 
-            " * Dirbaio for programming help\n" +
+            " * Dirbaio & MrRean for programming help\n" +
             " * NWPlayer123 for design suggestions\n" + 
             "\n" + 
             "See Kuribo64 (" + Whitehole.websiteURL + ") for more details.\n";
@@ -245,7 +246,7 @@ public class MainFrame extends javax.swing.JFrame {
         if (Whitehole.version.toLowerCase().contains("private"))
             msg += "\nThis is a private beta version. Leak it out and this'll be the last one you get.\n";
         else if (Whitehole.version.toLowerCase().contains("beta"))
-            msg += "\nThis is a beta version so don't expect full stability.\n";
+            msg += "\nThis is a beta version, so don't expect full stability.\n";
         
         JOptionPane.showMessageDialog(this, msg, "About " + Whitehole.name + "...", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_btnAboutActionPerformed
