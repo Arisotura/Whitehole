@@ -206,4 +206,18 @@ public class MapPartObject extends LevelObject
         String l = layer.equals("common") ? "Common" : "Layer"+layer.substring(5).toUpperCase();
         return dbInfo.name + " [" + l + "]";
     }
+    
+    /*
+    Seems some have limited values. Need to get a Drop-Down list for these values...
+[1A691A84]=Activation (0=normal, 1=stepped on)
+[D1DFFB8C]=Speed (higher=faster)
+[D0E17418]=Degrees of rotation per stop (higher=more rotation)
+[7217EFBC]=Axis of rotation (0=X, 1=Y, 2=Z)
+[86AC8907]=Smoothness (0=sharp start/end, 1=smooth start/end)
+[4558808A]=Wait time (higher=more wait between rotations)
+[72209755]=Rotation controller (0=stops after rotating, 1=swings back and forth, 2=rotates in one direction)
+[39FCC89A]=??? (2 for FlipTurnMoveStep)
+[6D3E35CD]=Shaking (0=none, 1=shakes before each rotation)
+[4137EDFD]=??? (Seems to be an integer)
+*/
 }
