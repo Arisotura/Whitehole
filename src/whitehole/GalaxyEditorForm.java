@@ -1213,6 +1213,10 @@ public class GalaxyEditorForm extends javax.swing.JFrame
     private void jMenuItemSave1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSave1ActionPerformed
         saveChanges();
     }//GEN-LAST:event_jMenuItemSave1ActionPerformed
+    
+    private void jCloseGalaxyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCloseGalaxyActionPerformed
+        dispose(); 
+    }//GEN-LAST:event_jCloseGalaxyActionPerformed    
 
     
     public void addRerenderTask(String task)
