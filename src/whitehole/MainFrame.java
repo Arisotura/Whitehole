@@ -191,7 +191,7 @@ public class MainFrame extends javax.swing.JFrame {
         }
         catch (IOException ex)
         {
-            lbStatusBar.setText("Failed to open the directory");
+            lbStatusBar.setText("Failed to open the directory"); // SHIT. Bug. Doesn't even appear, when the wrong directory is shown.
             return;
         }
         
