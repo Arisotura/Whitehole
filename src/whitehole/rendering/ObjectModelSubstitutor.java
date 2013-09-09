@@ -63,6 +63,7 @@ public class ObjectModelSubstitutor
             case "GhostPlayer": return "GhostMario";    
             case "CutBushGroup": return "CutBush"; 
             case "Rabbit": return "TrickRabbit";
+            case "ArrowSwitchMulti": return "ArrowSwitch";            
         }
        
         //modelname="TicoCoin";//"VROrbit";//"CollapsePlane";
