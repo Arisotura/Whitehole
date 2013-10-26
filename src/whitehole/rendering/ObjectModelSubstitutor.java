@@ -67,6 +67,7 @@ public class ObjectModelSubstitutor
             case "Horino": return "DrillBullet";
             case "NoteFairy": return "Note";
             case "TimerCoinBlock": return "CoinBlock";
+            case "TeresaWater": return "Teresa";
         }
        
         //modelname="TicoCoin";//"VROrbit";//"CollapsePlane";
