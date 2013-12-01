@@ -68,6 +68,8 @@ public class ObjectModelSubstitutor
             case "NoteFairy": return "Note";
             case "TimerCoinBlock": return "CoinBlock";
             case "TeresaWater": return "Teresa";
+            case "KameckMeramera": return "Kameck";
+            case "KameckKuriboMini": return "Kameck";
         }
        
         //modelname="TicoCoin";//"VROrbit";//"CollapsePlane";
