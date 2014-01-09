@@ -235,7 +235,7 @@ public class MainFrame extends javax.swing.JFrame {
             "If you downloaded " + Whitehole.name + " from a site other than Kuribo64,\n" +
             "we can't guarantee anything as to the package's cleanness.\n" +
             "\n" +
-            "Main coding: Mega-Mario\n" +
+            "Main coding: StapleButter\n" +
             "Credits: \n" +
             " * Phantom Wings, Treeki, yaz0r, thakis, groepaz/hitmen\n" + 
             " * Dirbaio & MrRean for programming help\n" +
