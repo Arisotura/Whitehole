@@ -92,6 +92,7 @@ public class AreaObject extends LevelObject
         data.put("AreaShapeNo", (short)-1);
         data.put("CommonPath_ID", (short)-1);
         data.put("ClippingGroupId", (short)-1);
+        data.put("FollowID", (short)-1);        
         data.put("GroupId", (short)-1);
         data.put("DemoGroupId", (short)-1);
         
@@ -157,6 +158,7 @@ public class AreaObject extends LevelObject
         panel.addField("DemoGroupId", "Demo group ID", "int", null, data.get("DemoGroupId"));
 
         panel.addCategory("obj_misc", "Misc. settings");
+        panel.addField("FollowID", "Follow ID", "int", null, data.get("FollowID"));        
         panel.addField("MapParts_ID", "MapParts_ID", "int", null, data.get("MapParts_ID"));
         panel.addField("Obj_ID", "Obj_ID", "int", null, data.get("Obj_ID"));
     }
