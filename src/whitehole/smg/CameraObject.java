@@ -78,7 +78,6 @@ public class CameraObject extends LevelObject
         data.put("Obj_arg3", -1);      
         
         data.put("SW_APPEAR", -1);
-        data.put("SW_DEAD", -1);
         data.put("SW_A",  -1);
         data.put("SW_B", -1);
         if (game == 2)
@@ -128,7 +127,6 @@ public class CameraObject extends LevelObject
         
         panel.addCategory("obj_eventinfo", "Event IDs");
         panel.addField("SW_APPEAR", "SW_APPEAR", "int", null, data.get("SW_APPEAR"));
-        panel.addField("SW_DEAD", "SW_DEAD", "int", null, data.get("SW_DEAD"));
         panel.addField("SW_A", "SW_A", "int", null, data.get("SW_A"));
         panel.addField("SW_B", "SW_B", "int", null, data.get("SW_B"));
         if (zone.gameMask == 2)
