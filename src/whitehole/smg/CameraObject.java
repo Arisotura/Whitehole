@@ -88,6 +88,7 @@ public class CameraObject extends LevelObject
         
         data.put("l_id", 0);
         data.put("AreaShapeNo", (short)-1);
+        data.put("FollowID", (short)-1);          
         data.put("MapParts_ID", (short)-1);
         data.put("Obj_ID", (short)-1);
 
@@ -140,6 +141,7 @@ public class CameraObject extends LevelObject
         panel.addField("AreaShapeNo", "Area Shape No.", "int", null, data.get("AreaShapeNo"));
 
         panel.addCategory("obj_misc", "Misc. settings");
+        panel.addField("FollowID", "Follow ID", "int", null, data.get("FollowID"));        
         panel.addField("MapParts_ID", "MapParts_ID", "int", null, data.get("MapParts_ID"));
         panel.addField("Obj_ID", "Obj_ID", "int", null, data.get("Obj_ID"));
     }
