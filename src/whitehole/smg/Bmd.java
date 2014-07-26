@@ -112,12 +112,25 @@ public class Bmd
         int a = file.readByte() & 0xFF;
         return new Color4(r / 255f, g / 255f, b / 255f, a / 255f);
     }
+
+    private Color4 readColorValue_RGBX8() throws IOException
+    {
+        int r = file.readByte() & 0xFF;
+        int g = file.readByte() & 0xFF;
+        int b = file.readByte() & 0xFF;
+        file.readByte();
+        return new Color4(r / 255f, g / 255f, b / 255f, 1f);
+    }
     
     private Color4 readColorValue(int type) throws IOException
     {
         switch (type)
         {
-            case 5: return readColorValue_RGBA8();
+            case 1:
+            case 2:
+                return readColorValue_RGBX8();
+            case 5:
+                return readColorValue_RGBA8();
         }
         
         return null;
@@ -228,7 +241,11 @@ public class Bmd
 
                 switch (datatype)
                 {
-                    case 5: arraysize /= 4; break;
+                    case 1:
+                    case 2:
+                    case 5: 
+                        arraysize /= 4;
+                        break;
                     default: throw new IOException(String.format("Bmd: unsupported color DataType %1$d", datatype));
                 }
             }
